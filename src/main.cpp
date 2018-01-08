@@ -19,8 +19,8 @@
 #define VERIFY
 
 std::string COLUMN_FILE_PATH ,  QUERIES_FILE_PATH ;
-extern int64_t  COLUMN_SIZE,BPTREE_ELEMENTSPERNODE;
-int64_t NUM_QUERIES , NUMBER_OF_REPETITIONS;
+extern int64_t  COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
+int64_t NUM_QUERIES , NUMBER_OF_REPETITIONS, NUMBER_OF_COLUMNS;
 
 int64_t range_query_baseline(const std::vector<int64_t>& array, int64_t min_bounds, int64_t max_bounds) {
     int64_t sum = 0;
@@ -95,11 +95,23 @@ void standardCracking(std::vector<double> * standardcrackingtime) {
     free(crackercolumn);
 }
 
-long filterQuery3(IndexEntry *c, int64_t keyL, int64_t keyH,  int64_t from, int64_t to){
-    int64_t i=from, sum=0;
-    for(;i<=to;i++){
-        if(c[i].m_key >= keyL && c[i].m_key < keyH)	 { // filter
-            sum += c[i].m_key;
+//c[i].m_key >= keyL && c[i].m_key < keyH
+long filterQuery3(IndexEntry **c, RangeQuery* queries, size_t query_index, int64_t from, int64_t to){
+    int64_t sum = 0;
+    for (int i = from; i < to; ++i) {
+        bool is_valid = true;
+        int64_t partial_sum = 0;
+        for (int j = 0; j < NUMBER_OF_COLUMNS && is_valid; ++j) {
+            int64_t keyL = queries[j].leftpredicate[query_index];
+            int64_t keyH = queries[j].rightpredicate[query_index];
+            if(!(c[j][i].m_key >= keyL && c[j][i] < keyH)){
+                is_valid = false;
+            }else{
+                partial_sum += c[j][i].m_key;
+            }
+        }
+        if(is_valid){
+            sum += partial_sum;
         }
     }
     return sum;
@@ -107,20 +119,27 @@ long filterQuery3(IndexEntry *c, int64_t keyL, int64_t keyH,  int64_t from, int6
 
 void full_scan(std::vector<double> * fullscantime){
     std::chrono::time_point<std::chrono::system_clock> start, end;
-    RangeQuery rangequeries;
-    loadQueries(&rangequeries,QUERIES_FILE_PATH,NUM_QUERIES);
-    Column c;
-    c.data = std::vector<int64_t>(COLUMN_SIZE);
-    loadcolumn(&c,COLUMN_FILE_PATH,COLUMN_SIZE);
-    IndexEntry *crackercolumn = (IndexEntry *) malloc(COLUMN_SIZE * 2 * sizeof(int64_t));
-    //Creating Cracker Column
-    for (size_t i = 0; i < COLUMN_SIZE; i++) {
-        crackercolumn[i].m_key = c.data[i];
-        crackercolumn[i].m_rowId = i;
+
+    RangeQuery *rangequeries = (RangeQuery *) malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
+    loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
+
+    Column *c = (Column*) malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i) {
+        c[i].data = std::vector<int64_t>(COLUMN_SIZE);
+    }
+    loadcolumn(c,COLUMN_FILE_PATH,COLUMN_SIZE, NUMBER_OF_COLUMNS);
+    IndexEntry **crackercolumns = (IndexEntry **) malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry*));
+    for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j) {
+        crackercolumns[j] = (IndexEntry *) malloc(COLUMN_SIZE * sizeof(IndexEntry));
+        // Already create the cracker column
+        for (size_t i = 0; i < COLUMN_SIZE; ++i) {
+            crackercolumns[j][i].m_key = c[j].data[i];
+            crackercolumns[j][i].m_rowId = i;
+        }
     }
     for(int q=0;q<NUM_QUERIES;q++){
         start = std::chrono::system_clock::now();
-        int64_t sum = filterQuery3(crackercolumn,rangequeries.leftpredicate[q],rangequeries.rightpredicate[q],0,COLUMN_SIZE-1);
+        int64_t sum = filterQuery3(crackercolumns, rangequeries, q, 0, COLUMN_SIZE-1);
         end = std::chrono::system_clock::now();
         fullscantime->at(q) += std::chrono::duration<double>(end - start).count();
 #ifdef VERIFY
@@ -128,7 +147,7 @@ void full_scan(std::vector<double> * fullscantime){
                 if (pass == 0) std::cout << "Query : " << q <<" " <<  pass << "\n";
 #endif
     }
-    free(crackercolumn);
+//    free(crackercolumn);
 
 }
 
@@ -175,12 +194,17 @@ void bptree_bulk_index3(std::vector<double> * fullindex){
 int main(int argc, char** argv) {
     int INDEXING_TYPE;
 
-    if (argc < 6) {
+    if (argc < 7) {
         printf("Missing mandatory parameters\n");
         return -1;
     }
-    COLUMN_FILE_PATH =  argv[1],  QUERIES_FILE_PATH = argv[2];
-    NUM_QUERIES = std::stoi(argv[3]), NUMBER_OF_REPETITIONS =atoi(argv[4]), COLUMN_SIZE = atoi(argv[5]),INDEXING_TYPE= atoi(argv[6]);
+    COLUMN_FILE_PATH =  argv[1];
+    QUERIES_FILE_PATH = argv[2];
+    NUM_QUERIES = std::stoi(argv[3]);
+    NUMBER_OF_REPETITIONS =atoi(argv[4]);
+    COLUMN_SIZE = atoi(argv[5]);
+    INDEXING_TYPE= atoi(argv[6]);
+    NUMBER_OF_COLUMNS = atoi(argv[7]);
     //FULL SCAN
     if (INDEXING_TYPE == 0) {
         std::vector<double> fullscantime(NUM_QUERIES);
