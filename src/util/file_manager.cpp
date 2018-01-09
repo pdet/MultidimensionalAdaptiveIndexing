@@ -12,15 +12,15 @@ void loadQueries(RangeQuery *rangequeries, std::string QUERIES_FILE_PATH, int64_
         printf("Cannot open file.\n");
         return;
     }
+    int64_t *temp_data = (int64_t *) malloc(sizeof(int64_t) * NUM_QUERIES);
     for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i) {
-        int64_t *temp_data = (int64_t *) malloc(sizeof(int64_t) * NUM_QUERIES);
         fread(temp_data, sizeof(int64_t), NUM_QUERIES, f);
-        rangequeries[i].leftpredicate = std::vector<int64_t>(NUM_QUERIES);
+        rangequeries[i].leftpredicate = (int64_t *) malloc(sizeof(int64_t) * NUM_QUERIES);
         for (size_t j = 0; j < NUM_QUERIES; j++) {
             rangequeries[i].leftpredicate[j] = temp_data[j];
         }
         fread(temp_data, sizeof(int64_t), NUM_QUERIES, f);
-        rangequeries[i].rightpredicate = std::vector<int64_t>(NUM_QUERIES);
+        rangequeries[i].rightpredicate = (int64_t *) malloc(sizeof(int64_t) * NUM_QUERIES);
         for (size_t j = 0; j < NUM_QUERIES; j++) {
             rangequeries[i].rightpredicate[j] = temp_data[j];
         }
@@ -35,12 +35,11 @@ void loadcolumn(Column *c,std::string COLUMN_FILE_PATH, int64_t COLUMN_SIZE, int
         printf("Cannot open file.\n");
         return;
     }
+    int64_t *temp_data = (int64_t *) malloc(sizeof(int64_t) * COLUMN_SIZE);
     for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i) {
-        int64_t *temp_data = (int64_t *) malloc(sizeof(int64_t) * COLUMN_SIZE);
         fread(temp_data, sizeof(int64_t), COLUMN_SIZE, f);
-        c[i].data = std::vector<int64_t>(COLUMN_SIZE);
+        c[i].data = (int64_t *) malloc(sizeof(int64_t) * COLUMN_SIZE);
         for (size_t j = 0; j < COLUMN_SIZE; j++) {
-
             c[i].data[j] = temp_data[j];
         }
     }
