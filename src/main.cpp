@@ -22,26 +22,37 @@ std::string COLUMN_FILE_PATH ,  QUERIES_FILE_PATH ;
 extern int64_t  COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
 int64_t NUM_QUERIES , NUMBER_OF_REPETITIONS, NUMBER_OF_COLUMNS;
 
-//int64_t range_query_baseline(const std::vector<int64_t>& array, int64_t min_bounds, int64_t max_bounds) {
-//    int64_t sum = 0;
-//    for(size_t i = 0; i < array.size(); i++) {
-//        if (array[i] >= min_bounds && array[i] < max_bounds) {
-//            sum += array[i];
-//        }
-//    }
-//    return sum;
-//}
-//
-//
-//bool verify_range_query(Column& c, int64_t l, int64_t r, int64_t sum) {
-//    int64_t r1 = range_query_baseline(c.data, l, r);
-//    if (sum != r1) {
-//        fprintf(stderr, "Incorrect Results Expected: %lld  Got: %lld \n", r1, sum);
-//        assert(0);
-//        return false;
-//    }
-//    return true;
-//}
+int64_t range_query_baseline(Column* c, RangeQuery* queries, size_t query_index) {
+    int64_t sum = 0;
+    for (size_t i = 0; i < COLUMN_SIZE; ++i) {
+        bool is_valid = true;
+        int64_t partial_sum = 0;
+        for (size_t j = 0; j < NUMBER_OF_COLUMNS && is_valid; ++j) {
+            int64_t keyL = queries[j].leftpredicate[query_index];
+            int64_t keyH = queries[j].rightpredicate[query_index];
+            if(!(c[j].data[i] >= keyL && c[j].data[i] < keyH)){
+                is_valid = false;
+            }else{
+                partial_sum += c[j].data[i];
+            }
+        }
+        if(is_valid){
+            sum += partial_sum;
+        }
+    }
+    return sum;
+}
+
+
+bool verify_range_query(Column* c, RangeQuery* queries, size_t query_index, int64_t sum) {
+    int64_t r1 = range_query_baseline(c, queries, query_index);
+    if (sum != r1) {
+        fprintf(stderr, "Incorrect Results Expected: %lld  Got: %lld \n", r1, sum);
+        assert(0);
+        return false;
+    }
+    return true;
+}
 
 //int64_t scanQuery(IndexEntry *c, int64_t from, int64_t to){
 //    int64_t  sum = 0;
@@ -95,7 +106,6 @@ int64_t NUM_QUERIES , NUMBER_OF_REPETITIONS, NUMBER_OF_COLUMNS;
 //    free(crackercolumn);
 //}
 
-//c[i].m_key >= keyL && c[i].m_key < keyH
 long filterQuery3(IndexEntry **c, RangeQuery* queries, size_t query_index, int64_t from, int64_t to){
     int64_t sum = 0;
     for (int i = from; i < to; ++i) {
@@ -137,13 +147,13 @@ void full_scan(std::vector<double> * fullscantime){
     }
     for(int q=0;q<NUM_QUERIES;q++){
         start = std::chrono::system_clock::now();
-        int64_t sum = filterQuery3(crackercolumns, rangequeries, q, 0, COLUMN_SIZE-1);
+        int64_t sum = filterQuery3(crackercolumns, rangequeries, q, 0, COLUMN_SIZE);
         end = std::chrono::system_clock::now();
         fullscantime->at(q) += std::chrono::duration<double>(end - start).count();
-//#ifdef VERIFY
-//        bool pass = verify_range_query(c,rangequeries.leftpredicate[q],rangequeries.rightpredicate[q],sum);
-//                if (pass == 0) std::cout << "Query : " << q <<" " <<  pass << "\n";
-//#endif
+#ifdef VERIFY
+        bool pass = verify_range_query(c,rangequeries, q, sum);
+        if (pass == 0) std::cout << "Query : " << q <<" " <<  pass << "\n";
+#endif
     }
     for (int i = 0; i < NUMBER_OF_COLUMNS; ++i) {
         free(crackercolumns[i]);
@@ -234,7 +244,7 @@ int main(int argc, char** argv) {
 //
 ////        FULL INDEX
 //    else if (INDEXING_TYPE == 2){
-//        BPTREE_ELEMENTSPERNODE= atoi(argv[7]);
+//        BPTREE_ELEMENTSPERNODE= atoi(argv[8]);
 //        std::vector<double> fullindex(NUM_QUERIES);
 //
 //        for (int i = 0; i < NUMBER_OF_REPETITIONS; i++){
