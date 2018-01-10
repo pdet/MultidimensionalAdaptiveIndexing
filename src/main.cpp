@@ -223,47 +223,65 @@ void full_scan(std::vector<double> * fullscantime){
     }
     free(crackercolumns);
 }
-//
-//void *fullIndex(IndexEntry *c){
-//    hybrid_radixsort_insert(c, COLUMN_SIZE);
-//    void *I = build_bptree_bulk(c, COLUMN_SIZE);
-//
-//    return I;
-//}
-//
-//void bptree_bulk_index3(std::vector<double> * fullindex){
-//    std::chrono::time_point<std::chrono::system_clock> start, end;
-//    RangeQuery rangequeries;
-//    loadQueries(&rangequeries,QUERIES_FILE_PATH,NUM_QUERIES);
-//    Column c;
-//    c.data = std::vector<int64_t>(COLUMN_SIZE);
-//    loadcolumn(&c,COLUMN_FILE_PATH,COLUMN_SIZE);
-//    IndexEntry *data = (IndexEntry *) malloc(COLUMN_SIZE * 2 * sizeof(int64_t));
-//    for (size_t i = 0; i < COLUMN_SIZE; i++) {
-//        data[i].m_key = c.data[i];
-//        data[i].m_rowId = i;
-//    }
-//    start = std::chrono::system_clock::now();
-//    BulkBPTree* T = (BulkBPTree*) fullIndex(data);
-//    end = std::chrono::system_clock::now();
-//    fullindex->at(0) += std::chrono::duration<double>(end - start).count();
-//    for(int i=0;i<NUM_QUERIES;i++){
-//        // query
-//        start = std::chrono::system_clock::now();
-//        int64_t offset1 = (T)->gte(rangequeries.leftpredicate[i]);
-//        int64_t offset2 = (T)->lt(rangequeries.rightpredicate[i]);
-//        int64_t sum = scanQuery(data, offset1, offset2);
-//        end = std::chrono::system_clock::now();
-//        fullindex->at(i) += std::chrono::duration<double>(end - start).count();
-//#ifdef VERIFY
-//        bool pass = verify_range_query(c,rangequeries.leftpredicate[i],rangequeries.rightpredicate[i],sum);
-//            if (pass == 0) std::cout << "Query : " << i <<" " <<  pass << "\n";
-//#endif
-//
-//    }
-//    free(data);
-//    free(T);
-//}
+
+void *fullIndex(IndexEntry *c){
+    hybrid_radixsort_insert(c, COLUMN_SIZE);
+    void *I = build_bptree_bulk(c, COLUMN_SIZE);
+
+    return I;
+}
+
+void bptree_bulk_index3(std::vector<double> * fullindex){
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    Column *c = (Column*) malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
+    loadcolumn(c,COLUMN_FILE_PATH,COLUMN_SIZE, NUMBER_OF_COLUMNS);
+
+    RangeQuery *rangequeries = (RangeQuery *) malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
+    loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
+
+    IndexEntry **crackercolumns = (IndexEntry **) malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry*));
+    for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j) {
+        crackercolumns[j] = (IndexEntry *) malloc(COLUMN_SIZE * sizeof(IndexEntry));
+        // Already create the cracker column
+        for (size_t i = 0; i < COLUMN_SIZE; ++i) {
+            crackercolumns[j][i].m_key = c[j].data[i];
+            crackercolumns[j][i].m_rowId = i;
+        }
+    }
+
+    start = std::chrono::system_clock::now();
+    BulkBPTree** T = (BulkBPTree **) malloc(sizeof(BulkBPTree *) * NUMBER_OF_COLUMNS);
+    for (size_t k = 0; k < NUMBER_OF_COLUMNS; ++k) {
+        T[k] = (BulkBPTree*) fullIndex(crackercolumns[k]);
+    }
+    end = std::chrono::system_clock::now();
+    fullindex->at(0) += std::chrono::duration<double>(end - start).count();
+
+    for(int i=0;i<NUM_QUERIES;i++){
+        // query
+        start = std::chrono::system_clock::now();
+        std::vector<std::vector<IndexEntry>> partial_results (NUMBER_OF_COLUMNS);
+        for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j) {
+            int64_t offset1 = (T[j])->gte(rangequeries[j].leftpredicate[i]);
+            int64_t offset2 = (T[j])->lt(rangequeries[j].rightpredicate[i]);
+            partial_results[j] = scanQuery(crackercolumns[j], offset1, offset2);
+        }
+        int64_t sum = join_results(partial_results);
+        end = std::chrono::system_clock::now();
+        fullindex->at(i) += std::chrono::duration<double>(end - start).count();
+#ifdef VERIFY
+        bool pass = verify_range_query(c,rangequeries, i, sum);
+        if (pass == 0) std::cout << "Query : " << i <<" " <<  pass << "\n";
+#endif
+
+    }
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i) {
+        free(crackercolumns[i]);
+        free(T[i]);
+    }
+    free(crackercolumns);
+    free(T);
+}
 int main(int argc, char** argv) {
     int INDEXING_TYPE;
 
@@ -304,23 +322,23 @@ int main(int argc, char** argv) {
             std::cout  << standardcracking[q] << "\n";
         }
     }
-//
-////        FULL INDEX
-//    else if (INDEXING_TYPE == 2){
-//        BPTREE_ELEMENTSPERNODE= atoi(argv[8]);
-//        std::vector<double> fullindex(NUM_QUERIES);
-//
-//        for (int i = 0; i < NUMBER_OF_REPETITIONS; i++){
-//            fprintf(stderr, "Repetition #%d\n", i);
-//            bptree_bulk_index3(&fullindex);
-//        }
-//
-//        for (int q = 0; q < NUM_QUERIES; q++) {
-//            fullindex[q] = fullindex[q]/NUMBER_OF_REPETITIONS;
-//            std::cout  << fullindex[q] << "\n";
-//
-//        }
-//    }
+
+//        FULL INDEX
+    else if (INDEXING_TYPE == 2){
+        BPTREE_ELEMENTSPERNODE= atoi(argv[8]);
+        std::vector<double> fullindex(NUM_QUERIES);
+
+        for (int i = 0; i < NUMBER_OF_REPETITIONS; i++){
+            fprintf(stderr, "Repetition #%d\n", i);
+            bptree_bulk_index3(&fullindex);
+        }
+
+        for (int q = 0; q < NUM_QUERIES; q++) {
+            fullindex[q] = fullindex[q]/NUMBER_OF_REPETITIONS;
+            std::cout  << fullindex[q] << "\n";
+
+        }
+    }
 
 
 }
