@@ -8,8 +8,8 @@
 #include "structs.h"
 
 
-void loadQueries(RangeQuery *rangequeries,std::string QUERIES_FILE_PATH, int64_t NUM_QUERIES);
-void loadcolumn(Column *c,std::string COLUMN_FILE_PATH, int64_t COLUMN_SIZE);
+void loadQueries(RangeQuery *rangequeries,std::string QUERIES_FILE_PATH, int64_t NUM_QUERIES, int64_t NUMBER_OF_COLUMNSs);
+void loadcolumn(Column *c,std::string COLUMN_FILE_PATH, int64_t COLUMN_SIZE, int64_t NUMBER_OF_COLUMNS);
 
 
 #endif //LIGHTWEIGHTADAPTIVEINDEXING_FILEMANAGER_H

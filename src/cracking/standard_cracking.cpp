@@ -69,7 +69,7 @@ IntPair crackInThreeItemWise(IndexEntry *c, int64_t posL, int64_t posH, int64_t 
 }
 
 
-AvlTree standardCracking(IndexEntry*& c, int dataSize, AvlTree T, int lowKey, int highKey){
+AvlTree standardCracking(IndexEntry* c, int dataSize, AvlTree T, int lowKey, int highKey){
     IntPair p1,p2;
 
     p1 = FindNeighborsLT(lowKey, T, dataSize-1);

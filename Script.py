@@ -12,13 +12,14 @@ FULL_INDEX = 2
 
 
 #Select Experiments to run
-experiments = [FULL_SCAN,STANDARD_CRACKING,FULL_INDEX]
+experiments = [FULL_SCAN, STANDARD_CRACKING, FULL_INDEX]
 #Main Configurations
 COLUMN_FILE_PATH = "./column.txt"
 QUERIES_FILE_PATH = "./query.txt"
 NUM_QUERIES =  '1000'
 NUMBER_OF_REPETITIONS ='5'
 COLUMN_SIZE = '100000000'
+NUMBER_OF_COLUMNS = '5'
 
 SELECTIVITY_PERCENTAGE = "0.2"
 ONE_SIDED_PERCENTAGE = '0.0' # Not really using this
@@ -51,27 +52,27 @@ if os.system('make') != 0:
 print("Generating Data")
 if os.system("./gendata" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + SELECTIVITY_PERCENTAGE
                      + " " + ONE_SIDED_PERCENTAGE + " " + ZIPF_ALPHA + " " + NUM_QUERIES + " " + COLUMN_SIZE + " " + UPPERBOUND
-                     + " " + str(QUERIES_PATTERN) + " " + str(COLUMN_PATTERN)  ) != 0:
+                     + " " + str(QUERIES_PATTERN) + " " + str(COLUMN_PATTERN) + " " + str(NUMBER_OF_COLUMNS)  ) != 0:
     print("Generating Data Failed")
     exit()
 
 if FULL_SCAN in experiments:
     print("Running Full Scan")
     if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                         + " " + NUMBER_OF_REPETITIONS + " " + COLUMN_SIZE + " " + str(FULL_SCAN) + " >> "+ PATH + "fs.txt" ) != 0:
+                         + " " + NUMBER_OF_REPETITIONS + " " + COLUMN_SIZE + " " + str(FULL_SCAN) + " " + str(NUMBER_OF_COLUMNS) + " >> "+ PATH + "fs.txt" ) != 0:
         print("Running Failed")
         exit()
 
 if STANDARD_CRACKING in experiments:
     print("Running Standard Cracking")
     if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                         + " " + NUMBER_OF_REPETITIONS + " " + COLUMN_SIZE + " " + str(STANDARD_CRACKING) + " >> "+ PATH + "std.txt" ) != 0:
+                         + " " + NUMBER_OF_REPETITIONS + " " + COLUMN_SIZE + " " + str(STANDARD_CRACKING) + " "+ str(NUMBER_OF_COLUMNS) + " >> "+ PATH + "std.txt" ) != 0:
         print("Running Failed")
         exit()
 
 if FULL_INDEX in experiments:
     print("Running Full Index")
     if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                         + " " + NUMBER_OF_REPETITIONS + " " + COLUMN_SIZE + " " + str(FULL_INDEX) + " " + BPTREE_ELEMENTSPERNODE +" >> "+ PATH + "fi.txt" ) != 0:
+                         + " " + NUMBER_OF_REPETITIONS + " " + COLUMN_SIZE + " " + str(FULL_INDEX) + " " + str(NUMBER_OF_COLUMNS) + " " + BPTREE_ELEMENTSPERNODE +" >> "+ PATH + "fi.txt" ) != 0:
         print("Running Failed")
         exit()

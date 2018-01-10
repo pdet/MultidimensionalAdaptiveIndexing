@@ -241,12 +241,10 @@ void skewedColumn(std::vector<int64_t> *column,int64_t COLUMN_SIZE, int64_t UPPE
 
 
 
-std::vector<int64_t> generateColumn(int64_t COLUMN_SIZE, int64_t UPPERBOUND, std::string COLUMN_FILE_PATH,
-                                    int64_t DATA_COLUMN_PATTERN,double ZIPF_ALPHA) {
+std::vector<int64_t> generateColumn(int64_t COLUMN_SIZE, int64_t UPPERBOUND,
+                                    int64_t DATA_COLUMN_PATTERN,double ZIPF_ALPHA, std::string COLUMN_FILE_PATH) {
     std::chrono::time_point<std::chrono::system_clock> start, end;
     std::chrono::duration<double> elapsed_seconds;
-
-    FILE* f = fopen(COLUMN_FILE_PATH.c_str(), "w+");
 
     start = std::chrono::system_clock::now();
     std::vector<int64_t> data;
@@ -255,9 +253,10 @@ std::vector<int64_t> generateColumn(int64_t COLUMN_SIZE, int64_t UPPERBOUND, std
     else if(DATA_COLUMN_PATTERN == 3)
         skewedColumn(&data, COLUMN_SIZE,  UPPERBOUND,ZIPF_ALPHA);
     end = std::chrono::system_clock::now();
+    elapsed_seconds = end-start;
+    FILE* f = fopen(COLUMN_FILE_PATH.c_str(), "a+");
     fwrite(&data[0], sizeof(int64_t), COLUMN_SIZE, f);
     fclose(f);
-    elapsed_seconds = end-start;
     std::cout << "Creating column data: " << elapsed_seconds.count() << "s\n";
     return data;
 }
@@ -279,12 +278,19 @@ void verifySelectivity(std::vector<int64_t> *c,std::vector<int64_t> *l,std::vect
 
 
 }
-void generateQuery(int64_t NUM_QUERIES, int64_t UPPERBOUND, std::string QUERIES_FILE_PATH,
-                   int64_t QUERY_PATTERN,double SELECTIVITY_PERCENTAGE,double ONE_SIDED_PERCENTAGE, double ZIPF_ALPHA, std::vector<int64_t> *orderedColumn) {
+void generateQuery(int64_t NUM_QUERIES,
+                   int64_t UPPERBOUND,
+                   int64_t QUERY_PATTERN,
+                   double SELECTIVITY_PERCENTAGE,
+                   double ONE_SIDED_PERCENTAGE,
+                   double ZIPF_ALPHA,
+                   std::vector<int64_t> *orderedColumn,
+                   std::string QUERIES_FILE_PATH) {
+    std::sort(orderedColumn->begin(), orderedColumn->end());
     std::chrono::time_point<std::chrono::system_clock> start, end;
     std::chrono::duration<double> elapsed_seconds;
 
-    FILE* f = fopen(QUERIES_FILE_PATH.c_str(), "w+");
+    FILE* f = fopen(QUERIES_FILE_PATH.c_str(), "a+");
     std::vector<int64_t> leftQuery;
     std::vector<int64_t> rightQuery;
     int64_t maxLeftQueryVal = 0;
@@ -313,22 +319,38 @@ void generateQuery(int64_t NUM_QUERIES, int64_t UPPERBOUND, std::string QUERIES_
     elapsed_seconds = end-start;
 
     std::cout << "Creating Query Attr: " << elapsed_seconds.count() << "s\n";
-
 }
 
 
+void truncate(std::string file_path) {
+    FILE* f = fopen(file_path.c_str(), "w+");
+    fclose(f);
+}
+
 
 int main(int argc, char** argv) {
-    if (argc < 9) {
+    if (argc < 10) {
         printf("Missing mandatory parameters\n");
         return -1;
     }
-    std::string COLUMN_FILE_PATH =  argv[1],  QUERIES_FILE_PATH = argv[2];
-    double SELECTIVITY_PERCENTAGE = std::atof(argv[3]),ONE_SIDED_PERCENTAGE = std::atof(argv[4]),ZIPF_ALPHA = std::atof(argv[5]);
-    int64_t NUM_QUERIES = std::stoi(argv[6]), COLUMN_SIZE = atoi(argv[7]),UPPERBOUND= atoi(argv[8]), QUERIES_PATTERN = atoi(argv[9]), COLUMN_PATTERN = atoi(argv[10]);
-    std::vector<int64_t> orderedColumn;
-    orderedColumn = generateColumn(COLUMN_SIZE,UPPERBOUND,COLUMN_FILE_PATH,COLUMN_PATTERN,ZIPF_ALPHA);
-    std::sort(orderedColumn.begin(), orderedColumn.end());
-    generateQuery(NUM_QUERIES,UPPERBOUND,QUERIES_FILE_PATH,QUERIES_PATTERN,SELECTIVITY_PERCENTAGE,ONE_SIDED_PERCENTAGE,ZIPF_ALPHA, &orderedColumn);
+    std::string COLUMN_FILE_PATH =  argv[1];
+    std::string QUERIES_FILE_PATH = argv[2];
+    double SELECTIVITY_PERCENTAGE = std::atof(argv[3]);
+    double ONE_SIDED_PERCENTAGE = std::atof(argv[4]);
+    double ZIPF_ALPHA = std::atof(argv[5]);
+    int64_t NUM_QUERIES = std::stoi(argv[6]);
+    int64_t COLUMN_SIZE = atoi(argv[7]);
+    int64_t UPPERBOUND = atoi(argv[8]);
+    int64_t QUERIES_PATTERN = atoi(argv[9]);
+    int64_t COLUMN_PATTERN = atoi(argv[10]);
+    ino64_t NUMBER_OF_COLUMNS = atoi(argv[11]);
 
+    truncate(COLUMN_FILE_PATH);
+    truncate(QUERIES_FILE_PATH);
+
+    std::vector<int64_t> orderedColumn;
+    for (int i = 0; i < NUMBER_OF_COLUMNS; ++i) {
+        orderedColumn = generateColumn(COLUMN_SIZE,UPPERBOUND,COLUMN_PATTERN,ZIPF_ALPHA, COLUMN_FILE_PATH);
+        generateQuery(NUM_QUERIES,UPPERBOUND,QUERIES_PATTERN,SELECTIVITY_PERCENTAGE,ONE_SIDED_PERCENTAGE,ZIPF_ALPHA, &orderedColumn, QUERIES_FILE_PATH);
+    }
 }

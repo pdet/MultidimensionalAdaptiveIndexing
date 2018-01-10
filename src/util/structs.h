@@ -9,12 +9,12 @@
 #include <algorithm>
 
 struct RangeQuery {
-    std::vector<int64_t> leftpredicate;
-    std::vector<int64_t> rightpredicate;
+    int64_t *leftpredicate;
+    int64_t *rightpredicate;
 };
 
 struct Column {
-    std::vector<int64_t> data;
+    int64_t *data;
 };
 
 #endif //MULTIDEMIONSIONALINDEXING_STRUCTS_H
