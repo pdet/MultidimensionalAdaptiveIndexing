@@ -24,7 +24,7 @@ int64_t NUM_QUERIES , NUMBER_OF_REPETITIONS, NUMBER_OF_COLUMNS;
 
 int64_t range_query_baseline(Column* c, RangeQuery* queries, size_t query_index) {
     int64_t sum = 0;
-    for (size_t i = 0; i < COLUMN_SIZE; ++i) {
+    for (size_t i = 0; i <= COLUMN_SIZE-1; ++i) {
         bool is_valid = true;
         int64_t partial_sum = 0;
         for (size_t j = 0; j < NUMBER_OF_COLUMNS && is_valid; ++j) {
@@ -55,11 +55,10 @@ bool verify_range_query(Column* c, RangeQuery* queries, size_t query_index, int6
 }
 
 std::vector<IndexEntry> scanQuery(IndexEntry *c, int64_t from, int64_t to){
-    std::vector<IndexEntry> result (to - from);
-    fprintf(stderr, "%d, %d, %d\n", to, from, result.size());
+    std::vector<IndexEntry> result (to - from + 1);
     for(size_t i = from;i<=to;i++) {
-        result[i-from].m_key = c[i].m_key;
-        result[i-from].m_rowId = c[i].m_rowId;
+        result.at(i-from).m_key = c[i].m_key;
+        result.at(i-from).m_rowId = c[i].m_rowId;
     }
 
     return result;
@@ -88,14 +87,13 @@ int64_t join_results(std::vector<std::vector<IndexEntry>> partials){
     // Find the resulting rows and sum them
     for (size_t k = 0; k < intersection.size(); ++k) {
         int64_t id = intersection[k];
-        for (size_t i = 1; i < partials.size(); ++i) {
+        for (size_t i = 0; i < partials.size(); ++i) {
             for (size_t j = 0; j < partials[i].size(); ++j){
                 if(id == partials[i][j].m_rowId){
                     sum += partials[i][j].m_key;
                 }
             }
         }
-
     }
     return sum;
 }
@@ -103,13 +101,13 @@ int64_t join_results(std::vector<std::vector<IndexEntry>> partials){
 void standardCracking(std::vector<double> * standardcrackingtime) {
     std::chrono::time_point<std::chrono::system_clock> start, end;
     std::chrono::duration<double> elapsed_seconds;
-    fprintf(stderr, "Column\n");
+
     Column *c = (Column*) malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
     loadcolumn(c,COLUMN_FILE_PATH,COLUMN_SIZE, NUMBER_OF_COLUMNS);
-    fprintf(stderr, "Query\n");
+
     RangeQuery *rangequeries = (RangeQuery *) malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
     loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
-    fprintf(stderr, "Index\n");
+
     start = std::chrono::system_clock::now();
     IndexEntry **crackercolumns = (IndexEntry **) malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry*));
     for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j) {
@@ -128,13 +126,13 @@ void standardCracking(std::vector<double> * standardcrackingtime) {
     end = std::chrono::system_clock::now();
     standardcrackingtime->at(0) +=   std::chrono::duration<double>(end - start).count();
 
-    fprintf(stderr, "Doing queries\n");
+
     for (size_t i = 0; i < NUM_QUERIES; i++) {
         start = std::chrono::system_clock::now();
         std::vector<std::vector<IndexEntry>> partial_results (NUMBER_OF_COLUMNS);
         for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j) {
             //Partitioning Column and Inserting in Cracker Indexing
-            fprintf(stderr, "StdCracking\n");
+
             T[j] = standardCracking(
                     crackercolumns[j],
                     COLUMN_SIZE,
@@ -144,14 +142,14 @@ void standardCracking(std::vector<double> * standardcrackingtime) {
             );
 
             //Querying
-            fprintf(stderr, "Neighbors\n");
+
             IntPair p1 = FindNeighborsGTE(rangequeries[j].leftpredicate[i], T[j], COLUMN_SIZE-1);
             IntPair p2 = FindNeighborsLT(rangequeries[j].rightpredicate[i], T[j], COLUMN_SIZE-1);
             int offset1 = p1->first;
             int offset2 = p2->second;
             free(p1);
             free(p2);
-            fprintf(stderr, "Scan Query\n");
+
             partial_results[j] = scanQuery(crackercolumns[j], offset1, offset2);
         }
         // Join the partial results and get sum
@@ -173,13 +171,13 @@ void standardCracking(std::vector<double> * standardcrackingtime) {
 
 long filterQuery3(IndexEntry **c, RangeQuery* queries, size_t query_index, int64_t from, int64_t to){
     int64_t sum = 0;
-    for (size_t i = from; i < to; ++i) {
+    for (size_t i = from; i <= to; ++i) {
         bool is_valid = true;
         int64_t partial_sum = 0;
         for (size_t j = 0; j < NUMBER_OF_COLUMNS && is_valid; ++j) {
             int64_t keyL = queries[j].leftpredicate[query_index];
             int64_t keyH = queries[j].rightpredicate[query_index];
-            if(!(c[j][i].m_key >= keyL && c[j][i] < keyH)){
+            if(!(c[j][i].m_key >= keyL && c[j][i].m_key < keyH)){
                 is_valid = false;
             }else{
                 partial_sum += c[j][i].m_key;
@@ -290,7 +288,7 @@ int main(int argc, char** argv) {
 
         for (int q = 0; q < NUM_QUERIES; q++) {
             fullscantime[q] = fullscantime[q]/NUMBER_OF_REPETITIONS;
-            fprintf(stderr, "%d\n", fullscantime[q]);
+            std::cout  << fullscantime[q] << "\n";
         }
     }
 ////        STANDARD CRACKING
