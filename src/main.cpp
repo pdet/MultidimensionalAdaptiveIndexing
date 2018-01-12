@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <cassert>
 #include <cmath>
+#include <map>
 #include <string>
 
 #include "fullindex/bulkloading_bp_tree.h"
@@ -66,27 +67,28 @@ std::vector<IndexEntry> scanQuery(IndexEntry *c, int64_t from, int64_t to){
 
 int64_t join_results(std::vector<std::vector<IndexEntry>> partials){
     int64_t sum = 0;
-    std::vector<int64_t> intersection (partials[0].size());
+    std::multimap<int64_t, bool> intersection;
     // Copy the first partial IDs
-    for (size_t j = 0; j < intersection.size(); ++j) {
-        intersection[j] = partials[0][j].m_rowId;
+    for (size_t j = 0; j < partials[0].size(); ++j) {
+        intersection.insert(std::make_pair(partials[0][j].m_rowId, true));
     }
 
     for (size_t i = 1; i < partials.size(); ++i) {
-        std::vector<int64_t> tmp_intersection;
+        std::multimap<int64_t, bool> tmp_intersection;
         for (size_t j = 0; j < partials[i].size(); ++j) {
             int64_t id = partials[i][j].m_rowId;
             // Check if id is inside intersection
-            if(std::find(intersection.begin(), intersection.end(), id) != intersection.end()){
-                tmp_intersection.push_back(id);
+            if(intersection.find(id) != intersection.end()){
+                tmp_intersection.insert(std::make_pair(id, true));
             }
         }
         intersection = tmp_intersection;
     }
 
     // Find the resulting rows and sum them
-    for (size_t k = 0; k < intersection.size(); ++k) {
-        int64_t id = intersection[k];
+    std::multimap<int64_t, bool>::iterator it;
+    for (it = intersection.begin(); it != intersection.end(); it++) {
+        int64_t id = it->first;
         for (size_t i = 0; i < partials.size(); ++i) {
             for (size_t j = 0; j < partials[i].size(); ++j){
                 if(id == partials[i][j].m_rowId){
