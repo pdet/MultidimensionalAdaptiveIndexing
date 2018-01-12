@@ -65,8 +65,7 @@ std::vector<IndexEntry> scanQuery(IndexEntry *c, int64_t from, int64_t to){
     return result;
 }
 
-int64_t join_results(std::vector<std::vector<IndexEntry>> partials){
-    int64_t sum = 0;
+std::multimap<int64_t, bool> join_results(std::vector<std::vector<IndexEntry>> partials){
     std::multimap<int64_t, bool> intersection;
     // Copy the first partial IDs
     for (size_t j = 0; j < partials[0].size(); ++j) {
@@ -85,9 +84,14 @@ int64_t join_results(std::vector<std::vector<IndexEntry>> partials){
         intersection = tmp_intersection;
     }
 
+    return intersection;
+}
+
+int64_t sum_result(std::multimap<int64_t, bool> result, std::vector<std::vector<IndexEntry>> partials){
     // Find the resulting rows and sum them
+    int64_t sum = 0;
     std::multimap<int64_t, bool>::iterator it;
-    for (it = intersection.begin(); it != intersection.end(); it++) {
+    for (it = result.begin(); it != result.end(); it++) {
         int64_t id = it->first;
         for (size_t i = 0; i < partials.size(); ++i) {
             for (size_t j = 0; j < partials[i].size(); ++j){
@@ -154,13 +158,14 @@ void standardCracking(std::vector<double> * standardcrackingtime) {
 
             partial_results[j] = scanQuery(crackercolumns[j], offset1, offset2);
         }
-        // Join the partial results and get sum
-        int64_t sum = join_results(partial_results);
+        // Join the partial results
+        std::multimap<int64_t, bool> result = join_results(partial_results);
 
         end = std::chrono::system_clock::now();
         standardcrackingtime->at(i) += std::chrono::duration<double>(end - start).count();
 
 #ifdef VERIFY
+        int64_t sum = sum_result(result, partial_results);
         bool pass = verify_range_query(c,rangequeries, i, sum);
         if (pass == 0) std::cout << "Query : " << i <<" " <<  pass << "\n";
 #endif
@@ -268,10 +273,12 @@ void bptree_bulk_index3(std::vector<double> * fullindex){
             int64_t offset2 = (T[j])->lt(rangequeries[j].rightpredicate[i]);
             partial_results[j] = scanQuery(crackercolumns[j], offset1, offset2);
         }
-        int64_t sum = join_results(partial_results);
+        std::multimap<int64_t, bool> result = join_results(partial_results);
         end = std::chrono::system_clock::now();
         fullindex->at(i) += std::chrono::duration<double>(end - start).count();
+
 #ifdef VERIFY
+        int64_t sum = sum_result(result, partial_results);
         bool pass = verify_range_query(c,rangequeries, i, sum);
         if (pass == 0) std::cout << "Query : " << i <<" " <<  pass << "\n";
 #endif
