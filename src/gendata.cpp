@@ -15,10 +15,10 @@
 
 int64_t applySelectivity(int64_t leftQuery,double SELECTIVITY_PERCENTAGE, std::vector<int64_t> *c){
     int64_t selec = 0;
+    double aux = c->size()*SELECTIVITY_PERCENTAGE;
     for (size_t i = 0; i < c->size(); i++) {
         if (c->at(i) >= leftQuery)
             selec++;
-        double aux = c->size()*SELECTIVITY_PERCENTAGE;
         if (selec >= aux){
             selec = i;
             break;
@@ -248,7 +248,7 @@ std::vector<int64_t> generateColumn(int64_t COLUMN_SIZE, int64_t UPPERBOUND,
 
     start = std::chrono::system_clock::now();
     std::vector<int64_t> data;
-    if(DATA_COLUMN_PATTERN == 1)
+    if(DATA_COLUMN_PATTERN == 1 || DATA_COLUMN_PATTERN == 2)
         randomData(&data, COLUMN_SIZE,  UPPERBOUND);
     else if(DATA_COLUMN_PATTERN == 3)
         skewedColumn(&data, COLUMN_SIZE,  UPPERBOUND,ZIPF_ALPHA);
