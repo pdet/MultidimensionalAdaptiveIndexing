@@ -17,7 +17,7 @@
 #include "fullindex/hybrid_radix_insert_sort.h"
 #include "util/structs.h"
 
-#define VERIFY
+//#define VERIFY
 
 std::string COLUMN_FILE_PATH ,  QUERIES_FILE_PATH ;
 extern int64_t  COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
@@ -176,25 +176,16 @@ void standardCracking(std::vector<double> * standardcrackingtime) {
     free(crackercolumns);
 }
 
-long filterQuery3(IndexEntry **c, RangeQuery* queries, size_t query_index, int64_t from, int64_t to){
-    int64_t sum = 0;
+std::vector<IndexEntry> filterQuery3(IndexEntry *c, RangeQuery queries, size_t query_index, int64_t from, int64_t to){
+    std::vector<IndexEntry> results;
     for (size_t i = from; i <= to; ++i) {
-        bool is_valid = true;
-        int64_t partial_sum = 0;
-        for (size_t j = 0; j < NUMBER_OF_COLUMNS && is_valid; ++j) {
-            int64_t keyL = queries[j].leftpredicate[query_index];
-            int64_t keyH = queries[j].rightpredicate[query_index];
-            if(!(c[j][i].m_key >= keyL && c[j][i].m_key < keyH)){
-                is_valid = false;
-            }else{
-                partial_sum += c[j][i].m_key;
-            }
-        }
-        if(is_valid){
-            sum += partial_sum;
+        int64_t keyL = queries.leftpredicate[query_index];
+        int64_t keyH = queries.rightpredicate[query_index];
+        if(c[i].m_key >= keyL && c[i].m_key < keyH){
+            results.push_back(IndexEntry(c[i].m_key, c[i].m_rowId));
         }
     }
-    return sum;
+    return results;
 }
 
 void full_scan(std::vector<double> * fullscantime){
@@ -217,12 +208,19 @@ void full_scan(std::vector<double> * fullscantime){
     }
     for(size_t q=0;q<NUM_QUERIES;q++){
         start = std::chrono::system_clock::now();
-        int64_t sum = filterQuery3(crackercolumns, rangequeries, q, 0, COLUMN_SIZE-1);
+        std::vector<std::vector<IndexEntry>> partial_results (NUMBER_OF_COLUMNS);
+        for (int i = 0; i < NUMBER_OF_COLUMNS; ++i) {
+            partial_results[i] = filterQuery3(crackercolumns[i], rangequeries[i], q, 0, COLUMN_SIZE-1);
+        }
+        // Join the partial results
+        std::multimap<int64_t, bool> result = join_results(partial_results);
+
         end = std::chrono::system_clock::now();
         fullscantime->at(q) += std::chrono::duration<double>(end - start).count();
 #ifdef VERIFY
-        bool pass = verify_range_query(c,rangequeries, q, sum);
-        if (pass == 0) std::cout << "Query : " << q <<" " <<  pass << "\n";
+        int64_t sum = sum_result(result, partial_results);
+        bool pass = verify_range_query(c,rangequeries, i, sum);
+        if (pass == 0) std::cout << "Query : " << i <<" " <<  pass << "\n";
 #endif
     }
     for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i) {
