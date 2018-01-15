@@ -2,7 +2,7 @@ import os
 
 #Setting Values For Distributions
 RANDOM = 1
-SEQUENTIAL = 2
+SEQUENTIAL = 2 # Sequential only works for queries
 SKEWED = 3
 
 #Setting Values For Algorithms
@@ -18,7 +18,7 @@ COLUMN_FILE_PATH = "./column.txt"
 QUERIES_FILE_PATH = "./query.txt"
 NUM_QUERIES =  '1000'
 NUMBER_OF_REPETITIONS ='5'
-COLUMN_SIZE = '100000000'
+COLUMN_SIZE = '10000'
 NUMBER_OF_COLUMNS = '5'
 
 SELECTIVITY_PERCENTAGE = "0.2"
@@ -55,6 +55,7 @@ if os.system("./gendata" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " 
                      + " " + str(QUERIES_PATTERN) + " " + str(COLUMN_PATTERN) + " " + str(NUMBER_OF_COLUMNS)  ) != 0:
     print("Generating Data Failed")
     exit()
+
 
 if FULL_SCAN in experiments:
     print("Running Full Scan")

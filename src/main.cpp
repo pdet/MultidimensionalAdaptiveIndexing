@@ -12,6 +12,7 @@
 
 #include "fullindex/bulkloading_bp_tree.h"
 #include "cracking/avl_tree.h"
+#include "cracking/kd_tree.h"
 #include "cracking/standard_cracking.h"
 #include "util/file_manager.h"
 #include "fullindex/hybrid_radix_insert_sort.h"
@@ -289,6 +290,34 @@ void bptree_bulk_index3(std::vector<double> * fullindex){
     free(crackercolumns);
     free(T);
 }
+
+
+void kdtree_cracking(std::vector<double> *response_times) {
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    Column *c = (Column*) malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
+    loadcolumn(c,COLUMN_FILE_PATH,COLUMN_SIZE, NUMBER_OF_COLUMNS);
+
+    RangeQuery *rangequeries = (RangeQuery *) malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
+    loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
+
+
+//    Copy table contents to Index
+    KDTree index = (KDTree) malloc(sizeof(KDNode));
+//    Row *rows = (Row *) malloc(sizeof(Row) * COLUMN_SIZE);
+//    for (size_t line = 0; line < COLUMN_SIZE; ++line) {
+//        rows[line].data = (int64_t*) malloc(sizeof(int64_t) * NUMBER_OF_COLUMNS);
+//
+//        rows[line].id = line;
+//        for (size_t col = 0; col < NUMBER_OF_COLUMNS; ++col) {
+//            rows[line].data[col] = c[col].data[line];
+//        }
+//    }
+
+    for (size_t query_index = 0; query_index < NUM_QUERIES; ++query_index) {
+
+    }
+
+}
 int main(int argc, char** argv) {
     int INDEXING_TYPE;
 
@@ -345,6 +374,23 @@ int main(int argc, char** argv) {
             std::cout  << fullindex[q] << "\n";
 
         }
+    }
+
+//        KD-TREE
+    else if (INDEXING_TYPE == 3){
+        std::vector<double> kdtree(NUM_QUERIES);
+
+        for (int i = 0; i < NUMBER_OF_REPETITIONS; i++){
+            fprintf(stderr, "Repetition #%d\n", i);
+            kdtree_cracking(&kdtree);
+        }
+
+        for (int q = 0; q < NUM_QUERIES; q++) {
+            kdtree[q] = kdtree[q]/NUMBER_OF_REPETITIONS;
+            std::cout  << kdtree[q] << "\n";
+
+        }
+
     }
 
 
