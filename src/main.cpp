@@ -302,7 +302,7 @@ void kdtree_cracking(std::vector<double> *response_times) {
 
 
 //    Copy table contents to Index
-    KDTree index = (KDTree) malloc(sizeof(KDNode));
+    KDTree index = (KDTree) malloc(sizeof(KDTree));
 //    Row *rows = (Row *) malloc(sizeof(Row) * COLUMN_SIZE);
 //    for (size_t line = 0; line < COLUMN_SIZE; ++line) {
 //        rows[line].data = (int64_t*) malloc(sizeof(int64_t) * NUMBER_OF_COLUMNS);
