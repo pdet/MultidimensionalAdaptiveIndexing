@@ -18,7 +18,7 @@
 #include "fullindex/hybrid_radix_insert_sort.h"
 #include "util/structs.h"
 
-//#define VERIFY
+#define VERIFY
 
 std::string COLUMN_FILE_PATH ,  QUERIES_FILE_PATH ;
 extern int64_t  COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
@@ -220,8 +220,8 @@ void full_scan(std::vector<double> * fullscantime){
         fullscantime->at(q) += std::chrono::duration<double>(end - start).count();
 #ifdef VERIFY
         int64_t sum = sum_result(result, partial_results);
-        bool pass = verify_range_query(c,rangequeries, i, sum);
-        if (pass == 0) std::cout << "Query : " << i <<" " <<  pass << "\n";
+        bool pass = verify_range_query(c,rangequeries, q, sum);
+        if (pass == 0) std::cout << "Query : " << q <<" " <<  pass << "\n";
 #endif
     }
     for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i) {
@@ -300,27 +300,47 @@ void kdtree_cracking(std::vector<double> *response_times) {
     RangeQuery *rangequeries = (RangeQuery *) malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
     loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
 
-    IndexEntry **crackercolumns = (IndexEntry **) malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry*));
-    for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j) {
-        crackercolumns[j] = (IndexEntry *) malloc(COLUMN_SIZE * sizeof(IndexEntry));
-        // Already create the cracker column
-        for (size_t i = 0; i < COLUMN_SIZE; ++i) {
-            crackercolumns[j][i].m_key = c[j].data[i];
-            crackercolumns[j][i].m_rowId = i;
+    std::vector<Row> crackerrows(COLUMN_SIZE);
+    for (size_t line = 0; line < COLUMN_SIZE; ++line) {
+        crackerrows.at(line).id = line;
+        crackerrows.at(line).data = std::vector<int64_t>(NUMBER_OF_COLUMNS);
+        for (size_t col = 0; col < NUMBER_OF_COLUMNS; ++col) {
+            crackerrows.at(line).data.at(col) = c[col].data[line];
         }
     }
 
-    // Copy table contents to Index
-    start = std::chrono::system_clock::now();
-    KDTree index = InitializeKDTree(COLUMN_SIZE, NUMBER_OF_COLUMNS, crackercolumns);
-    end = std::chrono::system_clock::now();
-    response_times->at(0) += std::chrono::duration<double>(end - start).count();
+    KDTree index = NULL;
 
     for (size_t query_index = 0; query_index < NUM_QUERIES; ++query_index) {
+        // Transform query in a format easier to handle
+        std::vector<std::pair<int64_t, int64_t>> query (NUMBER_OF_COLUMNS);
+        for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i) {
+            query.at(i).first = rangequeries[i].leftpredicate[query_index];
+            query.at(i).second = rangequeries[i].rightpredicate[query_index];
+        }
+
         start = std::chrono::system_clock::now();
-        //Do Query
+        std::vector<int64_t> result = SearchKDTree(index, query, crackerrows);
         end = std::chrono::system_clock::now();
         response_times->at(query_index) += std::chrono::duration<double>(end - start).count();
+
+#ifdef VERIFY
+        int64_t sum = 0;
+        for(size_t i = 0; i < result.size(); ++i){
+            int64_t id = result.at(i);
+            bool found = false;
+            for (size_t j = 0; j < crackerrows.size() && !found; ++j) {
+                if(crackerrows.at(j).id == id){
+                    found = true;
+                    for (size_t k = 0; k < crackerrows.at(i).data.size(); ++k) {
+                        sum += crackerrows.at(i).data.at(k);
+                    }
+                }
+            }
+        }
+        bool pass = verify_range_query(c,rangequeries, query_index, sum);
+        if (pass == 0) std::cout << "Query : " << query_index <<" " <<  pass << "\n";
+#endif
     }
 
 }
