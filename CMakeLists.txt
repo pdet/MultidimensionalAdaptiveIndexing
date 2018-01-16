@@ -12,6 +12,8 @@ set(SOURCE_FILES
         src/cracking/avl_tree.h
         src/cracking/standard_cracking.h
         src/cracking/standard_cracking.cpp
+        src/cracking/kd_tree.cpp
+        src/cracking/kd_tree.h
        )
 
 add_executable(multidemionsionalindexing ${SOURCE_FILES}  src/main.cpp)

@@ -9,10 +9,11 @@ SKEWED = 3
 FULL_SCAN = 0
 STANDARD_CRACKING = 1
 FULL_INDEX = 2
+KD_TREE = 3
 
 
 #Select Experiments to run
-experiments = [FULL_SCAN, STANDARD_CRACKING, FULL_INDEX]
+experiments = [KD_TREE]
 #Main Configurations
 COLUMN_FILE_PATH = "./column.txt"
 QUERIES_FILE_PATH = "./query.txt"
@@ -75,5 +76,12 @@ if FULL_INDEX in experiments:
     print("Running Full Index")
     if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
                          + " " + NUMBER_OF_REPETITIONS + " " + COLUMN_SIZE + " " + str(FULL_INDEX) + " " + str(NUMBER_OF_COLUMNS) + " " + BPTREE_ELEMENTSPERNODE +" >> "+ PATH + "fi.txt" ) != 0:
+        print("Running Failed")
+        exit()
+
+if KD_TREE in experiments:
+    print("Running KDTree")
+    if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
+                 + " " + NUMBER_OF_REPETITIONS + " " + COLUMN_SIZE + " " + str(FULL_INDEX) + " " + str(NUMBER_OF_COLUMNS) + " " + BPTREE_ELEMENTSPERNODE +" >> "+ PATH + "kd.txt" ) != 0:
         print("Running Failed")
         exit()

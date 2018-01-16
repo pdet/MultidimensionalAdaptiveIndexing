@@ -300,21 +300,27 @@ void kdtree_cracking(std::vector<double> *response_times) {
     RangeQuery *rangequeries = (RangeQuery *) malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
     loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
 
+    IndexEntry **crackercolumns = (IndexEntry **) malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry*));
+    for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j) {
+        crackercolumns[j] = (IndexEntry *) malloc(COLUMN_SIZE * sizeof(IndexEntry));
+        // Already create the cracker column
+        for (size_t i = 0; i < COLUMN_SIZE; ++i) {
+            crackercolumns[j][i].m_key = c[j].data[i];
+            crackercolumns[j][i].m_rowId = i;
+        }
+    }
 
-//    Copy table contents to Index
-    KDTree index = (KDTree) malloc(sizeof(KDTree));
-//    Row *rows = (Row *) malloc(sizeof(Row) * COLUMN_SIZE);
-//    for (size_t line = 0; line < COLUMN_SIZE; ++line) {
-//        rows[line].data = (int64_t*) malloc(sizeof(int64_t) * NUMBER_OF_COLUMNS);
-//
-//        rows[line].id = line;
-//        for (size_t col = 0; col < NUMBER_OF_COLUMNS; ++col) {
-//            rows[line].data[col] = c[col].data[line];
-//        }
-//    }
+    // Copy table contents to Index
+    start = std::chrono::system_clock::now();
+    KDTree index = InitializeKDTree(COLUMN_SIZE, NUMBER_OF_COLUMNS, crackercolumns);
+    end = std::chrono::system_clock::now();
+    response_times->at(0) += std::chrono::duration<double>(end - start).count();
 
     for (size_t query_index = 0; query_index < NUM_QUERIES; ++query_index) {
-
+        start = std::chrono::system_clock::now();
+        //Do Query
+        end = std::chrono::system_clock::now();
+        response_times->at(query_index) += std::chrono::duration<double>(end - start).count();
     }
 
 }
