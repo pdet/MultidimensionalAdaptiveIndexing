@@ -19,7 +19,7 @@
 #include "util/file_manager.h"
 #include "util/structs.h"
 
-#define VERIFY
+//#define VERIFY
 
 std::string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
 extern int64_t COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
@@ -382,6 +382,16 @@ void kdtree_cracking(std::vector<double> *response_times)
             std::cout << "Query : " << query_index << " " << pass << "\n";
 #endif
     }
+
+    freeKDTree(index);
+    for(int i = 0; i < NUMBER_OF_COLUMNS; ++i){
+        free(c[i].data);
+        free(rangequeries[i].leftpredicate);
+        free(rangequeries[i].rightpredicate);
+    }
+
+    free(c);
+    free(rangequeries);
 }
 
 void full_kdtree_cracking(std::vector<double> *response_times)
@@ -436,6 +446,16 @@ void full_kdtree_cracking(std::vector<double> *response_times)
             std::cout << "Query : " << query_index << " " << pass << "\n";
 #endif
     }
+
+    freeKDTree(index);
+    for(int i = 0; i < NUMBER_OF_COLUMNS; ++i){
+        free(c[i].data);
+        free(rangequeries[i].leftpredicate);
+        free(rangequeries[i].rightpredicate);
+    }
+
+    free(c);
+    free(rangequeries);
 }
 int main(int argc, char **argv)
 {

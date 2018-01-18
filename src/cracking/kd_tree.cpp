@@ -134,7 +134,7 @@ std::vector<int64_t> collect_results(std::vector<Row> partial, std::vector<std::
     return result;
 }
 
-std::vector<int64_t> SearchKDTree(KDTree index, std::vector<std::pair<int64_t, int64_t>> query, std::vector<Row> lines, bool should_crack = false)
+std::vector<int64_t> SearchKDTree(KDTree &index, std::vector<std::pair<int64_t, int64_t>> query, std::vector<Row> lines, bool should_crack = false)
 {
     std::vector<int64_t> ids;
 
@@ -254,4 +254,17 @@ KDTree FullKDTree(std::vector<Row> lines)
     }
 
     return index;
+}
+
+void freeKDTree(KDTree tree){
+    if(tree == NULL) return;
+
+    if(tree->left != NULL){
+        freeKDTree(tree->left);
+    }
+
+    if(tree->right != NULL){
+        freeKDTree(tree->right);
+    }
+    delete tree;
 }

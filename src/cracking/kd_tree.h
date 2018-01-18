@@ -17,8 +17,10 @@ struct KDNode;
 
 typedef struct KDNode *KDTree;
 
-std::vector<int64_t> SearchKDTree(KDTree index, std::vector<std::pair<int64_t, int64_t>> query, std::vector<Row> lines, bool should_crack);
+std::vector<int64_t> SearchKDTree(KDTree &index, std::vector<std::pair<int64_t, int64_t>> query, std::vector<Row> lines, bool should_crack);
 
 KDTree FullKDTree(std::vector<Row> lines);
+
+void freeKDTree(KDTree tree);
 
 #endif //MULTIDEMIONSIONALINDEXING_KD_TREE_H
