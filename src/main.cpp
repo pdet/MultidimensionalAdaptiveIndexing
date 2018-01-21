@@ -23,7 +23,7 @@
 
 std::string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
 extern int64_t COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
-int64_t NUM_QUERIES, NUMBER_OF_REPETITIONS, NUMBER_OF_COLUMNS;
+int64_t NUM_QUERIES, NUMBER_OF_COLUMNS;
 
 std::set<int64_t> range_query_baseline(Column *c, RangeQuery *queries, size_t query_index)
 {
@@ -457,108 +457,70 @@ void full_kdtree_cracking(std::vector<double> *response_times)
     free(c);
     free(rangequeries);
 }
+
+
 int main(int argc, char **argv)
 {
     int INDEXING_TYPE;
 
-    if (argc < 7)
+    if (argc < 6)
     {
         printf("Missing mandatory parameters\n");
         return -1;
     }
+
     COLUMN_FILE_PATH = argv[1];
     QUERIES_FILE_PATH = argv[2];
     NUM_QUERIES = std::stoi(argv[3]);
-    NUMBER_OF_REPETITIONS = atoi(argv[4]);
-    COLUMN_SIZE = atoi(argv[5]);
-    INDEXING_TYPE = atoi(argv[6]);
-    NUMBER_OF_COLUMNS = atoi(argv[7]);
+    COLUMN_SIZE = atoi(argv[4]);
+    INDEXING_TYPE = atoi(argv[5]);
+    NUMBER_OF_COLUMNS = atoi(argv[6]);
 
     //FULL SCAN
     if (INDEXING_TYPE == 0)
     {
         std::vector<double> fullscantime(NUM_QUERIES);
-        for (int i = 0; i < NUMBER_OF_REPETITIONS; i++)
-        {
-            fprintf(stderr, "Repetition #%d\n", i);
-            full_scan(&fullscantime);
-        }
-
+        full_scan(&fullscantime);
         for (int q = 0; q < NUM_QUERIES; q++)
-        {
-            fullscantime[q] = fullscantime[q] / NUMBER_OF_REPETITIONS;
             std::cout << fullscantime[q] << "\n";
-        }
     }
+
     // STANDARD CRACKING W/ AVL
     else if (INDEXING_TYPE == 1)
     {
         std::vector<double> standardcracking(NUM_QUERIES);
-        for (int i = 0; i < NUMBER_OF_REPETITIONS; i++)
-        {
-            fprintf(stderr, "Repetition #%d\n", i);
-            standardCracking(&standardcracking);
-        }
-
+        standardCracking(&standardcracking);
         for (int q = 0; q < NUM_QUERIES; q++)
-        {
-            standardcracking[q] = standardcracking[q] / NUMBER_OF_REPETITIONS;
             std::cout << standardcracking[q] << "\n";
-        }
     }
 
     // FULL INDEX B+ Tree
     else if (INDEXING_TYPE == 2)
     {
-        BPTREE_ELEMENTSPERNODE = atoi(argv[8]);
+        BPTREE_ELEMENTSPERNODE = atoi(argv[7]);
         std::vector<double> fullindex(NUM_QUERIES);
-
-        for (int i = 0; i < NUMBER_OF_REPETITIONS; i++)
-        {
-            fprintf(stderr, "Repetition #%d\n", i);
-            bptree_bulk_index3(&fullindex);
-        }
-
+        bptree_bulk_index3(&fullindex);
         for (int q = 0; q < NUM_QUERIES; q++)
-        {
-            fullindex[q] = fullindex[q] / NUMBER_OF_REPETITIONS;
             std::cout << fullindex[q] << "\n";
-        }
+
     }
 
     //  Cracking W/ KD-Tree
     else if (INDEXING_TYPE == 3)
     {
         std::vector<double> kdtree(NUM_QUERIES);
-
-        for (int i = 0; i < NUMBER_OF_REPETITIONS; i++)
-        {
-            fprintf(stderr, "Repetition #%d\n", i);
-            kdtree_cracking(&kdtree);
-        }
-
+        kdtree_cracking(&kdtree);
         for (int q = 0; q < NUM_QUERIES; q++)
-        {
-            kdtree[q] = kdtree[q] / NUMBER_OF_REPETITIONS;
             std::cout << kdtree[q] << "\n";
-        }
+
     }
 
     // Full Index KD-TREE
     else if (INDEXING_TYPE == 4)
     {
         std::vector<double> kdtree(NUM_QUERIES);
-
-        for (int i = 0; i < NUMBER_OF_REPETITIONS; i++)
-        {
-            fprintf(stderr, "Repetition #%d\n", i);
-            full_kdtree_cracking(&kdtree);
-        }
-
+        full_kdtree_cracking(&kdtree);
         for (int q = 0; q < NUM_QUERIES; q++)
-        {
-            kdtree[q] = kdtree[q] / NUMBER_OF_REPETITIONS;
             std::cout << kdtree[q] << "\n";
-        }
     }
 }

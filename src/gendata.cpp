@@ -206,7 +206,7 @@ void generateSkewedDataForQuery(std::vector<int64_t> *data,int64_t size, int64_t
             }
             if( UPPERBOUND  / 2 > maxLeftQueryVal){
                 std::cout << "This Selectivity is to high to a centered skewed workload";
-                assert(0);
+                exit(0);
             }
             data->push_back(predicate);
         }
