@@ -9,12 +9,4 @@ readme.txt
 .DS_Store
 crackingmain
 crackingmain.dSYM/
-fi.txt
-fs.txt
-ppqs.txt
-pqs.txt
-stc.txt
-std.txt
-experiments/
-progressive.dSYM/
-progressive
+experiments/generatedscripts

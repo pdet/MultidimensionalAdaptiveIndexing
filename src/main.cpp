@@ -473,6 +473,7 @@ int main(int argc, char **argv)
     COLUMN_SIZE = atoi(argv[5]);
     INDEXING_TYPE = atoi(argv[6]);
     NUMBER_OF_COLUMNS = atoi(argv[7]);
+
     //FULL SCAN
     if (INDEXING_TYPE == 0)
     {
@@ -489,7 +490,7 @@ int main(int argc, char **argv)
             std::cout << fullscantime[q] << "\n";
         }
     }
-    ////        STANDARD CRACKING
+    // STANDARD CRACKING W/ AVL
     else if (INDEXING_TYPE == 1)
     {
         std::vector<double> standardcracking(NUM_QUERIES);
@@ -506,7 +507,7 @@ int main(int argc, char **argv)
         }
     }
 
-    //        FULL INDEX
+    // FULL INDEX B+ Tree
     else if (INDEXING_TYPE == 2)
     {
         BPTREE_ELEMENTSPERNODE = atoi(argv[8]);
@@ -525,7 +526,7 @@ int main(int argc, char **argv)
         }
     }
 
-    //        KD-TREE
+    //  Cracking W/ KD-Tree
     else if (INDEXING_TYPE == 3)
     {
         std::vector<double> kdtree(NUM_QUERIES);
@@ -543,7 +544,7 @@ int main(int argc, char **argv)
         }
     }
 
-    //      FULL KD-TREE
+    // Full Index KD-TREE
     else if (INDEXING_TYPE == 4)
     {
         std::vector<double> kdtree(NUM_QUERIES);
