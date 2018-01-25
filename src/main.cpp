@@ -459,6 +459,7 @@ void full_kdtree_cracking(std::vector<double> *response_times)
 }
 
 
+//.column.txt .query.txt 10 10000 0 2
 int main(int argc, char **argv)
 {
     int INDEXING_TYPE;

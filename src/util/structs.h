@@ -17,4 +17,10 @@ struct Column {
     int64_t *data;
 };
 
+struct Row
+{
+    int64_t id;
+    std::vector<int64_t> data;
+};
+
 #endif //MULTIDEMIONSIONALINDEXING_STRUCTS_H

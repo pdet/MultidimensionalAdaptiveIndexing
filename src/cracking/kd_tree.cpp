@@ -1,5 +1,6 @@
 #include "kd_tree.h"
 #include <algorithm>
+#include "structs.h"
 
 int64_t THRESHOLD = 100;
 
@@ -254,6 +255,33 @@ KDTree FullKDTree(std::vector<Row> lines)
     }
 
     return index;
+}
+
+//TODO Adapt to progressive copy
+//TODO Check if random access is worst than copy the data
+//TODO Predication
+//TODO Add Delta
+void PatialKDTree(std::vector<std::pair<KDTree, int64_t>> *nodes, int n_of_cols) {
+    KDTree current = nodes->back().first;
+    int64_t column = (nodes->back().second + 1) % n_of_cols;
+    nodes->pop_back();
+
+    if (current->left_rows.size() > THRESHOLD)
+    {
+        current->left = CreateNode(column, find_median(current->left_rows, column), current->left_rows);
+        current->left_rows = std::vector<Row>();
+
+        nodes->push_back(std::make_pair(current->left, column));
+    }
+
+    if (current->right_rows.size() > THRESHOLD)
+    {
+        current->right = CreateNode(column, find_median(current->right_rows, column), current->right_rows);
+        current->right_rows = std::vector<Row>();
+
+        nodes->push_back(std::make_pair(current->right, column));
+    }
+
 }
 
 void freeKDTree(KDTree tree){

@@ -271,7 +271,7 @@ void verifySelectivity(std::vector<int64_t> *c,std::vector<int64_t> *l,std::vect
         double selectivity = aux/double(c->size());
         if (!(selectivity < SELECTIVITY_PERCENTAGE + SELECTIVITY_PERCENTAGE * 0.01 && selectivity > SELECTIVITY_PERCENTAGE - SELECTIVITY_PERCENTAGE * 0.01)){
             std::cout << "Selectivity for query " << i << " is wrong. Got: " << selectivity << " Expected: "<<SELECTIVITY_PERCENTAGE<<" \n";
-            assert(0);
+            //assert(0);
         }
     }
 
@@ -327,7 +327,7 @@ void truncate(std::string file_path) {
     fclose(f);
 }
 
-
+//.column.txt .query.txt 0.1 0 2.0 10 1000 1000 1 1 2
 int main(int argc, char** argv) {
     if (argc < 10) {
         printf("Missing mandatory parameters\n");
