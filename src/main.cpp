@@ -19,7 +19,7 @@
 #include "util/file_manager.h"
 #include "util/structs.h"
 
-//#define VERIFY
+#define VERIFY
 
 std::string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
 extern int64_t COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
@@ -342,19 +342,20 @@ void kdtree_cracking(std::vector<double> *response_times)
     RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
     loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
 
-    std::vector<Row> crackerrows(COLUMN_SIZE);
-    for (size_t line = 0; line < COLUMN_SIZE; ++line)
+    Table table;
+    table.columns = std::vector<std::vector<ElementType>>(NUMBER_OF_COLUMNS);
+    table.ids = std::vector<int64_t>(COLUMN_SIZE);
+    for (size_t col = 0; col < NUMBER_OF_COLUMNS; ++col)
     {
-        crackerrows.at(line).id = line;
-        crackerrows.at(line).data = std::vector<int64_t>(NUMBER_OF_COLUMNS);
-        for (size_t col = 0; col < NUMBER_OF_COLUMNS; ++col)
+        table.columns.at(col) = std::vector<ElementType>(COLUMN_SIZE);
+        for (size_t line = 0; line < COLUMN_SIZE; ++line)
         {
-            crackerrows.at(line).data.at(col) = c[col].data[line];
+            table.ids.at(line) = line;
+            table.columns.at(col).at(line) = c[col].data[line];
         }
     }
 
     KDTree index = NULL;
-
     for (size_t query_index = 0; query_index < NUM_QUERIES; ++query_index)
     {
         // Transform query in a format easier to handle
@@ -366,7 +367,7 @@ void kdtree_cracking(std::vector<double> *response_times)
         }
 
         start = std::chrono::system_clock::now();
-        std::vector<int64_t> result = SearchKDTree(index, query, crackerrows, true);
+        std::vector<int64_t> result = SearchKDTree(index, query, table, true);
         end = std::chrono::system_clock::now();
         response_times->at(query_index) += std::chrono::duration<double>(end - start).count();
 
@@ -384,7 +385,8 @@ void kdtree_cracking(std::vector<double> *response_times)
     }
 
     freeKDTree(index);
-    for(int i = 0; i < NUMBER_OF_COLUMNS; ++i){
+    for (int i = 0; i < NUMBER_OF_COLUMNS; ++i)
+    {
         free(c[i].data);
         free(rangequeries[i].leftpredicate);
         free(rangequeries[i].rightpredicate);
@@ -396,68 +398,67 @@ void kdtree_cracking(std::vector<double> *response_times)
 
 void full_kdtree_cracking(std::vector<double> *response_times)
 {
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-    Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
-    loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
+    //     std::chrono::time_point<std::chrono::system_clock> start, end;
+    //     Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
+    //     loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
 
-    RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
-    loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
+    //     RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
+    //     loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
 
-    std::vector<Row> crackerrows(COLUMN_SIZE);
-    for (size_t line = 0; line < COLUMN_SIZE; ++line)
-    {
-        crackerrows.at(line).id = line;
-        crackerrows.at(line).data = std::vector<int64_t>(NUMBER_OF_COLUMNS);
-        for (size_t col = 0; col < NUMBER_OF_COLUMNS; ++col)
-        {
-            crackerrows.at(line).data.at(col) = c[col].data[line];
-        }
-    }
+    //     std::vector<Row> crackerrows(COLUMN_SIZE);
+    //     for (size_t line = 0; line < COLUMN_SIZE; ++line)
+    //     {
+    //         crackerrows.at(line).id = line;
+    //         crackerrows.at(line).data = std::vector<int64_t>(NUMBER_OF_COLUMNS);
+    //         for (size_t col = 0; col < NUMBER_OF_COLUMNS; ++col)
+    //         {
+    //             crackerrows.at(line).data.at(col) = c[col].data[line];
+    //         }
+    //     }
 
-    start = std::chrono::system_clock::now();
-    KDTree index = FullKDTree(crackerrows);
-    end = std::chrono::system_clock::now();
-    response_times->at(0) += std::chrono::duration<double>(end - start).count();
+    //     start = std::chrono::system_clock::now();
+    //     KDTree index = FullKDTree(crackerrows);
+    //     end = std::chrono::system_clock::now();
+    //     response_times->at(0) += std::chrono::duration<double>(end - start).count();
 
-    for (size_t query_index = 0; query_index < NUM_QUERIES; ++query_index)
-    {
-        // Transform query in a format easier to handle
-        std::vector<std::pair<int64_t, int64_t>> query(NUMBER_OF_COLUMNS);
-        for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
-        {
-            query.at(i).first = rangequeries[i].leftpredicate[query_index];
-            query.at(i).second = rangequeries[i].rightpredicate[query_index];
-        }
+    //     for (size_t query_index = 0; query_index < NUM_QUERIES; ++query_index)
+    //     {
+    //         // Transform query in a format easier to handle
+    //         std::vector<std::pair<int64_t, int64_t>> query(NUMBER_OF_COLUMNS);
+    //         for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
+    //         {
+    //             query.at(i).first = rangequeries[i].leftpredicate[query_index];
+    //             query.at(i).second = rangequeries[i].rightpredicate[query_index];
+    //         }
 
-        start = std::chrono::system_clock::now();
-        std::vector<int64_t> result = SearchKDTree(index, query, crackerrows, false);
-        end = std::chrono::system_clock::now();
-        response_times->at(query_index) += std::chrono::duration<double>(end - start).count();
+    //         start = std::chrono::system_clock::now();
+    //         std::vector<int64_t> result = SearchKDTree(index, query, crackerrows, false);
+    //         end = std::chrono::system_clock::now();
+    //         response_times->at(query_index) += std::chrono::duration<double>(end - start).count();
 
-#ifdef VERIFY
-        std::set<int64_t> final_ids;
-        for (size_t i = 0; i < result.size(); ++i)
-        {
-            int64_t id = result.at(i);
-            final_ids.insert(id);
-        }
-        bool pass = verify_range_query(c, rangequeries, query_index, final_ids);
-        if (pass == 0)
-            std::cout << "Query : " << query_index << " " << pass << "\n";
-#endif
-    }
+    // #ifdef VERIFY
+    //         std::set<int64_t> final_ids;
+    //         for (size_t i = 0; i < result.size(); ++i)
+    //         {
+    //             int64_t id = result.at(i);
+    //             final_ids.insert(id);
+    //         }
+    //         bool pass = verify_range_query(c, rangequeries, query_index, final_ids);
+    //         if (pass == 0)
+    //             std::cout << "Query : " << query_index << " " << pass << "\n";
+    // #endif
+    //     }
 
-    freeKDTree(index);
-    for(int i = 0; i < NUMBER_OF_COLUMNS; ++i){
-        free(c[i].data);
-        free(rangequeries[i].leftpredicate);
-        free(rangequeries[i].rightpredicate);
-    }
+    //     freeKDTree(index);
+    //     for(int i = 0; i < NUMBER_OF_COLUMNS; ++i){
+    //         free(c[i].data);
+    //         free(rangequeries[i].leftpredicate);
+    //         free(rangequeries[i].rightpredicate);
+    //     }
 
-    free(c);
-    free(rangequeries);
+    //     free(c);
+    //     free(rangequeries);
 }
-
 
 int main(int argc, char **argv)
 {
@@ -502,7 +503,6 @@ int main(int argc, char **argv)
         bptree_bulk_index3(&fullindex);
         for (int q = 0; q < NUM_QUERIES; q++)
             std::cout << fullindex[q] << "\n";
-
     }
 
     //  Cracking W/ KD-Tree
@@ -512,7 +512,6 @@ int main(int argc, char **argv)
         kdtree_cracking(&kdtree);
         for (int q = 0; q < NUM_QUERIES; q++)
             std::cout << kdtree[q] << "\n";
-
     }
 
     // Full Index KD-TREE
