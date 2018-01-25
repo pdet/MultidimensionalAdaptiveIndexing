@@ -18,4 +18,6 @@ set(SOURCE_FILES
 
 add_executable(multidemionsionalindexing ${SOURCE_FILES}  src/main.cpp)
 
-add_executable(GenerateData ${SOURCE_FILES}  src/gendata.cpp)
+add_executable(GenerateData ${SOURCE_FILES}  src/gendata.cpp )
+
+add_executable(ProgressiveIndexing src/util/file_manager.cpp src/cracking/kd_tree.cpp src/progressive/main.cpp)
