@@ -417,13 +417,12 @@ void full_kdtree_cracking(std::vector<double> *response_times)
             table.columns.at(col).at(line) = c[col].data[line];
         }
     }
-    fprintf(stderr, "Creating...\n");
+
     start = std::chrono::system_clock::now();
     KDTree index = FullKDTree(table);
     end = std::chrono::system_clock::now();
     response_times->at(0) += std::chrono::duration<double>(end - start).count();
 
-    fprintf(stderr, "Searching...\n");
     for (size_t query_index = 0; query_index < NUM_QUERIES; ++query_index)
     {
         // Transform query in a format easier to handle
