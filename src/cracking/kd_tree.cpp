@@ -16,6 +16,15 @@ struct KDNode
     int64_t right_position;
 };
 
+void configKDTree(int64_t threshold)
+{
+    THRESHOLD = threshold;
+    if (THRESHOLD < 1)
+    {
+        THRESHOLD = 1;
+    }
+}
+
 void exchange(Table &t, int64_t x1, int64_t x2)
 {
     int64_t tmp;

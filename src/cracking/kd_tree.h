@@ -25,6 +25,8 @@ KDTree FullKDTree(Table &table);
 
 void freeKDTree(KDTree tree);
 
+void configKDTree(int64_t threshold);
+
 // void PatialKDTree(std::vector<std::pair<KDTree, int64_t>> *nodes, int n_of_cols);
 
 #endif //MULTIDEMIONSIONALINDEXING_KD_TREE_H

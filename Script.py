@@ -14,14 +14,15 @@ FULL_KD_TREE = 4
 
 
 # Select Experiments to run
-experiments = [KD_TREE]
+experiments = [KD_TREE, FULL_KD_TREE]
 # Main Configurations
 COLUMN_FILE_PATH = "./column.txt"
 QUERIES_FILE_PATH = "./query.txt"
-NUM_QUERIES = '100'
+NUM_QUERIES = '10000'
 NUMBER_OF_REPETITIONS = '1'
-COLUMN_SIZE = '10000'
+COLUMN_SIZE = '100000'
 NUMBER_OF_COLUMNS = '5'
+KDTREE_THRESHOLD = '10'  # Only used for KDTree
 
 SELECTIVITY_PERCENTAGE = "0.5"
 ONE_SIDED_PERCENTAGE = '0.0'  # Not really using this
@@ -86,13 +87,13 @@ if KD_TREE in experiments:
     print("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
           + " " + COLUMN_SIZE + " " + str(KD_TREE) + " " + str(NUMBER_OF_COLUMNS))
     if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                 + " " + COLUMN_SIZE + " " + str(KD_TREE) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "kd.txt") != 0:
+                 + " " + COLUMN_SIZE + " " + str(KD_TREE) + " " + str(NUMBER_OF_COLUMNS) + " " + str(KDTREE_THRESHOLD) + " >> " + PATH + "kd.txt") != 0:
         print("Running Failed")
         exit()
 
 if FULL_KD_TREE in experiments:
     print("Running Full KDTree")
     if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                 + " " + COLUMN_SIZE + " " + str(FULL_KD_TREE) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "kdf.txt") != 0:
+                 + " " + COLUMN_SIZE + " " + str(FULL_KD_TREE) + " " + str(NUMBER_OF_COLUMNS) + " " + str(KDTREE_THRESHOLD) + " >> " + PATH + "kdf.txt") != 0:
         print("Running Failed")
         exit()

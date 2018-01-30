@@ -23,7 +23,7 @@
 
 std::string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
 extern int64_t COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
-int64_t NUM_QUERIES, NUMBER_OF_COLUMNS;
+int64_t NUM_QUERIES, NUMBER_OF_COLUMNS, KDTREE_THRESHOLD;
 
 std::set<int64_t> range_query_baseline(Column *c, RangeQuery *queries, size_t query_index)
 {
@@ -335,6 +335,7 @@ void bptree_bulk_index3(std::vector<double> *fullindex)
 
 void kdtree_cracking(std::vector<double> *response_times)
 {
+    configKDTree(KDTREE_THRESHOLD);
     std::chrono::time_point<std::chrono::system_clock> start, end;
     Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
     loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
@@ -398,6 +399,7 @@ void kdtree_cracking(std::vector<double> *response_times)
 
 void full_kdtree_cracking(std::vector<double> *response_times)
 {
+    configKDTree(KDTREE_THRESHOLD);
     std::chrono::time_point<std::chrono::system_clock> start, end;
     Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
     loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
@@ -512,6 +514,7 @@ int main(int argc, char **argv)
     //  Cracking W/ KD-Tree
     else if (INDEXING_TYPE == 3)
     {
+        KDTREE_THRESHOLD = atoi(argv[7]);
         std::vector<double> kdtree(NUM_QUERIES);
         kdtree_cracking(&kdtree);
         for (int q = 0; q < NUM_QUERIES; q++)
@@ -521,6 +524,7 @@ int main(int argc, char **argv)
     // Full Index KD-TREE
     else if (INDEXING_TYPE == 4)
     {
+        KDTREE_THRESHOLD = atoi(argv[7]);
         std::vector<double> kdtree(NUM_QUERIES);
         full_kdtree_cracking(&kdtree);
         for (int q = 0; q < NUM_QUERIES; q++)
