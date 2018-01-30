@@ -282,6 +282,7 @@ void bptree_bulk_index3(std::vector<double> *fullindex)
     RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
     loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
 
+    start = std::chrono::system_clock::now();
     IndexEntry **crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
     for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
     {
@@ -294,7 +295,6 @@ void bptree_bulk_index3(std::vector<double> *fullindex)
         }
     }
 
-    start = std::chrono::system_clock::now();
     BulkBPTree **T = (BulkBPTree **)malloc(sizeof(BulkBPTree *) * NUMBER_OF_COLUMNS);
     for (size_t k = 0; k < NUMBER_OF_COLUMNS; ++k)
     {
@@ -343,6 +343,7 @@ void kdtree_cracking(std::vector<double> *response_times)
     RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
     loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
 
+    start = std::chrono::system_clock::now();
     Table table;
     table.columns = std::vector<std::vector<ElementType>>(NUMBER_OF_COLUMNS);
     table.ids = std::vector<int64_t>(COLUMN_SIZE);
@@ -357,6 +358,8 @@ void kdtree_cracking(std::vector<double> *response_times)
     }
 
     KDTree index = NULL;
+    end = std::chrono::system_clock::now();
+    response_times->at(0) += std::chrono::duration<double>(end - start).count();
     for (size_t query_index = 0; query_index < NUM_QUERIES; ++query_index)
     {
         // Transform query in a format easier to handle
@@ -407,6 +410,7 @@ void full_kdtree_cracking(std::vector<double> *response_times)
     RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
     loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
 
+    start = std::chrono::system_clock::now();
     Table table;
     table.columns = std::vector<std::vector<ElementType>>(NUMBER_OF_COLUMNS);
     table.ids = std::vector<int64_t>(COLUMN_SIZE);
@@ -420,7 +424,6 @@ void full_kdtree_cracking(std::vector<double> *response_times)
         }
     }
 
-    start = std::chrono::system_clock::now();
     KDTree index = FullKDTree(table);
     end = std::chrono::system_clock::now();
     response_times->at(0) += std::chrono::duration<double>(end - start).count();
