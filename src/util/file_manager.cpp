@@ -2,46 +2,42 @@
 // Created by PHolanda on 17/12/17.
 //
 
-#include <vector>
-#include "structs.h"
 #include "file_manager.h"
+#include "structs.h"
+#include <vector>
 
-void loadQueries(RangeQuery *rangequeries, std::string QUERIES_FILE_PATH, int64_t NUM_QUERIES, int64_t NUMBER_OF_COLUMNS){
+void loadQueries(RangeQuery *rangequeries, std::string QUERIES_FILE_PATH, int64_t NUM_QUERIES, int64_t NUMBER_OF_COLUMNS)
+{
     FILE *f = fopen(QUERIES_FILE_PATH.c_str(), "r");
-    if (!f) {
+    if (!f)
+    {
         printf("Cannot open file.\n");
         return;
     }
-    int64_t *temp_data = (int64_t *) malloc(sizeof(int64_t) * NUM_QUERIES);
-    for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i) {
-        fread(temp_data, sizeof(int64_t), NUM_QUERIES, f);
-        rangequeries[i].leftpredicate = (int64_t *) malloc(sizeof(int64_t) * NUM_QUERIES);
-        for (size_t j = 0; j < NUM_QUERIES; j++) {
-            rangequeries[i].leftpredicate[j] = temp_data[j];
-        }
-        fread(temp_data, sizeof(int64_t), NUM_QUERIES, f);
-        rangequeries[i].rightpredicate = (int64_t *) malloc(sizeof(int64_t) * NUM_QUERIES);
-        for (size_t j = 0; j < NUM_QUERIES; j++) {
-            rangequeries[i].rightpredicate[j] = temp_data[j];
-        }
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
+    {
+        rangequeries[i].leftpredicate = (int64_t *)malloc(sizeof(int64_t) * NUM_QUERIES);
+        fread(rangequeries[i].leftpredicate, sizeof(int64_t), NUM_QUERIES, f);
+
+        rangequeries[i].rightpredicate = (int64_t *)malloc(sizeof(int64_t) * NUM_QUERIES);
+        fread(rangequeries[i].rightpredicate, sizeof(int64_t), NUM_QUERIES, f);
     }
     fclose(f);
-
 }
 
-void loadcolumn(Column *c,std::string COLUMN_FILE_PATH, int64_t COLUMN_SIZE, int64_t NUMBER_OF_COLUMNS){
+void loadcolumn(Column *c, std::string COLUMN_FILE_PATH, int64_t COLUMN_SIZE, int64_t NUMBER_OF_COLUMNS)
+{
     FILE *f = fopen(COLUMN_FILE_PATH.c_str(), "r");
-    if (!f) {
+    if (!f)
+    {
         printf("Cannot open file.\n");
         return;
     }
-    int64_t *temp_data = (int64_t *) malloc(sizeof(int64_t) * COLUMN_SIZE);
-    for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i) {
-        fread(temp_data, sizeof(int64_t), COLUMN_SIZE, f);
-        c[i].data = (int64_t *) malloc(sizeof(int64_t) * COLUMN_SIZE);
-        for (size_t j = 0; j < COLUMN_SIZE; j++) {
-            c[i].data[j] = temp_data[j];
-        }
+
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
+    {
+        c[i].data = (int64_t *)malloc(sizeof(int64_t) * COLUMN_SIZE);
+        fread(c[i].data, sizeof(int64_t), COLUMN_SIZE, f);
     }
     fclose(f);
 }
