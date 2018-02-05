@@ -219,7 +219,7 @@ void Insert(KDTree &tree, int64_t column, ElementType element, Table &table)
         }
         else
         {
-            if (current->left_position != 0)
+            if (current->left_position != -1)
             {
                 KDTree new_node = CheckLeftSide(current, column, element, lower_limit, current->left_position, table);
                 if (new_node != NULL)
@@ -245,6 +245,7 @@ void Insert(KDTree &tree, int64_t column, ElementType element, Table &table)
 
 std::vector<int64_t> collect_results(Table &table, int64_t lower_limit, int64_t upper_limit, std::vector<std::pair<int64_t, int64_t>> query)
 {
+    // fprintf(stderr, "%ld -- %ld\n", lower_limit, upper_limit);
     std::vector<int64_t> result;
     for (size_t line = lower_limit; line <= upper_limit; ++line)
     {
@@ -279,6 +280,8 @@ std::vector<int64_t> SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, i
         }
     }
 
+    // fprintf(stderr, "Query: %ld -- %ld\n", query.at(0).first, query.at(0).second);
+
     std::vector<KDTree> nodes_to_check;
     std::vector<int64_t> lower_limits, upper_limits;
 
@@ -298,7 +301,7 @@ std::vector<int64_t> SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, i
 
         if (query.at(current->column).second <= current->element)
         {
-            if (current->left_position != 0)
+            if (current->left_position != -1)
             {
                 if (current->left == NULL)
                 {
@@ -315,7 +318,7 @@ std::vector<int64_t> SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, i
         }
         else if (query.at(current->column).first >= current->element)
         {
-            if (current->right_position != 0)
+            if (current->right_position != -1)
             {
                 if (current->right == NULL)
                 {
@@ -332,7 +335,7 @@ std::vector<int64_t> SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, i
         }
         else
         {
-            if (current->left_position != 0)
+            if (current->left_position != -1)
             {
                 if (current->left == NULL)
                 {
@@ -346,7 +349,7 @@ std::vector<int64_t> SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, i
                     upper_limits.push_back(current->left_position);
                 }
             }
-            if (current->right_position != 0)
+            if (current->right_position != -1)
             {
                 if (current->right == NULL)
                 {
@@ -435,21 +438,21 @@ KDTree FullKDTree(Table &table)
 
                 if (position < lower_limit)
                 {
-                    current->left = CreateNode(0, median, -1, lower_limit);
+                    current->left = CreateNode(column, median, -1, lower_limit);
                 }
                 else if (position >= current->left_position)
                 {
-                    current->left = CreateNode(0, median, current->left_position, -1);
+                    current->left = CreateNode(column, median, current->left_position, -1);
                 }
                 else
                 {
-                    current->left = CreateNode(0, median, position, position + 1);
-                }
+                    current->left = CreateNode(column, median, position, position + 1);
 
-                nodes.push_back(current->left);
-                columns.push_back(column);
-                lower_limits.push_back(lower_limit);
-                upper_limits.push_back(current->left_position);
+                    nodes.push_back(current->left);
+                    columns.push_back(column);
+                    lower_limits.push_back(lower_limit);
+                    upper_limits.push_back(current->left_position);
+                }
             }
         }
 
@@ -462,21 +465,21 @@ KDTree FullKDTree(Table &table)
 
                 if (position < current->right_position)
                 {
-                    current->right = CreateNode(0, median, -1, current->right_position);
+                    current->right = CreateNode(column, median, -1, current->right_position);
                 }
                 else if (position >= upper_limit)
                 {
-                    current->right = CreateNode(0, median, upper_limit, -1);
+                    current->right = CreateNode(column, median, upper_limit, -1);
                 }
                 else
                 {
-                    current->right = CreateNode(0, median, position, position + 1);
-                }
+                    current->right = CreateNode(column, median, position, position + 1);
 
-                nodes.push_back(current->right);
-                columns.push_back(column);
-                lower_limits.push_back(current->right_position);
-                upper_limits.push_back(upper_limit);
+                    nodes.push_back(current->right);
+                    columns.push_back(column);
+                    lower_limits.push_back(current->right_position);
+                    upper_limits.push_back(upper_limit);
+                }
             }
         }
     }
