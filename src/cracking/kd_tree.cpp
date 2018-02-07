@@ -369,6 +369,9 @@ std::vector<int64_t> SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, i
     return ids;
 }
 
+// TODO: Optimize this part, there must be a way to do it without copying the elements
+// Using the nth_element as it is is not possible, because it swap the elements of the column, it should swap the entire row for it to work
+// Perhaps re-implementing the nth_element, so it is possible for us to swap the entire row
 int64_t find_median(Table table, int64_t column, int64_t lower_limit, int64_t upper_limit)
 {
     std::vector<int64_t> elements(upper_limit - lower_limit + 1);
