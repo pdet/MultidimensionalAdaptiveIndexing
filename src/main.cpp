@@ -78,19 +78,16 @@ bool verify_range_query(Column *c, RangeQuery *queries, size_t query_index, std:
     return true;
 }
 
-std::vector<IndexEntry> scanQuery(IndexEntry *c, int64_t from, int64_t to)
+void scanQuery(IndexEntry *c, int64_t from, int64_t to, std::vector<IndexEntry> &results)
 {
-    std::vector<IndexEntry> result(to - from + 1);
+    results.resize(0);
     for (size_t i = from; i <= to; i++)
     {
-        result.at(i - from).m_key = c[i].m_key;
-        result.at(i - from).m_rowId = c[i].m_rowId;
+        results.push_back(IndexEntry(c[i].m_key, c[i].m_rowId));
     }
-
-    return result;
 }
 
-std::multimap<int64_t, bool> join_results(std::vector<std::vector<IndexEntry>> partials)
+std::multimap<int64_t, bool> join_results(std::vector<std::vector<IndexEntry>> &partials)
 {
     std::multimap<int64_t, bool> intersection;
     // Copy the first partial IDs
@@ -162,10 +159,14 @@ void standardCracking(std::vector<double> *standardcrackingtime)
     end = std::chrono::system_clock::now();
     standardcrackingtime->at(0) += std::chrono::duration<double>(end - start).count();
 
+    std::vector<std::vector<IndexEntry>> partial_results(NUMBER_OF_COLUMNS);
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
+    {
+        partial_results.at(i).reserve(COLUMN_SIZE);
+    }
     for (size_t i = 0; i < NUM_QUERIES; i++)
     {
         start = std::chrono::system_clock::now();
-        std::vector<std::vector<IndexEntry>> partial_results(NUMBER_OF_COLUMNS);
         for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
         {
             //Partitioning Column and Inserting in Cracker Indexing
@@ -186,11 +187,10 @@ void standardCracking(std::vector<double> *standardcrackingtime)
             free(p1);
             free(p2);
 
-            partial_results[j] = scanQuery(crackercolumns[j], offset1, offset2);
+            scanQuery(crackercolumns[j], offset1, offset2, partial_results[j]);
         }
         // Join the partial results
         std::multimap<int64_t, bool> result = join_results(partial_results);
-
         end = std::chrono::system_clock::now();
         standardcrackingtime->at(i) += std::chrono::duration<double>(end - start).count();
 
@@ -207,9 +207,9 @@ void standardCracking(std::vector<double> *standardcrackingtime)
     free(crackercolumns);
 }
 
-std::vector<IndexEntry> filterQuery3(IndexEntry *c, RangeQuery queries, size_t query_index, int64_t from, int64_t to)
+void filterQuery3(IndexEntry *c, RangeQuery queries, size_t query_index, int64_t from, int64_t to, std::vector<IndexEntry> &results)
 {
-    std::vector<IndexEntry> results;
+    results.resize(0);
     int64_t keyL = queries.leftpredicate[query_index];
     int64_t keyH = queries.rightpredicate[query_index];
     for (size_t i = from; i <= to; ++i)
@@ -219,7 +219,6 @@ std::vector<IndexEntry> filterQuery3(IndexEntry *c, RangeQuery queries, size_t q
             results.push_back(IndexEntry(c[i].m_key, c[i].m_rowId));
         }
     }
-    return results;
 }
 
 void full_scan(std::vector<double> *fullscantime)
@@ -243,17 +242,20 @@ void full_scan(std::vector<double> *fullscantime)
             crackercolumns[j][i].m_rowId = i;
         }
     }
+    std::vector<std::vector<IndexEntry>> partial_results(NUMBER_OF_COLUMNS);
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
+    {
+        partial_results.at(i).reserve(COLUMN_SIZE);
+    }
     for (size_t q = 0; q < NUM_QUERIES; q++)
     {
         start = std::chrono::system_clock::now();
-        std::vector<std::vector<IndexEntry>> partial_results(NUMBER_OF_COLUMNS);
         for (int i = 0; i < NUMBER_OF_COLUMNS; ++i)
         {
-            partial_results[i] = filterQuery3(crackercolumns[i], rangequeries[i], q, 0, COLUMN_SIZE - 1);
+            filterQuery3(crackercolumns[i], rangequeries[i], q, 0, COLUMN_SIZE - 1, partial_results[i]);
         }
         // Join the partial results
         std::multimap<int64_t, bool> result = join_results(partial_results);
-
         end = std::chrono::system_clock::now();
         fullscantime->at(q) += std::chrono::duration<double>(end - start).count();
 #ifdef VERIFY
@@ -307,17 +309,23 @@ void bptree_bulk_index3(std::vector<double> *fullindex)
     end = std::chrono::system_clock::now();
     fullindex->at(0) += std::chrono::duration<double>(end - start).count();
 
+    std::vector<std::vector<IndexEntry>> partial_results(NUMBER_OF_COLUMNS);
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
+    {
+        partial_results.at(i).reserve(COLUMN_SIZE);
+    }
     for (int i = 0; i < NUM_QUERIES; i++)
     {
         // query
         start = std::chrono::system_clock::now();
-        std::vector<std::vector<IndexEntry>> partial_results(NUMBER_OF_COLUMNS);
         for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
         {
             int64_t offset1 = (T[j])->gte(rangequeries[j].leftpredicate[i]);
             int64_t offset2 = (T[j])->lt(rangequeries[j].rightpredicate[i]);
-            partial_results[j] = scanQuery(crackercolumns[j], offset1, offset2);
+            scanQuery(crackercolumns[j], offset1, offset2, partial_results[j]);
         }
+
+        // Join the partial results
         std::multimap<int64_t, bool> result = join_results(partial_results);
         end = std::chrono::system_clock::now();
         fullindex->at(i) += std::chrono::duration<double>(end - start).count();
@@ -363,6 +371,7 @@ void kdtree_cracking(std::vector<double> *response_times)
 
     KDTree index = NULL;
     end = std::chrono::system_clock::now();
+
     response_times->at(0) += std::chrono::duration<double>(end - start).count();
     for (size_t query_index = 0; query_index < NUM_QUERIES; ++query_index)
     {
@@ -430,6 +439,7 @@ void full_kdtree_cracking(std::vector<double> *response_times)
 
     KDTree index = FullKDTree(table);
     end = std::chrono::system_clock::now();
+
     response_times->at(0) += std::chrono::duration<double>(end - start).count();
 
     for (size_t query_index = 0; query_index < NUM_QUERIES; ++query_index)
