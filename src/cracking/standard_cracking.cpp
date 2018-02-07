@@ -6,55 +6,66 @@
 //
 #include "standard_cracking.h"
 
-
-void exchange(IndexEntry*& c, int64_t x1, int64_t x2){
-    IndexEntry tmp = *(c+x1);
-    *(c+x1) = *(c+x2);
-    *(c+x2) = tmp;
+void exchange(IndexEntry *&c, int64_t x1, int64_t x2)
+{
+    IndexEntry tmp = *(c + x1);
+    *(c + x1) = *(c + x2);
+    *(c + x2) = tmp;
 }
 
-int crackInTwoItemWise(IndexEntry*& c, int64_t posL, int64_t posH, int64_t med){
+int crackInTwoItemWise(IndexEntry *&c, int64_t posL, int64_t posH, int64_t med)
+{
     int x1 = posL, x2 = posH;
-    while (x1 <= x2) {
-        if(c[x1] < med)
+    while (x1 <= x2)
+    {
+        if (c[x1] < med)
             x1++;
-        else {
+        else
+        {
             while (x2 >= x1 && (c[x2] >= med))
                 x2--;
-            if(x1 < x2){
-                exchange(c, x1,x2);
+            if (x1 < x2)
+            {
+                exchange(c, x1, x2);
                 x1++;
                 x2--;
             }
         }
     }
-    if(x1 < x2)
+    if (x1 < x2)
         printf("Not all elements were inspected!");
     x1--;
-    if(x1 < 0)
+    if (x1 < 0)
         x1 = 0;
     return x1;
 }
 
-IntPair crackInThreeItemWise(IndexEntry *c, int64_t posL, int64_t posH, int64_t low, int64_t high){
+IntPair crackInThreeItemWise(IndexEntry *c, int64_t posL, int64_t posH, int64_t low, int64_t high)
+{
     int x1 = posL, x2 = posH;
-    while(x2 > x1 && c[x2] >= high)
+    while (x2 > x1 && c[x2] >= high)
         x2--;
     int x3 = x2;
-    while(x3 > x1 && c[x3] >= low){
-        if(c[x3]>=high){
+    while (x3 > x1 && c[x3] >= low)
+    {
+        if (c[x3] >= high)
+        {
             exchange(c, x2, x3);
             x2--;
         }
         x3--;
     }
-    while(x1<x3){
-        if(c[x1] < low)
+    while (x1 < x3)
+    {
+        if (c[x1] < low)
             x1++;
-        else{
+        else
+        {
             exchange(c, x1, x3);
-            while(x3 > x1 && c[x3] >= low){
-                if(c[x3]>=high){
+            while (x3 > x1 && c[x3] >= low)
+            {
+                if (c[x3] >= high)
+                {
                     exchange(c, x2, x3);
                     x2--;
                 }
@@ -62,27 +73,29 @@ IntPair crackInThreeItemWise(IndexEntry *c, int64_t posL, int64_t posH, int64_t 
             }
         }
     }
-    IntPair p = (IntPair) malloc(sizeof(struct int_pair));
+    IntPair p = (IntPair)malloc(sizeof(struct int_pair));
     p->first = x3;
     p->second = x2;
     return p;
 }
 
+AvlTree standardCracking(IndexEntry *&c, int dataSize, AvlTree T, int lowKey, int highKey)
+{
+    IntPair p1, p2;
 
-AvlTree standardCracking(IndexEntry* c, int dataSize, AvlTree T, int lowKey, int highKey){
-    IntPair p1,p2;
+    p1 = FindNeighborsLT(lowKey, T, dataSize - 1);
+    p2 = FindNeighborsLT(highKey, T, dataSize - 1);
 
-    p1 = FindNeighborsLT(lowKey, T, dataSize-1);
-    p2 = FindNeighborsLT(highKey, T, dataSize-1);
+    IntPair pivot_pair = NULL;
 
-    IntPair pivot_pair = NULL ;
-
-    if(p1->first==p2->first && p1->second==p2->second){
+    if (p1->first == p2->first && p1->second == p2->second)
+    {
         pivot_pair = crackInThreeItemWise(c, p1->first, p1->second, lowKey, highKey);
     }
-    else{
+    else
+    {
         // crack in two
-        pivot_pair = (IntPair) malloc(sizeof(struct int_pair));
+        pivot_pair = (IntPair)malloc(sizeof(struct int_pair));
         pivot_pair->first = crackInTwoItemWise(c, p1->first, p1->second, lowKey);
         pivot_pair->second = crackInTwoItemWise(c, pivot_pair->first, p2->second, highKey);
     }
@@ -92,7 +105,8 @@ AvlTree standardCracking(IndexEntry* c, int dataSize, AvlTree T, int lowKey, int
 
     free(p1);
     free(p2);
-    if(pivot_pair) {
+    if (pivot_pair)
+    {
         free(pivot_pair);
         pivot_pair = NULL;
     }
