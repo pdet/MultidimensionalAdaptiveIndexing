@@ -438,15 +438,15 @@ KDTree FullKDTree(Table &table)
 
                 if (position < lower_limit)
                 {
-                    current->left = CreateNode(column, median, -1, lower_limit);
+                    current->left = CreateNode(column, element, -1, lower_limit);
                 }
                 else if (position >= current->left_position)
                 {
-                    current->left = CreateNode(column, median, current->left_position, -1);
+                    current->left = CreateNode(column, element, current->left_position, -1);
                 }
                 else
                 {
-                    current->left = CreateNode(column, median, position, position + 1);
+                    current->left = CreateNode(column, element, position, position + 1);
 
                     nodes.push_back(current->left);
                     columns.push_back(column);
@@ -465,15 +465,15 @@ KDTree FullKDTree(Table &table)
 
                 if (position < current->right_position)
                 {
-                    current->right = CreateNode(column, median, -1, current->right_position);
+                    current->right = CreateNode(column, element, -1, current->right_position);
                 }
                 else if (position >= upper_limit)
                 {
-                    current->right = CreateNode(column, median, upper_limit, -1);
+                    current->right = CreateNode(column, element, upper_limit, -1);
                 }
                 else
                 {
-                    current->right = CreateNode(column, median, position, position + 1);
+                    current->right = CreateNode(column, element, position, position + 1);
 
                     nodes.push_back(current->right);
                     columns.push_back(column);
