@@ -19,7 +19,7 @@
 #include "util/file_manager.h"
 #include "util/structs.h"
 
-// #define VERIFY
+#define VERIFY
 
 std::string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
 extern int64_t COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
@@ -68,6 +68,10 @@ bool verify_range_query(Column *c, RangeQuery *queries, size_t query_index, std:
             fprintf(stderr, "%ld ", *it);
         }
         fprintf(stderr, "\n");
+        fprintf(stderr, "Correct size: %d\n", int(r1.size()));
+        fprintf(stderr, "Received size: %d\n", int(received.size()));
+        fprintf(stderr, "Size diff: %d\n", int(r1.size()) - int(received.size()));
+        fprintf(stderr, "--------------------\n");
         assert(0);
         return false;
     }
@@ -206,10 +210,10 @@ void standardCracking(std::vector<double> *standardcrackingtime)
 std::vector<IndexEntry> filterQuery3(IndexEntry *c, RangeQuery queries, size_t query_index, int64_t from, int64_t to)
 {
     std::vector<IndexEntry> results;
+    int64_t keyL = queries.leftpredicate[query_index];
+    int64_t keyH = queries.rightpredicate[query_index];
     for (size_t i = from; i <= to; ++i)
     {
-        int64_t keyL = queries.leftpredicate[query_index];
-        int64_t keyH = queries.rightpredicate[query_index];
         if (c[i].m_key >= keyL && c[i].m_key < keyH)
         {
             results.push_back(IndexEntry(c[i].m_key, c[i].m_rowId));
