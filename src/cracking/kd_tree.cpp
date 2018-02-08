@@ -27,6 +27,8 @@ void configKDTree(int64_t threshold)
 
 void exchange(Table &t, int64_t x1, int64_t x2)
 {
+    if (x1 == x2)
+        return;
     int64_t tmp;
     tmp = t.ids.at(x1);
     t.ids.at(x1) = t.ids.at(x2);
@@ -369,20 +371,58 @@ std::vector<int64_t> SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, i
     return ids;
 }
 
-// TODO: Optimize this part, there must be a way to do it without copying the elements
-// Using the nth_element as it is is not possible, because it swap the elements of the column, it should swap the entire row for it to work
-// Perhaps re-implementing the nth_element, so it is possible for us to swap the entire row
-int64_t find_median(Table table, int64_t column, int64_t lower_limit, int64_t upper_limit)
+// This method only works if we use the last element as the pivot
+int pivot_table(Table &table, int64_t column, int64_t low, int64_t high, int64_t pivot)
 {
-    std::vector<int64_t> elements(upper_limit - lower_limit + 1);
-    for (size_t i = lower_limit; i <= upper_limit; i++)
+    int64_t i = low - 1;
+
+    for (int64_t j = low; j < high; ++j)
     {
-        elements.at(i - lower_limit) = table.columns.at(column).at(i);
+        if (table.columns.at(column).at(j) <= pivot)
+        {
+            ++i;
+            exchange(table, i, j);
+        }
+    }
+    exchange(table, i + 1, high);
+    return i + 1;
+}
+
+std::pair<int64_t, int64_t> find_median(Table &table, int64_t column, int64_t lower_limit, int64_t upper_limit)
+{
+    int64_t low = lower_limit;
+    int64_t high = upper_limit;
+    int64_t position, element;
+
+    do
+    {
+        element = table.columns.at(column).at(high);
+        position = pivot_table(table, column, low, high, element);
+
+        if (position <= low)
+        {
+            ++low;
+        }
+        else if (position >= high)
+        {
+            --high;
+        }
+        else
+        {
+            if (position < (lower_limit + upper_limit) / 2)
+                low = position;
+            else
+                high = position;
+        }
+    } while (position != (lower_limit + upper_limit) / 2);
+
+    for (; position > lower_limit; --position)
+    {
+        if (table.columns.at(column).at(position - 1) != table.columns.at(column).at(position))
+            break;
     }
 
-    std::nth_element(elements.begin(), elements.begin() + elements.size() / 2, elements.end());
-
-    return elements[elements.size() / 2];
+    return std::make_pair(element, position - 1);
 }
 
 KDTree FullKDTree(Table &table)
@@ -394,9 +434,10 @@ KDTree FullKDTree(Table &table)
     std::vector<int64_t> lower_limits;
     std::vector<int64_t> upper_limits;
 
-    int64_t median = find_median(table, 0, 0, col_size);
-
-    int64_t p = CrackTable(table, 0, col_size, median, 0);
+    std::pair<int64_t, int64_t> median_result;
+    median_result = find_median(table, 0, 0, col_size);
+    int64_t median = median_result.first;
+    int64_t p = median_result.second;
 
     KDTree tree;
 
@@ -436,8 +477,9 @@ KDTree FullKDTree(Table &table)
         {
             if ((current->left_position - lower_limit + 1) > THRESHOLD)
             {
-                int64_t element = find_median(table, column, lower_limit, current->left_position);
-                int64_t position = CrackTable(table, lower_limit, current->left_position, element, column);
+                median_result = find_median(table, column, lower_limit, current->left_position);
+                int64_t element = median_result.first;
+                int64_t position = median_result.second;
 
                 if (position < lower_limit)
                 {
@@ -463,8 +505,9 @@ KDTree FullKDTree(Table &table)
         {
             if ((upper_limit - current->right_position + 1) > THRESHOLD)
             {
-                int64_t element = find_median(table, column, current->right_position, upper_limit);
-                int64_t position = CrackTable(table, current->right_position, upper_limit, element, column);
+                median_result = find_median(table, column, current->right_position, upper_limit);
+                int64_t element = median_result.first;
+                int64_t position = median_result.second;
 
                 if (position < current->right_position)
                 {
