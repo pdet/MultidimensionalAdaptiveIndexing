@@ -6,9 +6,9 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <map>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "cracking/avl_tree.h"
@@ -87,9 +87,9 @@ void scanQuery(IndexEntry *c, int64_t from, int64_t to, std::vector<IndexEntry> 
     }
 }
 
-std::multimap<int64_t, bool> join_results(std::vector<std::vector<IndexEntry>> &partials)
+std::unordered_map<int64_t, bool> join_results(std::vector<std::vector<IndexEntry>> &partials)
 {
-    std::multimap<int64_t, bool> intersection;
+    std::unordered_map<int64_t, bool> intersection;
     // Copy the first partial IDs
     for (size_t j = 0; j < partials[0].size(); ++j)
     {
@@ -98,7 +98,7 @@ std::multimap<int64_t, bool> join_results(std::vector<std::vector<IndexEntry>> &
 
     for (size_t i = 1; i < partials.size(); ++i)
     {
-        std::multimap<int64_t, bool> tmp_intersection;
+        std::unordered_map<int64_t, bool> tmp_intersection;
         for (size_t j = 0; j < partials[i].size(); ++j)
         {
             int64_t id = partials[i][j].m_rowId;
@@ -114,11 +114,11 @@ std::multimap<int64_t, bool> join_results(std::vector<std::vector<IndexEntry>> &
     return intersection;
 }
 
-std::set<int64_t> transform_result_to_set(std::multimap<int64_t, bool> result, std::vector<std::vector<IndexEntry>> partials)
+std::set<int64_t> transform_result_to_set(std::unordered_map<int64_t, bool> result, std::vector<std::vector<IndexEntry>> partials)
 {
     // Find the resulting rows and sum them
     std::set<int64_t> ids;
-    std::multimap<int64_t, bool>::iterator it;
+    std::unordered_map<int64_t, bool>::iterator it;
     for (it = result.begin(); it != result.end(); it++)
     {
         int64_t id = it->first;
@@ -189,16 +189,28 @@ void standardCracking(std::vector<double> *standardcrackingtime)
 
             scanQuery(crackercolumns[j], offset1, offset2, partial_results[j]);
         }
+        std::unordered_map<int64_t, bool> result;
         // Join the partial results
-        std::multimap<int64_t, bool> result = join_results(partial_results);
-        end = std::chrono::system_clock::now();
-        standardcrackingtime->at(i) += std::chrono::duration<double>(end - start).count();
-
+        if (NUMBER_OF_COLUMNS == 1)
+        {
+            end = std::chrono::system_clock::now();
 #ifdef VERIFY
-        bool pass = verify_range_query(c, rangequeries, i, transform_result_to_set(result, partial_results));
-        if (pass == 0)
-            std::cout << "Query : " << i << " " << pass << "\n";
+            bool pass = verify_range_query(c, rangequeries, i, transform_result_to_set(join_results(partial_results), partial_results));
+            if (pass == 0)
+                std::cout << "Query : " << i << " " << pass << "\n";
 #endif
+        }
+        else
+        {
+            result = join_results(partial_results);
+            end = std::chrono::system_clock::now();
+#ifdef VERIFY
+            bool pass = verify_range_query(c, rangequeries, i, transform_result_to_set(join_results(partial_results), partial_results));
+            if (pass == 0)
+                std::cout << "Query : " << i << " " << pass << "\n";
+#endif
+        }
+        standardcrackingtime->at(i) += std::chrono::duration<double>(end - start).count();
     }
     for (size_t l = 0; l < NUMBER_OF_COLUMNS; ++l)
     {
@@ -247,22 +259,35 @@ void full_scan(std::vector<double> *fullscantime)
     {
         partial_results.at(i).reserve(COLUMN_SIZE);
     }
-    for (size_t q = 0; q < NUM_QUERIES; q++)
+    for (size_t i = 0; i < NUM_QUERIES; i++)
     {
         start = std::chrono::system_clock::now();
-        for (int i = 0; i < NUMBER_OF_COLUMNS; ++i)
+        for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
         {
-            filterQuery3(crackercolumns[i], rangequeries[i], q, 0, COLUMN_SIZE - 1, partial_results[i]);
+            filterQuery3(crackercolumns[j], rangequeries[j], i, 0, COLUMN_SIZE - 1, partial_results[j]);
         }
+        std::unordered_map<int64_t, bool> result;
         // Join the partial results
-        std::multimap<int64_t, bool> result = join_results(partial_results);
-        end = std::chrono::system_clock::now();
-        fullscantime->at(q) += std::chrono::duration<double>(end - start).count();
+        if (NUMBER_OF_COLUMNS == 1)
+        {
+            end = std::chrono::system_clock::now();
 #ifdef VERIFY
-        bool pass = verify_range_query(c, rangequeries, q, transform_result_to_set(result, partial_results));
-        if (pass == 0)
-            std::cout << "Query : " << q << " " << pass << "\n";
+            bool pass = verify_range_query(c, rangequeries, i, transform_result_to_set(join_results(partial_results), partial_results));
+            if (pass == 0)
+                std::cout << "Query : " << i << " " << pass << "\n";
 #endif
+        }
+        else
+        {
+            result = join_results(partial_results);
+            end = std::chrono::system_clock::now();
+#ifdef VERIFY
+            bool pass = verify_range_query(c, rangequeries, i, transform_result_to_set(join_results(partial_results), partial_results));
+            if (pass == 0)
+                std::cout << "Query : " << i << " " << pass << "\n";
+#endif
+        }
+        fullscantime->at(i) += std::chrono::duration<double>(end - start).count();
     }
     for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
     {
@@ -314,7 +339,7 @@ void bptree_bulk_index3(std::vector<double> *fullindex)
     {
         partial_results.at(i).reserve(COLUMN_SIZE);
     }
-    for (int i = 0; i < NUM_QUERIES; i++)
+    for (size_t i = 0; i < NUM_QUERIES; i++)
     {
         // query
         start = std::chrono::system_clock::now();
@@ -325,16 +350,28 @@ void bptree_bulk_index3(std::vector<double> *fullindex)
             scanQuery(crackercolumns[j], offset1, offset2, partial_results[j]);
         }
 
+        std::unordered_map<int64_t, bool> result;
         // Join the partial results
-        std::multimap<int64_t, bool> result = join_results(partial_results);
-        end = std::chrono::system_clock::now();
-        fullindex->at(i) += std::chrono::duration<double>(end - start).count();
-
+        if (NUMBER_OF_COLUMNS == 1)
+        {
+            end = std::chrono::system_clock::now();
 #ifdef VERIFY
-        bool pass = verify_range_query(c, rangequeries, i, transform_result_to_set(result, partial_results));
-        if (pass == 0)
-            std::cout << "Query : " << i << " " << pass << "\n";
+            bool pass = verify_range_query(c, rangequeries, i, transform_result_to_set(join_results(partial_results), partial_results));
+            if (pass == 0)
+                std::cout << "Query : " << i << " " << pass << "\n";
 #endif
+        }
+        else
+        {
+            result = join_results(partial_results);
+            end = std::chrono::system_clock::now();
+#ifdef VERIFY
+            bool pass = verify_range_query(c, rangequeries, i, transform_result_to_set(join_results(partial_results), partial_results));
+            if (pass == 0)
+                std::cout << "Query : " << i << " " << pass << "\n";
+#endif
+        }
+        fullindex->at(i) += std::chrono::duration<double>(end - start).count();
     }
     for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
     {
