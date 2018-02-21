@@ -8,16 +8,17 @@ include_directories(src/util)
 
 
 set(SOURCE_FILES
+        src/util/file_manager.cpp
         src/cracking/avl_tree.cpp
-        src/cracking/avl_tree.h
-        src/cracking/standard_cracking.h
-        src/cracking/standard_cracking.cpp
         src/cracking/kd_tree.cpp
-        src/cracking/kd_tree.h
+        src/cracking/standard_cracking.cpp
+        src/fullindex/binary_search.cpp
+        src/fullindex/bulkloading_bp_tree.cpp
+        src/fullindex/hybrid_radix_insert_sort.cpp
        )
 
 add_executable(multidemionsionalindexing ${SOURCE_FILES}  src/main.cpp)
 
-add_executable(GenerateData ${SOURCE_FILES}  src/gendata.cpp )
+add_executable(GenerateData src/gendata.cpp)
 
 add_executable(ProgressiveIndexing src/util/file_manager.cpp src/cracking/kd_tree.cpp src/progressive/main.cpp)

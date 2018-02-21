@@ -339,7 +339,8 @@ void Print( AvlTree T ){
         return;
 
     printf("(%lld,%lld) ",(long long int) T->Element, (long long int) T->offset);
+    printf("\n");
     Print(T->Right);
     Print(T->Left);
-    printf("\n");
+//    printf("\n");
 }

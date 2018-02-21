@@ -166,7 +166,7 @@ void Insert(KDTree &tree, int64_t column, ElementType element, Table &table)
     {
         return InsertIntoRoot(tree, column, element, table);
     }
-    return;
+//    return;
 
     std::vector<KDTree> nodes_to_check;
     std::vector<int64_t> lower_limits, upper_limits;
@@ -575,4 +575,36 @@ void freeKDTree(KDTree tree)
         freeKDTree(tree->right);
     }
     delete tree;
+}
+
+//struct KDNode
+//{
+//    ElementType element;
+//    int64_t column;
+//
+//    KDNode *left;  // less than element
+//    KDNode *right; // greater or equal than element
+//
+//    int64_t left_position;
+//    int64_t right_position;
+//};
+//
+//struct AvlNode
+//{
+//    ElementType Element;
+//    int64_t offset;
+//
+//    AvlTree  Left;
+//    AvlTree  Right;
+//    int64_t      Height;
+//};
+
+
+void Print( KDTree T ){
+    if(T==NULL)
+        return;
+    printf("(%lld,%lld) ",(long long int) T->element, (long long int) T->element);
+    printf("\n");
+    Print(T->right);
+    Print(T->left);
 }

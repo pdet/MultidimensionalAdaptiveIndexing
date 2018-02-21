@@ -212,6 +212,7 @@ void standardCracking(std::vector<double> *standardcrackingtime)
         }
         standardcrackingtime->at(i) += std::chrono::duration<double>(end - start).count();
     }
+//    Print(*T);
     for (size_t l = 0; l < NUMBER_OF_COLUMNS; ++l)
     {
         free(crackercolumns[l]);
@@ -437,7 +438,7 @@ void kdtree_cracking(std::vector<double> *response_times)
             std::cout << "Query : " << query_index << " " << pass << "\n";
 #endif
     }
-
+//    Print(index);
     freeKDTree(index);
     for (int i = 0; i < NUMBER_OF_COLUMNS; ++i)
     {
@@ -448,6 +449,7 @@ void kdtree_cracking(std::vector<double> *response_times)
 
     free(c);
     free(rangequeries);
+
 }
 
 void full_kdtree_cracking(std::vector<double> *response_times)
@@ -519,7 +521,7 @@ void full_kdtree_cracking(std::vector<double> *response_times)
     free(rangequeries);
 }
 
-//.column.txt .query.txt 10 10000 0 2
+//.column.txt .query.txt 10 10000 0 2 16384
 int main(int argc, char **argv)
 {
     int INDEXING_TYPE;
