@@ -15,7 +15,7 @@ set(SOURCE_FILES
         src/fullindex/binary_search.cpp
         src/fullindex/bulkloading_bp_tree.cpp
         src/fullindex/hybrid_radix_insert_sort.cpp
-       )
+        src/util/timer.h)
 
 add_executable(multidemionsionalindexing ${SOURCE_FILES}  src/main.cpp)
 
