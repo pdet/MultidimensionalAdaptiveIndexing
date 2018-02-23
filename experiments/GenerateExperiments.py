@@ -72,7 +72,7 @@ def generate_python_file(rocks_machine,experiment_number,commands_list):
 
 
     for commands in commands_list:
-        file.write(commands)
+        file.write("    "+commands)
         file.write('\n\n')
     file.close()
 
