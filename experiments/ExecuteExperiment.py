@@ -1,5 +1,4 @@
 import os
-import configuration as cfg
 
 
 FULL_SCAN = 0
@@ -27,8 +26,7 @@ COLUMN_SIZE = ''
 BPTREE_ELEMENTSPERNODE = ''
 NUMBER_OF_COLUMNS = ''
 
-PATH_ON_ROCKS=cfg.PATH_ON_ROCKS
-
+PATH_ON_ROCKS="./"
 #Output is a csv file with:
 #algorithm;repetition;query_selectivity;query_zipf;query_number;query_pattern;column_size;column_pattern;
 #bptree_elementspernode;number_of_columns;query_time
@@ -47,7 +45,7 @@ def create_output():
         os.system('mkdir -p ' + experiments_path)
 
     header = "algorithm;repetition;query_selectivity;query_zipf;query_number;query_pattern;column_size;column_pattern;" \
-    "bptree_elementspernode;number_of_columns;query_time"
+    "bptree_elementspernode;number_of_columns;index_creation;index_lookup;scan_time;total_time"
     file = open(experiments_path + "results.csv", "w")
     file.write(header)
     file.write('\n')
