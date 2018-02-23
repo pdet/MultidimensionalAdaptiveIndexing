@@ -45,7 +45,7 @@ def create_output():
         os.system('mkdir -p ' + experiments_path)
 
     header = "algorithm;repetition;query_selectivity;query_zipf;query_number;query_pattern;column_size;column_pattern;" \
-    "bptree_elementspernode;number_of_columns;index_creation;index_lookup;scan_time;total_time"
+    "bptree_elementspernode;number_of_columns;index_creation;index_lookup;scan_time;join_time;total_time"
     file = open(experiments_path + "results.csv", "w")
     file.write(header)
     file.write('\n')

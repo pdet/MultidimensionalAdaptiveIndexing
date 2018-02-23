@@ -93,7 +93,7 @@ def experiment1():
     QUERIES_SELECTIVITY = [0.1]
     NUMBER_OF_COLUMNS = [2,4,8]
     QUERY_STREAM_SIZE = 1000
-    COLUMN_SIZE = 1000000
+    COLUMN_SIZE = 10000000
     COMMANDS_LIST= []
     for experiment in EXPERIMENTS:
         for query_pattern in QUERIES_PATTERN:
