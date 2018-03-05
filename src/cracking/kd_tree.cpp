@@ -1,8 +1,8 @@
 #include "kd_tree.h"
 // #include "structs.h"
-#include <chrono>
-#include <algorithm>
 #include "../util/timer.h"
+#include <algorithm>
+#include <chrono>
 int64_t THRESHOLD = 100;
 
 struct KDNode
@@ -97,7 +97,7 @@ KDTree CheckLeftSide(KDTree current, int64_t column, ElementType element, int64_
             }
             else if (position >= upper_limit)
             {
-                current->right = CreateNode(column, element, upper_limit, -1);
+                current->left = CreateNode(column, element, upper_limit, -1);
             }
             else
             {
@@ -167,7 +167,6 @@ void Insert(KDTree &tree, int64_t column, ElementType element, Table &table)
     {
         return InsertIntoRoot(tree, column, element, table);
     }
-//    return;
 
     std::vector<KDTree> nodes_to_check;
     std::vector<int64_t> lower_limits, upper_limits;
@@ -207,7 +206,7 @@ void Insert(KDTree &tree, int64_t column, ElementType element, Table &table)
             }
             else
             {
-                if (current->right_position != +-1)
+                if (current->right_position != -1)
                 {
                     lower_limit = current->right_position;
                     KDTree new_node = CheckRightSide(current, column, element, lower_limit, upper_limit, table);
@@ -320,7 +319,7 @@ std::vector<int64_t> SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, i
             {
                 if (current->left == NULL)
                 {
-                    std::vector<int64_t> partial = collect_results(table, lower_limit, current->left_position, query,currentQueryNum);
+                    std::vector<int64_t> partial = collect_results(table, lower_limit, current->left_position, query, currentQueryNum);
                     ids.insert(ids.end(), partial.begin(), partial.end());
                 }
                 else
@@ -337,7 +336,7 @@ std::vector<int64_t> SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, i
             {
                 if (current->right == NULL)
                 {
-                    std::vector<int64_t> partial = collect_results(table, current->right_position, upper_limit, query,currentQueryNum);
+                    std::vector<int64_t> partial = collect_results(table, current->right_position, upper_limit, query, currentQueryNum);
                     ids.insert(ids.end(), partial.begin(), partial.end());
                 }
                 else
@@ -354,7 +353,7 @@ std::vector<int64_t> SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, i
             {
                 if (current->left == NULL)
                 {
-                    std::vector<int64_t> partial = collect_results(table, lower_limit, current->left_position, query,currentQueryNum);
+                    std::vector<int64_t> partial = collect_results(table, lower_limit, current->left_position, query, currentQueryNum);
                     ids.insert(ids.end(), partial.begin(), partial.end());
                 }
                 else
@@ -368,7 +367,7 @@ std::vector<int64_t> SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, i
             {
                 if (current->right == NULL)
                 {
-                    std::vector<int64_t> partial = collect_results(table, current->right_position, upper_limit, query,currentQueryNum);
+                    std::vector<int64_t> partial = collect_results(table, current->right_position, upper_limit, query, currentQueryNum);
                     ids.insert(ids.end(), partial.begin(), partial.end());
                 }
                 else
@@ -614,11 +613,11 @@ void freeKDTree(KDTree tree)
 //    int64_t      Height;
 //};
 
-
-void Print( KDTree T ){
-    if(T==NULL)
+void Print(KDTree T)
+{
+    if (T == NULL)
         return;
-    printf("(%lld,%lld) ",(long long int) T->element, (long long int) T->element);
+    printf("(%lld,%lld) ", (long long int)T->element, (long long int)T->element);
     printf("\n");
     Print(T->right);
     Print(T->left);
