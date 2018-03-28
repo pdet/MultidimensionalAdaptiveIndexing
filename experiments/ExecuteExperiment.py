@@ -13,6 +13,7 @@ QUERIES_FILE_PATH = "./query.txt"
 ONE_SIDED_PERCENTAGE = 0.0 # Not really using this
 ZIPF_ALPHA = 2.0 #Skewness of dataset
 COLUMN_PATTERN = '1' #Column is always uniform random
+KD_TREE_THRESHOLD = 1000
 
 #Empty Variables
 EXPERIMENT_ID = ''
@@ -43,7 +44,6 @@ def create_output():
     experiments_path = PATH_ON_ROCKS+'experimentresults/'+str(EXPERIMENT_ID)+'/'
     if os.path.exists(experiments_path) != 1:
         os.system('mkdir -p ' + experiments_path)
-
     header = "algorithm;repetition;query_selectivity;query_zipf;query_number;query_pattern;column_size;column_pattern;" \
     "bptree_elementspernode;number_of_columns;index_creation;index_lookup;scan_time;join_time;total_time"
     file = open(experiments_path + "results.csv", "w")
@@ -110,7 +110,7 @@ def standard_cracking_kd(experiment_id,repetitions,query_pattern,query_selectivi
     generate_data()
     for repetition in range (0,repetitions):
         result = os.popen("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + str(QUERY_STREAM_SIZE)
-        + " " + str(column_size) + " " + str(STANDARD_CRACKING_KD)+ " " + str(NUMBER_OF_COLUMNS)).read()
+        + " " + str(column_size) + " " + str(STANDARD_CRACKING_KD)+ " " + str(NUMBER_OF_COLUMNS) + " " +  str(KD_TREE_THRESHOLD)).read()
         generate_output(file, result, repetition)
     close_output(file)
 
@@ -136,6 +136,6 @@ def full_index_kd(experiment_id,repetitions,query_pattern,query_selectivity,quer
     for repetition in range (0,repetitions):
         result = os.popen(
             "./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + str(QUERY_STREAM_SIZE)
-            + " " + str(column_size) + " " + str(FULL_INDEX_KD) + " " + str(NUMBER_OF_COLUMNS)).read()
+            + " " + str(column_size) + " " + str(FULL_INDEX_KD) + " " + str(NUMBER_OF_COLUMNS)+ " " + str(KD_TREE_THRESHOLD)).read()
         generate_output(file, result, repetition)
     close_output(file)
