@@ -45,7 +45,7 @@ def response_time_all_cols():
         plt.legend(loc=2)
     plt.ylabel('Response Time (s)')
     plt.xlabel('Number of Columns')
-    plt.title('Response time X Number of columns')
+    plt.title('Total Response Time')
     plt.yticks(range(0, 1300, 100))
     plt.grid()
     plt.savefig('response_time_all_cols.pdf')
@@ -65,11 +65,53 @@ def response_time_accumulated_2_cols():
             label=alg, legend=True,
             marker=mark, markevery=me
         )
-        ts.legend()
+        ts.legend(loc=2)
     ts.set_xlabel('Query (#)')
     ts.set_ylabel('Cumulative Time (s)')
-    ts.set_title('Accumulated Response Times (2 columns)')
+    ts.set_title('Accumulated Response Time (2 columns)')
     plt.savefig('cum_2.pdf')
+    reset_plot()
+
+
+def response_time_accumulated_4_cols():
+    dirs = [2, 6, 10, 14, 18]
+    markers=['.', 's', '+', 'D', 'p']
+    markers_every = [100, 120, 140, 160, 180]
+
+    for dir, mark, me in zip(dirs, markers, markers_every):
+        df1 = pd.read_csv(BASE_DIR + str(dir) + '/results.csv', sep=';')
+        alg = translate_alg(df1['algorithm'][1])
+        df1 = df1.groupby(['query_number']).mean()
+        ts = df1['total_time'].cumsum().plot(
+            label=alg, legend=True,
+            marker=mark, markevery=me
+        )
+        ts.legend(loc=2)
+    ts.set_xlabel('Query (#)')
+    ts.set_ylabel('Cumulative Time (s)')
+    ts.set_title('Accumulated Response Time (4 columns)')
+    plt.savefig('cum_4.pdf')
+    reset_plot()
+
+
+def response_time_accumulated_8_cols():
+    dirs = [3, 7, 11, 15, 19]
+    markers=['.', 's', '+', 'D', 'p']
+    markers_every = [100, 120, 140, 160, 180]
+
+    for dir, mark, me in zip(dirs, markers, markers_every):
+        df1 = pd.read_csv(BASE_DIR + str(dir) + '/results.csv', sep=';')
+        alg = translate_alg(df1['algorithm'][1])
+        df1 = df1.groupby(['query_number']).mean()
+        ts = df1['total_time'].cumsum().plot(
+            label=alg, legend=True,
+            marker=mark, markevery=me
+        )
+        ts.legend(loc=2)
+    ts.set_xlabel('Query (#)')
+    ts.set_ylabel('Cumulative Time (s)')
+    ts.set_title('Accumulated Response Time (8 columns)')
+    plt.savefig('cum_8.pdf')
     reset_plot()
     
 
@@ -86,10 +128,10 @@ def response_time_accumulated_16_cols():
             label=alg, legend=True,
             marker=mark, markevery=me
         )
-        ts.legend()
+        ts.legend(loc=2)
     ts.set_xlabel('Query (#)')
     ts.set_ylabel('Cumulative Time (s)')
-    ts.set_title('Accumulated Response Times (16 columns)')
+    ts.set_title('Accumulated Response Time (16 columns)')
     plt.savefig('cum_16.pdf')
     reset_plot()
 
@@ -200,13 +242,15 @@ def config():
     # plt.rc('xtick', labelsize=8)
     # plt.rc('ytick', labelsize=8)
     # plt.rc('axes', labelsize=8)
-    pass
+    return
 
 def main():
     variance_2_cols()
     variance_16_cols()
     response_time_all_cols()
     response_time_accumulated_2_cols()
+    response_time_accumulated_4_cols()
+    response_time_accumulated_8_cols()
     response_time_accumulated_16_cols()
     total_time_2_cols()
     total_time_16_cols()
