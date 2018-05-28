@@ -359,6 +359,72 @@ void full_scan_vertical()
     free(crackercolumns);
 }
 
+std::set<int64_t> tuple_scan(IndexEntry **c, RangeQuery *queries, size_t query_index, int64_t from, int64_t to)
+{
+    std::set<int64_t> ids;
+    for (size_t i = from; i <= to; ++i)
+    {
+        bool is_valid = true;
+        for (size_t j = 0; j < NUMBER_OF_COLUMNS && is_valid; ++j)
+        {
+            int64_t keyL = queries[j].leftpredicate[query_index];
+            int64_t keyH = queries[j].rightpredicate[query_index];
+            if (!(c[j][i].m_key >= keyL && c[j][i].m_key < keyH))
+            {
+                is_valid = false;
+            }
+        }
+        if (is_valid)
+        {
+            ids.insert(i);
+        }
+    }
+    return ids;
+}
+
+void full_scan_horizontal()
+{
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+
+    Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
+    loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
+
+    RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
+    loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
+
+    IndexEntry **crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
+    for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
+    {
+        crackercolumns[j] = (IndexEntry *)malloc(COLUMN_SIZE * sizeof(IndexEntry));
+        // Already create the cracker column
+        for (size_t i = 0; i < COLUMN_SIZE; ++i)
+        {
+            crackercolumns[j][i].m_key = c[j].data[i];
+            crackercolumns[j][i].m_rowId = i;
+        }
+    }
+
+    for (size_t i = 0; i < NUM_QUERIES; i++)
+    {
+        std::set<int64_t> result;
+        start = std::chrono::system_clock::now();
+        result = tuple_scan(crackercolumns, rangequeries, i, 0, COLUMN_SIZE - 1);
+        end = std::chrono::system_clock::now();
+        scanTime.at(i) = std::chrono::duration<double>(end - start).count();
+#ifdef VERIFY
+            bool pass = verify_range_query(c, rangequeries, i, result);
+            if (pass == 0)
+                std::cout << "Query : " << i << " " << pass << "\n";
+#endif
+        totalTime.at(i) = scanTime.at(i) + indexCreation.at(i) + indexLookup.at(i) + joinTime.at(i);
+    }
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
+    {
+        free(crackercolumns[i]);
+    }
+    free(crackercolumns);
+}
+
 void *fullIndex(IndexEntry *c)
 {
     hybrid_radixsort_insert(c, COLUMN_SIZE);
@@ -652,6 +718,13 @@ int main(int argc, char **argv)
     {
         KDTREE_THRESHOLD = atoi(argv[7]);
         full_kdtree_cracking();
+        for (int q = 0; q < NUM_QUERIES; q++)
+            std::cout << indexCreation.at(q) << ";" << indexLookup.at(q) << ";" << scanTime.at(q) << ";" << joinTime.at(q) << ";" << totalTime.at(q) << "\n";
+    }
+
+    else if (INDEXING_TYPE == 5)
+    {
+        full_scan_horizontal();
         for (int q = 0; q < NUM_QUERIES; q++)
             std::cout << indexCreation.at(q) << ";" << indexLookup.at(q) << ";" << scanTime.at(q) << ";" << joinTime.at(q) << ";" << totalTime.at(q) << "\n";
     }

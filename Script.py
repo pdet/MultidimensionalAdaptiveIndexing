@@ -63,9 +63,16 @@ if os.system("./gendata" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " 
 
 
 if FULL_SCAN_VERTICAL in experiments:
-    print("Running Full Scan")
+    print("Running Full Scan Vertical")
     if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
                  + " " + COLUMN_SIZE + " " + str(FULL_SCAN_VERTICAL) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "fs.txt") != 0:
+        print("Running Failed")
+        exit()
+
+if FULL_SCAN_HORIZONTAL in experiments:
+    print("Running Full Scan Horizontal")
+    if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
+                 + " " + COLUMN_SIZE + " " + str(FULL_SCAN_HORIZONTAL) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "fs.txt") != 0:
         print("Running Failed")
         exit()
 
