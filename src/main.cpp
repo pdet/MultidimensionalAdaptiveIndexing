@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <boost/dynamic_bitset.hpp>
 
 #include "cracking/avl_tree.h"
 
@@ -135,8 +136,9 @@ std::unordered_map<int64_t, bool> join_results(std::vector<std::vector<IndexEntr
     return intersection;
 }
 
+
 std::set<int64_t>
-transform_result_to_set(std::unordered_map<int64_t, bool> result, std::vector<std::vector<IndexEntry>> partials)
+transform_result_to_set(std::unordered_map<int64_t, bool> result)
 {
     // Find the resulting rows and sum them
     std::set<int64_t> ids;
@@ -222,7 +224,7 @@ void standardCracking()
 
 #ifdef VERIFY
             bool pass = verify_range_query(c, rangequeries, i,
-                                           transform_result_to_set(join_results(partial_results), partial_results));
+                                           transform_result_to_set(join_results(partial_results)));
             if (pass == 0)
                 std::cout << "Query : " << i << " " << pass << "\n";
 #endif
@@ -235,7 +237,7 @@ void standardCracking()
             joinTime.at(i) += std::chrono::duration<double>(end - start).count();
 #ifdef VERIFY
             bool pass = verify_range_query(c, rangequeries, i,
-                                           transform_result_to_set(join_results(partial_results), partial_results));
+                                           transform_result_to_set(join_results(partial_results)));
             if (pass == 0)
                 std::cout << "Query : " << i << " " << pass << "\n";
 #endif
@@ -250,22 +252,47 @@ void standardCracking()
     free(crackercolumns);
 }
 
+std::set<int64_t>
+join_bitmaps(std::vector<boost::dynamic_bitset<>> bitmaps, IndexEntry ** columns){
+    std::set<int64_t> result;
+    boost::dynamic_bitset<> final_bitmap(COLUMN_SIZE);
+
+    for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
+        final_bitmap[i] = bitmaps.at(0)[i];
+    }
+
+    for(boost::dynamic_bitset<>::size_type i = 1; i < bitmaps.size(); ++i){
+        final_bitmap = (final_bitmap & bitmaps.at(i));
+    }
+
+    for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
+        if(final_bitmap[i]){
+            result.insert(columns[0][i].m_rowId);
+        }
+    }
+
+    return result;
+
+}
+
 void filterQuery3(IndexEntry *c, RangeQuery queries, size_t query_index, int64_t from, int64_t to,
-                  std::vector<IndexEntry> &results)
+                  boost::dynamic_bitset<> &results)
 {
-    results.resize(0);
     int64_t keyL = queries.leftpredicate[query_index];
     int64_t keyH = queries.rightpredicate[query_index];
-    for (size_t i = from; i <= to; ++i)
+    boost::dynamic_bitset<>::size_type j = from;
+    // fprintf(stderr, "----------------------");
+    for (size_t i = from; i <= to; ++i, ++j)
     {
+        // fprintf(stderr, "KeyL: %ld, key: %ld, keyH: %ld\n", keyL, c[i].m_key, keyH);
         if (c[i].m_key >= keyL && c[i].m_key < keyH)
         {
-            results.push_back(IndexEntry(c[i].m_key, c[i].m_rowId));
+            results[j] = 1;
         }
     }
 }
 
-void full_scan()
+void full_scan_vertical()
 {
     std::chrono::time_point<std::chrono::system_clock> start, end;
 
@@ -286,27 +313,27 @@ void full_scan()
             crackercolumns[j][i].m_rowId = i;
         }
     }
-    std::vector<std::vector<IndexEntry>> partial_results(NUMBER_OF_COLUMNS);
-    for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
-    {
-        partial_results.at(i).reserve(COLUMN_SIZE);
-    }
+
     for (size_t i = 0; i < NUM_QUERIES; i++)
     {
+        std::vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
+        for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
+        {
+            bitmaps.at(i).resize(COLUMN_SIZE);
+        }
         start = std::chrono::system_clock::now();
         for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
-        {
-            filterQuery3(crackercolumns[j], rangequeries[j], i, 0, COLUMN_SIZE - 1, partial_results[j]);
+        { 
+            filterQuery3(crackercolumns[j], rangequeries[j], i, 0, COLUMN_SIZE - 1, bitmaps[j]);
         }
-        std::unordered_map<int64_t, bool> result;
+        std::set<int64_t> result;
         end = std::chrono::system_clock::now();
         scanTime.at(i) = std::chrono::duration<double>(end - start).count();
         // Join the partial results
         if (NUMBER_OF_COLUMNS == 1)
         {
 #ifdef VERIFY
-            bool pass = verify_range_query(c, rangequeries, i,
-                                           transform_result_to_set(join_results(partial_results), partial_results));
+            bool pass = verify_range_query(c, rangequeries, i, join_bitmaps(bitmaps, crackercolumns));
             if (pass == 0)
                 std::cout << "Query : " << i << " " << pass << "\n";
 #endif
@@ -314,11 +341,10 @@ void full_scan()
         else
         {
             start = std::chrono::system_clock::now();
-            result = join_results(partial_results);
+            result = join_bitmaps(bitmaps, crackercolumns);
             end = std::chrono::system_clock::now();
 #ifdef VERIFY
-            bool pass = verify_range_query(c, rangequeries, i,
-                                           transform_result_to_set(join_results(partial_results), partial_results));
+            bool pass = verify_range_query(c, rangequeries, i, result);
             if (pass == 0)
                 std::cout << "Query : " << i << " " << pass << "\n";
 #endif
@@ -400,7 +426,7 @@ void bptree_bulk_index3()
             end = std::chrono::system_clock::now();
 #ifdef VERIFY
             bool pass = verify_range_query(c, rangequeries, i,
-                                           transform_result_to_set(join_results(partial_results), partial_results));
+                                           transform_result_to_set(join_results(partial_results)));
             if (pass == 0)
                 std::cout << "Query : " << i << " " << pass << "\n";
 #endif
@@ -414,7 +440,7 @@ void bptree_bulk_index3()
 
 #ifdef VERIFY
             bool pass = verify_range_query(c, rangequeries, i,
-                                           transform_result_to_set(join_results(partial_results), partial_results));
+                                           transform_result_to_set(join_results(partial_results)));
             if (pass == 0)
                 std::cout << "Query : " << i << " " << pass << "\n";
 #endif
@@ -590,7 +616,7 @@ int main(int argc, char **argv)
     //FULL SCAN
     if (INDEXING_TYPE == 0)
     {
-        full_scan();
+        full_scan_vertical();
         for (int q = 0; q < NUM_QUERIES; q++)
             std::cout << indexCreation.at(q) << ";" << indexLookup.at(q) << ";" << scanTime.at(q) << ";" << joinTime.at(q) << ";" << totalTime.at(q) << "\n";
     }
