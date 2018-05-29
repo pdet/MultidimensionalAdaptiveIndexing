@@ -268,7 +268,7 @@ std::vector<int64_t> collect_results(Table &table, int64_t lower_limit, int64_t 
             result.push_back(table.ids.at(line));
     }
     end = std::chrono::system_clock::now();
-    scanTime.at(currentQueryNum) += std::chrono::duration<double>(end - start).count();
+//    scanTime.at(currentQueryNum) += std::chrono::duration<double>(end - start).count();
     return result;
 }
 
@@ -385,6 +385,117 @@ std::vector<int64_t> SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, i
     return ids;
 }
 
+std::vector<int64_t> SearchKDTreeProgressive(KDTree &tree, std::vector<std::pair<int64_t, int64_t>> query, Table &table, bool should_crack = false, size_t currentQueryNum = 0)
+{
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    std::vector<int64_t> ids;
+    int col_size = table.ids.size() - 1;
+    if (should_crack)
+    {
+        start = std::chrono::system_clock::now();
+        for (size_t col = 0; col < query.size(); ++col)
+        {
+//            Choosing random key for now.
+            int64_t key = rand() % col_size;
+            Insert(tree, col, key, table);
+        }
+        end = std::chrono::system_clock::now();
+//        indexCreation.at(currentQueryNum) = std::chrono::duration<double>(end - start).count();
+    }
+
+    start = std::chrono::system_clock::now();
+
+    // fprintf(stderr, "Query: %ld -- %ld\n", query.at(0).first, query.at(0).second);
+
+    std::vector<KDTree> nodes_to_check;
+    std::vector<int64_t> lower_limits, upper_limits;
+
+    lower_limits.push_back(0);
+    upper_limits.push_back(table.ids.size() - 1);
+    nodes_to_check.push_back(tree);
+    while (!nodes_to_check.empty())
+    {
+        KDTree current = nodes_to_check.back();
+        nodes_to_check.pop_back();
+
+        int64_t lower_limit = lower_limits.back();
+        lower_limits.pop_back();
+
+        int64_t upper_limit = upper_limits.back();
+        upper_limits.pop_back();
+
+        if (query.at(current->column).second <= current->element)
+        {
+            if (current->left_position != -1)
+            {
+                if (current->left == NULL)
+                {
+                    std::vector<int64_t> partial = collect_results(table, lower_limit, current->left_position, query, currentQueryNum);
+                    ids.insert(ids.end(), partial.begin(), partial.end());
+                }
+                else
+                {
+                    nodes_to_check.push_back(current->left);
+                    lower_limits.push_back(lower_limit);
+                    upper_limits.push_back(current->left_position);
+                }
+            }
+        }
+        else if (query.at(current->column).first >= current->element)
+        {
+            if (current->right_position != -1)
+            {
+                if (current->right == NULL)
+                {
+                    std::vector<int64_t> partial = collect_results(table, current->right_position, upper_limit, query, currentQueryNum);
+                    ids.insert(ids.end(), partial.begin(), partial.end());
+                }
+                else
+                {
+                    nodes_to_check.push_back(current->right);
+                    lower_limits.push_back(current->right_position);
+                    upper_limits.push_back(upper_limit);
+                }
+            }
+        }
+        else
+        {
+            if (current->left_position != -1)
+            {
+                if (current->left == NULL)
+                {
+                    std::vector<int64_t> partial = collect_results(table, lower_limit, current->left_position, query, currentQueryNum);
+                    ids.insert(ids.end(), partial.begin(), partial.end());
+                }
+                else
+                {
+                    nodes_to_check.push_back(current->left);
+                    lower_limits.push_back(lower_limit);
+                    upper_limits.push_back(current->left_position);
+                }
+            }
+            if (current->right_position != -1)
+            {
+                if (current->right == NULL)
+                {
+                    std::vector<int64_t> partial = collect_results(table, current->right_position, upper_limit, query, currentQueryNum);
+                    ids.insert(ids.end(), partial.begin(), partial.end());
+                }
+                else
+                {
+                    nodes_to_check.push_back(current->right);
+                    lower_limits.push_back(current->right_position);
+                    upper_limits.push_back(upper_limit);
+                }
+            }
+        }
+        end = std::chrono::system_clock::now();
+//        indexLookup.at(currentQueryNum) = std::chrono::duration<double>(end - start).count() - scanTime.at(currentQueryNum);
+    }
+
+    return ids;
+}
+
 // This method only works if we use the last element as the pivot
 int pivot_table(Table &table, int64_t column, int64_t low, int64_t high, int64_t pivot)
 {
@@ -438,6 +549,8 @@ std::pair<int64_t, int64_t> find_median(Table &table, int64_t column, int64_t lo
 
     return std::make_pair(element, position - 1);
 }
+
+
 
 KDTree FullKDTree(Table &table)
 {
@@ -547,32 +660,6 @@ KDTree FullKDTree(Table &table)
     return tree;
 }
 
-//TODO Adapt to progressive copy
-//TODO Check if random access is worst than copy the data
-//TODO Predication
-//TODO Add Delta
-// void PatialKDTree(std::vector<std::pair<KDTree, int64_t>> *nodes, int n_of_cols)
-// {
-//     KDTree current = nodes->back().first;
-//     int64_t column = (nodes->back().second + 1) % n_of_cols;
-//     nodes->pop_back();
-
-//     if (current->left_rows.size() > THRESHOLD)
-//     {
-//         current->left = CreateNode(column, find_median(current->left_rows, column), current->left_rows);
-//         current->left_rows = std::vector<Row>();
-
-//         nodes->push_back(std::make_pair(current->left, column));
-//     }
-
-//     if (current->right_rows.size() > THRESHOLD)
-//     {
-//         current->right = CreateNode(column, find_median(current->right_rows, column), current->right_rows);
-//         current->right_rows = std::vector<Row>();
-
-//         nodes->push_back(std::make_pair(current->right, column));
-//     }
-// }
 
 void freeKDTree(KDTree tree)
 {
