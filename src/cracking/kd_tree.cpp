@@ -268,7 +268,7 @@ std::vector<int64_t> collect_results(Table &table, int64_t lower_limit, int64_t 
             result.push_back(table.ids.at(line));
     }
     end = std::chrono::system_clock::now();
-//    scanTime.at(currentQueryNum) += std::chrono::duration<double>(end - start).count();
+    scanTime.at(currentQueryNum) += std::chrono::duration<double>(end - start).count();
     return result;
 }
 
@@ -378,9 +378,9 @@ std::vector<int64_t> SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, i
                 }
             }
         }
-        end = std::chrono::system_clock::now();
-        indexLookup.at(currentQueryNum) = std::chrono::duration<double>(end - start).count() - scanTime.at(currentQueryNum);
     }
+    end = std::chrono::system_clock::now();
+    indexLookup.at(currentQueryNum) = std::chrono::duration<double>(end - start).count() - scanTime.at(currentQueryNum);
 
     return ids;
 }

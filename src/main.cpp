@@ -174,13 +174,10 @@ void full_scan_vertical()
     for (size_t i = 0; i < NUM_QUERIES; i++)
     {
         std::vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
-        for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
-        {
-            bitmaps.at(i).resize(COLUMN_SIZE);
-        }
         start = std::chrono::system_clock::now();
         for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
         { 
+            bitmaps.at(j).resize(COLUMN_SIZE);
             filterQuery3(crackercolumns[j], rangequeries[j], i, 0, COLUMN_SIZE - 1, bitmaps[j]);
         }
         std::set<int64_t> result;
@@ -200,13 +197,13 @@ void full_scan_vertical()
             start = std::chrono::system_clock::now();
             result = join_bitmaps(bitmaps, crackercolumns);
             end = std::chrono::system_clock::now();
+            joinTime.at(i) = std::chrono::duration<double>(end - start).count();
 #ifdef VERIFY
             bool pass = verify_range_query(c, rangequeries, i, result);
             if (pass == 0)
                 std::cout << "Query : " << i << " " << pass << "\n";
 #endif
         }
-        joinTime.at(i) = std::chrono::duration<double>(end - start).count();
         totalTime.at(i) = scanTime.at(i) + indexCreation.at(i) + indexLookup.at(i) + joinTime.at(i);
     }
     for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
@@ -316,15 +313,11 @@ void standardCracking()
     for (size_t i = 0; i < NUM_QUERIES; i++)
     {
         std::vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
-        for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
-        {
-            bitmaps.at(i).resize(COLUMN_SIZE);
-        }
-        start = std::chrono::system_clock::now();
         for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
         {
             //Partitioning Column and Inserting in Cracker Indexing
-
+            start = std::chrono::system_clock::now();
+            bitmaps.at(j).resize(COLUMN_SIZE);
             T[j] = standardCracking(
                 crackercolumns[j],
                 COLUMN_SIZE,
@@ -422,15 +415,11 @@ void bptree_bulk_index3()
     for (size_t i = 0; i < NUM_QUERIES; i++)
     {
         std::vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
-        for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
-        {
-            bitmaps.at(i).resize(COLUMN_SIZE);
-        }
         // query
-        start = std::chrono::system_clock::now();
         for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
         {
             start = std::chrono::system_clock::now();
+            bitmaps.at(j).resize(COLUMN_SIZE);
             int64_t offset1 = (T[j])->gte(rangequeries[j].leftpredicate[i]);
             int64_t offset2 = (T[j])->lt(rangequeries[j].rightpredicate[i]);
             end = std::chrono::system_clock::now();
@@ -445,7 +434,6 @@ void bptree_bulk_index3()
         // Join the partial results
         if (NUMBER_OF_COLUMNS == 1)
         {
-            end = std::chrono::system_clock::now();
 #ifdef VERIFY
             bool pass = verify_range_query(c, rangequeries, i, join_bitmaps(bitmaps, crackercolumns));
             if (pass == 0)
@@ -502,8 +490,8 @@ void kdtree_cracking()
 
     KDTree index = NULL;
     end = std::chrono::system_clock::now();
-
     indexCreation.at(0) += std::chrono::duration<double>(end - start).count();
+
     for (size_t query_index = 0; query_index < NUM_QUERIES; ++query_index)
     {
         // Transform query in a format easier to handle
@@ -542,7 +530,7 @@ void kdtree_cracking()
     free(rangequeries);
 }
 
-void full_kdtree_cracking()
+void full_kdtree()
 {
     configKDTree(KDTREE_THRESHOLD);
     std::chrono::time_point<std::chrono::system_clock> start, end;
@@ -671,7 +659,7 @@ int main(int argc, char **argv)
     else if (INDEXING_TYPE == 4)
     {
         KDTREE_THRESHOLD = atoi(argv[7]);
-        full_kdtree_cracking();
+        full_kdtree();
         for (int q = 0; q < NUM_QUERIES; q++)
             std::cout << indexCreation.at(q) << ";" << indexLookup.at(q) << ";" << scanTime.at(q) << ";" << joinTime.at(q) << ";" << totalTime.at(q) << "\n";
     }
