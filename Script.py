@@ -19,7 +19,7 @@ experiments = [FULL_SCAN_VERTICAL, STANDARD_CRACKING, FULL_INDEX, KD_TREE, FULL_
 # Main Configurations
 COLUMN_FILE_PATH = "./column.txt"
 QUERIES_FILE_PATH = "./query.txt"
-NUM_QUERIES = '10000'
+NUM_QUERIES = '1000'
 NUMBER_OF_REPETITIONS = '1'
 COLUMN_SIZE = '100000'
 NUMBER_OF_COLUMNS = '5'
@@ -65,14 +65,14 @@ if os.system("./gendata" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " 
 if FULL_SCAN_VERTICAL in experiments:
     print("Running Full Scan Vertical")
     if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                 + " " + COLUMN_SIZE + " " + str(FULL_SCAN_VERTICAL) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "fs.txt") != 0:
+                 + " " + COLUMN_SIZE + " " + str(FULL_SCAN_VERTICAL) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "fsv.txt") != 0:
         print("Running Failed")
         exit()
 
 if FULL_SCAN_HORIZONTAL in experiments:
     print("Running Full Scan Horizontal")
     if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                 + " " + COLUMN_SIZE + " " + str(FULL_SCAN_HORIZONTAL) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "fs.txt") != 0:
+                 + " " + COLUMN_SIZE + " " + str(FULL_SCAN_HORIZONTAL) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "fsh.txt") != 0:
         print("Running Failed")
         exit()
 
