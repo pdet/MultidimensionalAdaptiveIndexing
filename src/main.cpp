@@ -109,9 +109,19 @@ void scanQuery(IndexEntry *c, int64_t from, int64_t to, boost::dynamic_bitset<> 
     }
 }
 
+std::set<int64_t> bitmap_to_set(boost::dynamic_bitset<> bitmap, IndexEntry ** columns){
+    std::set<int64_t> result;
+    for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
+        if(bitmap[i]){
+            result.insert(i);
+        }
+    }
+
+    return result;
+}
+
 std::set<int64_t>
 join_bitmaps(std::vector<boost::dynamic_bitset<>> bitmaps, IndexEntry ** columns){
-    std::set<int64_t> result;
     boost::dynamic_bitset<> final_bitmap(COLUMN_SIZE);
 
     for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
@@ -122,29 +132,35 @@ join_bitmaps(std::vector<boost::dynamic_bitset<>> bitmaps, IndexEntry ** columns
         final_bitmap = (final_bitmap & bitmaps.at(i));
     }
 
-    for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
-        if(final_bitmap[i]){
-            result.insert(i);
-        }
-    }
-
-    return result;
+    return bitmap_to_set(final_bitmap, columns);
 
 }
 
 void filterQuery3(IndexEntry *c, RangeQuery queries, size_t query_index, int64_t from, int64_t to,
-                  boost::dynamic_bitset<> &results)
+                  boost::dynamic_bitset<> &results, bool first_time)
 {
     int64_t keyL = queries.leftpredicate[query_index];
     int64_t keyH = queries.rightpredicate[query_index];
     boost::dynamic_bitset<>::size_type j = from;
     // fprintf(stderr, "----------------------");
-    for (size_t i = from; i <= to; ++i, ++j)
-    {
-        // fprintf(stderr, "KeyL: %ld, key: %ld, keyH: %ld\n", keyL, c[i].m_key, keyH);
-        if (c[i].m_key >= keyL && c[i].m_key < keyH)
+    if(first_time){
+        for (size_t i = from; i <= to; ++i, ++j)
         {
-            results[j] = 1;
+            // fprintf(stderr, "KeyL: %ld, key: %ld, keyH: %ld\n", keyL, c[i].m_key, keyH);
+            if (c[i].m_key >= keyL && c[i].m_key < keyH)
+            {
+                results[j] = 1;
+            }
+        }
+    }else{
+        for (size_t i = from; i <= to; ++i, ++j)
+        {
+            if(results[j]) {
+                if (!(c[i].m_key >= keyL && c[i].m_key < keyH))
+                {
+                    results[j] = 0;
+                }
+            }
         }
     }
 }
@@ -173,37 +189,22 @@ void full_scan_vertical()
 
     for (size_t i = 0; i < NUM_QUERIES; i++)
     {
-        std::vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
+        boost::dynamic_bitset<> bitmap(COLUMN_SIZE);
         start = std::chrono::system_clock::now();
-        for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
+        filterQuery3(crackercolumns[0], rangequeries[0], i, 0, COLUMN_SIZE - 1, bitmap, true);
+        for (size_t j = 1; j < NUMBER_OF_COLUMNS; ++j)
         { 
-            bitmaps.at(j).resize(COLUMN_SIZE);
-            filterQuery3(crackercolumns[j], rangequeries[j], i, 0, COLUMN_SIZE - 1, bitmaps[j]);
+            filterQuery3(crackercolumns[j], rangequeries[j], i, 0, COLUMN_SIZE - 1, bitmap, false);
+            
         }
-        std::set<int64_t> result;
         end = std::chrono::system_clock::now();
         scanTime.at(i) = std::chrono::duration<double>(end - start).count();
-        // Join the partial results
-        if (NUMBER_OF_COLUMNS == 1)
-        {
+
 #ifdef VERIFY
-            bool pass = verify_range_query(c, rangequeries, i, join_bitmaps(bitmaps, crackercolumns));
+            bool pass = verify_range_query(c, rangequeries, i, bitmap_to_set(bitmap, crackercolumns));
             if (pass == 0)
                 std::cout << "Query : " << i << " " << pass << "\n";
 #endif
-        }
-        else
-        {
-            start = std::chrono::system_clock::now();
-            result = join_bitmaps(bitmaps, crackercolumns);
-            end = std::chrono::system_clock::now();
-            joinTime.at(i) = std::chrono::duration<double>(end - start).count();
-#ifdef VERIFY
-            bool pass = verify_range_query(c, rangequeries, i, result);
-            if (pass == 0)
-                std::cout << "Query : " << i << " " << pass << "\n";
-#endif
-        }
         totalTime.at(i) = scanTime.at(i) + indexCreation.at(i) + indexLookup.at(i) + joinTime.at(i);
     }
     for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
