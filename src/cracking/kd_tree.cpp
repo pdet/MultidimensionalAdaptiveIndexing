@@ -660,6 +660,126 @@ KDTree FullKDTree(Table &table)
     return tree;
 }
 
+int64_t find_average(Table &table, int64_t column, int64_t lower_limit, int64_t upper_limit){
+    int64_t min, max;
+    min = table.columns[column].at(lower_limit);
+    max = min;
+
+    for(size_t i = lower_limit; i <= upper_limit; ++i){
+        if(table.columns[column].at(i) < min){
+            min = table.columns[column].at(i);
+        }
+        if(table.columns[column].at(i) > max){
+            max = table.columns[column].at(i);
+        }
+    }
+
+    return (int64_t)(max - min)/2;
+}
+
+KDTree FullKDTreeWithAverage(Table &table)
+{
+    int n_of_cols = table.columns.size();
+    int col_size = table.ids.size() - 1;
+    std::vector<KDTree> nodes;
+    std::vector<int64_t> columns;
+    std::vector<int64_t> lower_limits;
+    std::vector<int64_t> upper_limits;
+
+    int64_t average = find_average(table, 0, 0, col_size);
+    int64_t p = CrackTable(table, 0, col_size, average, 0);
+
+    KDTree tree;
+
+    if (p < 0)
+    {
+        tree = CreateNode(0, average, -1, 0);
+    }
+    else if (p >= col_size)
+    {
+        tree = CreateNode(0, average, col_size, -1);
+    }
+    else
+    {
+        tree = CreateNode(0, average, p, p + 1);
+    }
+
+    nodes.push_back(tree);
+    columns.push_back(0);
+    lower_limits.push_back(0);
+    upper_limits.push_back(col_size);
+
+    while (!nodes.empty())
+    {
+        KDTree current = nodes.back();
+        nodes.pop_back();
+
+        int64_t column = (columns.back() + 1) % n_of_cols;
+        columns.pop_back();
+
+        int64_t lower_limit = lower_limits.back();
+        lower_limits.pop_back();
+
+        int64_t upper_limit = upper_limits.back();
+        upper_limits.pop_back();
+
+        if (current->left_position != -1)
+        {
+            if ((current->left_position - lower_limit + 1) > THRESHOLD)
+            {
+                int64_t element = find_average(table, column, lower_limit, current->left_position);
+                int64_t position = CrackTable(table, lower_limit, current->left_position, average, column);
+
+                if (position < lower_limit)
+                {
+                    current->left = CreateNode(column, element, -1, lower_limit);
+                }
+                else if (position >= current->left_position)
+                {
+                    current->left = CreateNode(column, element, current->left_position, -1);
+                }
+                else
+                {
+                    current->left = CreateNode(column, element, position, position + 1);
+
+                    nodes.push_back(current->left);
+                    columns.push_back(column);
+                    lower_limits.push_back(lower_limit);
+                    upper_limits.push_back(current->left_position);
+                }
+            }
+        }
+
+        if (current->right_position != -1)
+        {
+            if ((upper_limit - current->right_position + 1) > THRESHOLD)
+            {
+                int64_t element = find_average(table, column, current->right_position, upper_limit);
+                int64_t position = CrackTable(table, current->right_position, upper_limit, average, column);
+
+                if (position < current->right_position)
+                {
+                    current->right = CreateNode(column, element, -1, current->right_position);
+                }
+                else if (position >= upper_limit)
+                {
+                    current->right = CreateNode(column, element, upper_limit, -1);
+                }
+                else
+                {
+                    current->right = CreateNode(column, element, position, position + 1);
+
+                    nodes.push_back(current->right);
+                    columns.push_back(column);
+                    lower_limits.push_back(current->right_position);
+                    upper_limits.push_back(upper_limit);
+                }
+            }
+        }
+    }
+
+    return tree;
+}
 
 void freeKDTree(KDTree tree)
 {

@@ -26,6 +26,8 @@ std::vector<int64_t> SearchKDTreeProgressive(KDTree &tree, std::vector<std::pair
 
 KDTree FullKDTree(Table &table);
 
+KDTree FullKDTreeWithAverage(Table &table);
+
 void freeKDTree(KDTree tree);
 
 void configKDTree(int64_t threshold);

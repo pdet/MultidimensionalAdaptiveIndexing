@@ -12,14 +12,16 @@ FULL_INDEX = 2
 KD_TREE = 3
 FULL_KD_TREE = 4
 FULL_SCAN_HORIZONTAL = 5
+FULL_KD_TREE_USING_AVERAGE = 6
 
 
 # Select Experiments to run
-experiments = [FULL_SCAN_VERTICAL, STANDARD_CRACKING, FULL_INDEX, KD_TREE, FULL_KD_TREE, FULL_SCAN_HORIZONTAL]
+# experiments = [FULL_SCAN_VERTICAL, STANDARD_CRACKING, FULL_INDEX, KD_TREE, FULL_KD_TREE, FULL_SCAN_HORIZONTAL, FULL_KD_TREE_USING_AVERAGE]
+experiments = [FULL_KD_TREE_USING_AVERAGE]
 # Main Configurations
 COLUMN_FILE_PATH = "./column.txt"
 QUERIES_FILE_PATH = "./query.txt"
-NUM_QUERIES = '1000'
+NUM_QUERIES = '5000'
 NUMBER_OF_REPETITIONS = '1'
 COLUMN_SIZE = '100000'
 NUMBER_OF_COLUMNS = '5'
@@ -103,5 +105,12 @@ if FULL_KD_TREE in experiments:
     print("Running Full KDTree")
     if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
                  + " " + COLUMN_SIZE + " " + str(FULL_KD_TREE) + " " + str(NUMBER_OF_COLUMNS) + " " + str(KDTREE_THRESHOLD) + " >> " + PATH + "kdf.txt") != 0:
+        print("Running Failed")
+        exit()
+
+if FULL_KD_TREE_USING_AVERAGE in experiments:
+    print("Running Full KDTree Using Average")
+    if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
+                 + " " + COLUMN_SIZE + " " + str(FULL_KD_TREE_USING_AVERAGE) + " " + str(NUMBER_OF_COLUMNS) + " " + str(KDTREE_THRESHOLD) + " >> " + PATH + "kdf_avg.txt") != 0:
         print("Running Failed")
         exit()
