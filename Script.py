@@ -6,16 +6,15 @@ SEQUENTIAL = 2  # Sequential only works for queries
 SKEWED = 3
 
 # Setting Values For Algorithms
-FULL_SCAN_VERTICAL = 0
+FULL_SCAN = 0
 STANDARD_CRACKING = 1
 FULL_INDEX = 2
 KD_TREE = 3
 FULL_KD_TREE = 4
-FULL_SCAN_HORIZONTAL = 5
 
 
 # Select Experiments to run
-experiments = [FULL_SCAN_VERTICAL, STANDARD_CRACKING, FULL_INDEX, KD_TREE, FULL_KD_TREE, FULL_SCAN_HORIZONTAL]
+experiments = [FULL_SCAN, STANDARD_CRACKING, FULL_INDEX, KD_TREE, FULL_KD_TREE]
 # Main Configurations
 COLUMN_FILE_PATH = "./column.txt"
 QUERIES_FILE_PATH = "./query.txt"
@@ -62,17 +61,10 @@ if os.system("./gendata" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " 
     exit()
 
 
-if FULL_SCAN_VERTICAL in experiments:
+if FULL_SCAN in experiments:
     print("Running Full Scan Vertical")
     if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                 + " " + COLUMN_SIZE + " " + str(FULL_SCAN_VERTICAL) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "fsv.txt") != 0:
-        print("Running Failed")
-        exit()
-
-if FULL_SCAN_HORIZONTAL in experiments:
-    print("Running Full Scan Horizontal")
-    if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                 + " " + COLUMN_SIZE + " " + str(FULL_SCAN_HORIZONTAL) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "fsh.txt") != 0:
+                 + " " + COLUMN_SIZE + " " + str(FULL_SCAN) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "fsv.txt") != 0:
         print("Running Failed")
         exit()
 
