@@ -583,7 +583,7 @@ int main(int argc, char **argv)
 		full_scan();
 		for (int q = 0; q < NUM_QUERIES; q++){
 			std::cout << indexCreation.at(q) << ";" << indexLookup.at(q) << ";" << scanTime.at(q) << ";" << joinTime.at(q) << ";" << totalTime.at(q) << "\n";
-			fprintf(stderr, "%f\n",totalTime.at(q));
+			// fprintf(stderr, "%f\n",totalTime.at(q));
 		}
 			
 	}

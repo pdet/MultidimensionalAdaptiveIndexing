@@ -6,12 +6,19 @@
 #include <vector>
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <cassert>
 #include <map>
 #include <chrono>
 #include <algorithm>
 #include "cracking/cracker_index.h"
+
+typedef struct predicate {
+  int64_t column;
+  int64_t low;
+  int64_t high;
+} predicate;
 
 int64_t applySelectivity(int64_t leftQuery,double SELECTIVITY_PERCENTAGE, std::vector<int64_t> *c){
     int64_t selec = 0;
@@ -242,7 +249,7 @@ void skewedColumn(std::vector<int64_t> *column,int64_t COLUMN_SIZE, int64_t UPPE
 
 
 std::vector<int64_t> generateColumn(int64_t COLUMN_SIZE, int64_t UPPERBOUND,
-                                    int64_t DATA_COLUMN_PATTERN,double ZIPF_ALPHA, std::string COLUMN_FILE_PATH) {
+                                    int64_t DATA_COLUMN_PATTERN,double ZIPF_ALPHA) {
     std::chrono::time_point<std::chrono::system_clock> start, end;
     std::chrono::duration<double> elapsed_seconds;
 
@@ -254,9 +261,6 @@ std::vector<int64_t> generateColumn(int64_t COLUMN_SIZE, int64_t UPPERBOUND,
         skewedColumn(&data, COLUMN_SIZE,  UPPERBOUND,ZIPF_ALPHA);
     end = std::chrono::system_clock::now();
     elapsed_seconds = end-start;
-    FILE* f = fopen(COLUMN_FILE_PATH.c_str(), "a+");
-    fwrite(&data[0], sizeof(int64_t), COLUMN_SIZE, f);
-    fclose(f);
     std::cout << "Creating column data: " << elapsed_seconds.count() << "s\n";
     return data;
 }
@@ -278,19 +282,19 @@ void verifySelectivity(std::vector<int64_t> *c,std::vector<int64_t> *l,std::vect
 
 
 }
-void generateQuery(int64_t NUM_QUERIES,
+std::vector<predicate> generateQuery(int64_t NUM_QUERIES,
                    int64_t UPPERBOUND,
                    int64_t QUERY_PATTERN,
                    double SELECTIVITY_PERCENTAGE,
                    double ONE_SIDED_PERCENTAGE,
                    double ZIPF_ALPHA,
                    std::vector<int64_t> *orderedColumn,
-                   std::string QUERIES_FILE_PATH) {
+                   int64_t column) {
     std::sort(orderedColumn->begin(), orderedColumn->end());
     std::chrono::time_point<std::chrono::system_clock> start, end;
     std::chrono::duration<double> elapsed_seconds;
 
-    FILE* f = fopen(QUERIES_FILE_PATH.c_str(), "a+");
+    // FILE* f = fopen(QUERIES_FILE_PATH.c_str(), "a+");
     std::vector<int64_t> leftQuery;
     std::vector<int64_t> rightQuery;
     int64_t maxLeftQueryVal = 0;
@@ -313,18 +317,71 @@ void generateQuery(int64_t NUM_QUERIES,
         skewedDataQuery(&leftQuery, &rightQuery, UPPERBOUND, NUM_QUERIES, SELECTIVITY_PERCENTAGE, ONE_SIDED_PERCENTAGE,ZIPF_ALPHA, orderedColumn, maxLeftQueryVal);
     end = std::chrono::system_clock::now();
     verifySelectivity(orderedColumn,&leftQuery,&rightQuery, SELECTIVITY_PERCENTAGE);
-    fwrite(&leftQuery[0], sizeof(int64_t), NUM_QUERIES, f);
-    fwrite(&rightQuery[0], sizeof(int64_t), NUM_QUERIES, f);
-    fclose(f);
+    // fwrite(&leftQuery[0], sizeof(int64_t), NUM_QUERIES, f);
+    // fwrite(&rightQuery[0], sizeof(int64_t), NUM_QUERIES, f);
+    // fclose(f);
+    std::vector<predicate> column_queries (NUM_QUERIES);
+    
+    for(size_t i = 0; i < NUM_QUERIES; i++)
+    {
+        column_queries[i].column = column;
+        column_queries[i].low = leftQuery[i];
+        column_queries[i].high = rightQuery[i];
+    }
+    
     elapsed_seconds = end-start;
 
     std::cout << "Creating Query Attr: " << elapsed_seconds.count() << "s\n";
+
+    return column_queries;
 }
 
 
 void truncate(std::string file_path) {
     FILE* f = fopen(file_path.c_str(), "w+");
     fclose(f);
+}
+
+void write_columns_to_file(
+    std::vector<std::vector<int64_t>> columns, int64_t COLUMN_SIZE,
+    int64_t NUMBER_OF_COLUMNS, std::string COLUMN_FILE_PATH){
+    
+    std::ofstream os(COLUMN_FILE_PATH.c_str());
+
+    for(size_t i = 0; i < COLUMN_SIZE; i++)
+    {
+        std::string helper = std::to_string(columns[0][i]);
+        for(size_t j = 1; j < NUMBER_OF_COLUMNS; j++)
+        {
+            helper += '|' + std::to_string(columns[j][i]);
+        }
+        helper += '\n';
+        os << helper;
+    }
+}
+
+void write_queries_to_file(
+    std::vector<std::vector<predicate>> queries, int64_t NUM_QUERIES,
+    int64_t NUMBER_OF_COLUMNS, std::string QUERY_FILE_PATH){
+    
+    std::ofstream os(QUERY_FILE_PATH.c_str());
+
+    for(size_t i = 0; i < NUM_QUERIES; i++)
+    {
+        std::string helper = "";
+        helper += std::to_string(queries[0][i].low) + ';';
+        helper += std::to_string(queries[0][i].column) + ';';
+        helper += std::to_string(queries[0][i].high);
+        for(size_t j = 1; j < NUMBER_OF_COLUMNS; j++)
+        {
+            helper += '|';
+            helper += std::to_string(queries[j][i].low) + ';';
+            helper += std::to_string(queries[j][i].column) + ';';
+            helper += std::to_string(queries[j][i].high);
+        }
+        helper += '\n';
+        os << helper;
+    }
 }
 
 //.column.txt .query.txt 0.1 0 2.0 10 1000 1000 1 1 2
@@ -348,9 +405,12 @@ int main(int argc, char** argv) {
     truncate(COLUMN_FILE_PATH);
     truncate(QUERIES_FILE_PATH);
 
-    std::vector<int64_t> orderedColumn;
+    std::vector<std::vector<int64_t>> columns(NUMBER_OF_COLUMNS);
+    std::vector<std::vector<predicate>> queries (NUMBER_OF_COLUMNS);
     for (int i = 0; i < NUMBER_OF_COLUMNS; ++i) {
-        orderedColumn = generateColumn(COLUMN_SIZE,UPPERBOUND,COLUMN_PATTERN,ZIPF_ALPHA, COLUMN_FILE_PATH);
-        generateQuery(NUM_QUERIES,UPPERBOUND,QUERIES_PATTERN,SELECTIVITY_PERCENTAGE,ONE_SIDED_PERCENTAGE,ZIPF_ALPHA, &orderedColumn, QUERIES_FILE_PATH);
+        columns[i] = generateColumn(COLUMN_SIZE,UPPERBOUND,COLUMN_PATTERN,ZIPF_ALPHA);
+        queries[i] = generateQuery(NUM_QUERIES,UPPERBOUND,QUERIES_PATTERN,SELECTIVITY_PERCENTAGE,ONE_SIDED_PERCENTAGE,ZIPF_ALPHA, &columns[i], i);
     }
+    write_columns_to_file(columns, COLUMN_SIZE, NUMBER_OF_COLUMNS, COLUMN_FILE_PATH);
+    write_queries_to_file(queries, NUM_QUERIES, NUMBER_OF_COLUMNS, QUERIES_FILE_PATH);
 }
