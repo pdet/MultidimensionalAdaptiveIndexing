@@ -40,9 +40,9 @@ vector<double> scanTime;
 vector<double> joinTime;
 vector<double> totalTime;
 
-set<int64_t> range_query_baseline(Column *c, RangeQuery *queries, size_t query_index)
+int64_t range_query_baseline(Column *c, RangeQuery *queries, size_t query_index)
 {
-	set<int64_t> ids;
+	int64_t result = 0;
 	for (size_t i = 0; i <= COLUMN_SIZE - 1; ++i)
 	{
 		bool is_valid = true;
@@ -57,47 +57,20 @@ set<int64_t> range_query_baseline(Column *c, RangeQuery *queries, size_t query_i
 		}
 		if (is_valid)
 		{
-			ids.insert(i);
+			result += c[0].data[i];
 		}
 	}
-	return ids;
+	return result;
 }
 
-bool verify_range_query(Column *c, RangeQuery *queries, size_t query_index, set<int64_t> received)
+bool verify_range_query(Column *c, RangeQuery *queries, size_t query_index, int64_t received)
 {
-	set<int64_t> r1 = range_query_baseline(c, queries, query_index);
-	if (received != r1)
+	int64_t result = range_query_baseline(c, queries, query_index);
+	if (received != result)
 	{
 		fprintf(stderr, "Incorrect Results!\n");
-		fprintf(stderr, "Expected:\n");
-		set<int64_t>::iterator it;
-		for (it = r1.begin(); it != r1.end(); ++it)
-		{
-			fprintf(stderr, "%ld ", *it);
-		}
-		fprintf(stderr, "\n");
-
-		fprintf(stderr, "Got:\n");
-		for (it = received.begin(); it != received.end(); ++it)
-		{
-			fprintf(stderr, "%ld ", *it);
-		}
-		fprintf(stderr, "\n");
-
-		set<int64_t> result;
-		set_difference(r1.begin(), r1.end(), received.begin(), received.end(),
-							inserter(result, result.end()));
-		fprintf(stderr, "Difference:\n");
-		for (it = result.begin(); it != result.end(); ++it)
-		{
-			fprintf(stderr, "%ld ", *it);
-		}
-		fprintf(stderr, "\n");
-
-		fprintf(stderr, "Correct size: %d\n", int(r1.size()));
-		fprintf(stderr, "Received size: %d\n", int(received.size()));
-		fprintf(stderr, "Size diff: %d\n", int(r1.size()) - int(received.size()));
-		fprintf(stderr, "--------------------\n");
+		fprintf(stderr, "Expected: %ld\n", result);
+		fprintf(stderr, "Got: %ld\n", received);
 		assert(0);
 		return false;
 	}
@@ -113,30 +86,35 @@ void scanQuery(IndexEntry *c, int64_t from, int64_t to, boost::dynamic_bitset<> 
 	}
 }
 
-set<int64_t> bitmap_to_set(boost::dynamic_bitset<> bitmap, IndexEntry ** columns){
-	set<int64_t> result;
-	for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
+int64_t sum_bitmap(boost::dynamic_bitset<> bitmap, Column first_column){
+	int64_t result = 0;
+	size_t j = 0;
+	for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i, ++j){
 		if(bitmap[i]){
-			result.insert(i);
+			result += first_column.data[j];
 		}
 	}
 
 	return result;
 }
 
-set<int64_t>
-join_bitmaps(vector<boost::dynamic_bitset<>> bitmaps, IndexEntry ** columns){
-	boost::dynamic_bitset<> final_bitmap(COLUMN_SIZE);
+int64_t
+join_bitmaps(std::vector<boost::dynamic_bitset<>> bitmaps, Column * columns){
+	if(bitmaps.size() > 1){
+		boost::dynamic_bitset<> final_bitmap(COLUMN_SIZE);
 
-	for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
-		final_bitmap[i] = bitmaps.at(0)[i];
+		for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
+			final_bitmap[i] = bitmaps.at(0)[i];
+		}
+
+		for(boost::dynamic_bitset<>::size_type i = 1; i < bitmaps.size(); ++i){
+			final_bitmap = (final_bitmap & bitmaps.at(i));
+		}
+
+		return sum_bitmap(final_bitmap, columns[0]);
+	}else{
+		return sum_bitmap(bitmaps.at(0), columns[0]);
 	}
-
-	for(boost::dynamic_bitset<>::size_type i = 1; i < bitmaps.size(); ++i){
-		final_bitmap = (final_bitmap & bitmaps.at(i));
-	}
-
-	return bitmap_to_set(final_bitmap, columns);
 
 }
 
@@ -257,29 +235,17 @@ void standardCracking()
 			end = chrono::system_clock::now();
 			scanTime.at(i) += chrono::duration<double>(end - start).count();
 		}
-		set<int64_t> result;
+		int64_t result;
+		start = std::chrono::system_clock::now();
+		result = join_bitmaps(bitmaps, c);
+		end = std::chrono::system_clock::now();
+		joinTime.at(i) += std::chrono::duration<double>(end - start).count();
 		// Join the partial results
-		if (NUMBER_OF_COLUMNS == 1)
-		{
-
-#ifdef VERIFY
-			bool pass = verify_range_query(c, rangequeries, i, join_bitmaps(bitmaps, crackercolumns));
-			if (pass == 0)
-				cout << "Query : " << i << " " << pass << "\n";
-#endif
-		}
-		else
-		{
-			start = chrono::system_clock::now();
-			result = join_bitmaps(bitmaps, crackercolumns);
-			end = chrono::system_clock::now();
-			joinTime.at(i) += chrono::duration<double>(end - start).count();
 #ifdef VERIFY
 			bool pass = verify_range_query(c, rangequeries, i, result);
 			if (pass == 0)
 				cout << "Query : " << i << " " << pass << "\n";
 #endif
-		}
 		totalTime.at(i) = scanTime.at(i) + indexCreation.at(i) + indexLookup.at(i) + joinTime.at(i);
 	}
 	//    Print(*T);
@@ -345,30 +311,17 @@ void bptree_bulk_index3()
 			end = chrono::system_clock::now();
 			scanTime.at(i) += chrono::duration<double>(end - start).count();
 		}
-
-		set<int64_t> result;
+		int64_t result;
+		start = std::chrono::system_clock::now();
+		result = join_bitmaps(bitmaps, c);
+		end = std::chrono::system_clock::now();
+		joinTime.at(i) += std::chrono::duration<double>(end - start).count();
 		// Join the partial results
-		if (NUMBER_OF_COLUMNS == 1)
-		{
-#ifdef VERIFY
-			bool pass = verify_range_query(c, rangequeries, i, join_bitmaps(bitmaps, crackercolumns));
-			if (pass == 0)
-				cout << "Query : " << i << " " << pass << "\n";
-#endif
-		}
-		else
-		{
-			start = chrono::system_clock::now();
-			result = join_bitmaps(bitmaps, crackercolumns);
-			end = chrono::system_clock::now();
-			joinTime.at(i) += chrono::duration<double>(end - start).count();
-
 #ifdef VERIFY
 			bool pass = verify_range_query(c, rangequeries, i, result);
 			if (pass == 0)
 				cout << "Query : " << i << " " << pass << "\n";
 #endif
-		}
 		totalTime.at(i) = scanTime.at(i) + indexCreation.at(i) + indexLookup.at(i) + joinTime.at(i);
 	}
 	for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
@@ -418,16 +371,10 @@ void kdtree_cracking()
 			query.at(i).second = rangequeries[i].rightpredicate[query_index];
 		}
 
-		vector<int64_t> result = SearchKDTree(index, query, table, true, query_index);
+		int64_t result = SearchKDTree(index, query, table, true, query_index);
 
 #ifdef VERIFY
-		set<int64_t> final_ids;
-		for (size_t i = 0; i < result.size(); ++i)
-		{
-			int64_t id = result.at(i);
-			final_ids.insert(id);
-		}
-		bool pass = verify_range_query(c, rangequeries, query_index, final_ids);
+		bool pass = verify_range_query(c, rangequeries, query_index, result);
 		if (pass == 0)
 			cout << "Query : " << query_index << " " << pass << "\n";
 #endif
@@ -485,16 +432,10 @@ void full_kdtree()
 			query.at(i).second = rangequeries[i].rightpredicate[query_index];
 		}
 
-		vector<int64_t> result = SearchKDTree(index, query, table, false, query_index);
+		int64_t result = SearchKDTree(index, query, table, false, query_index);
 
 #ifdef VERIFY
-		set<int64_t> final_ids;
-		for (size_t i = 0; i < result.size(); ++i)
-		{
-			int64_t id = result.at(i);
-			final_ids.insert(id);
-		}
-		bool pass = verify_range_query(c, rangequeries, query_index, final_ids);
+		bool pass = verify_range_query(c, rangequeries, query_index, result);
 		if (pass == 0)
 			cout << "Query : " << query_index << " " << pass << "\n";
 #endif
@@ -573,7 +514,7 @@ void full_scan()
     for (int q = 0; q < NUM_QUERIES; q ++){
     	res[q] = 0;
     	int sel_size;
-    	int sel_vector [vector_size]; 
+    	int sel_vector [vector_size];
     	start = chrono::system_clock::now();
     	for (int i = 0; i < COLUMN_SIZE/vector_size; ++ i){
 			sel_size = select_rq_scan_new (sel_vector, &c[0].data[vector_size*i],rangequeries[0].leftpredicate[q],rangequeries[0].rightpredicate[q],vector_size);

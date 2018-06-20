@@ -20,7 +20,7 @@ struct KDNode;
 
 typedef struct KDNode *KDTree;
 
-std::vector<int64_t> SearchKDTree(KDTree &index, std::vector<std::pair<int64_t, int64_t>> query, Table &table, bool should_crack, size_t currentQueryNum);
+int64_t SearchKDTree(KDTree &index, std::vector<std::pair<int64_t, int64_t>> query, Table &table, bool should_crack, size_t currentQueryNum);
 
 std::vector<int64_t> SearchKDTreeProgressive(KDTree &tree, std::vector<std::pair<int64_t, int64_t>> query, Table &table, bool should_crack, size_t currentQueryNum);
 

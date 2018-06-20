@@ -11,7 +11,6 @@ STANDARD_CRACKING = 1
 FULL_INDEX = 2
 KD_TREE = 3
 FULL_KD_TREE = 4
-FULL_SCAN_HORIZONTAL = 5
 
 
 # Select Experiments to run
