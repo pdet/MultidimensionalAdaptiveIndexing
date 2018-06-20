@@ -15,14 +15,14 @@ FULL_SCAN_HORIZONTAL = 5
 
 
 # Select Experiments to run
-experiments = [FULL_SCAN_VERTICAL, STANDARD_CRACKING, FULL_INDEX, KD_TREE, FULL_KD_TREE, FULL_SCAN_HORIZONTAL]
+experiments = [FULL_SCAN_VERTICAL]
 # Main Configurations
-COLUMN_FILE_PATH = "./column.txt"
-QUERIES_FILE_PATH = "./query.txt"
-NUM_QUERIES = '1000'
+COLUMN_FILE_PATH = "./column"
+QUERIES_FILE_PATH = "./query"
+NUM_QUERIES = '10'
 NUMBER_OF_REPETITIONS = '1'
-COLUMN_SIZE = '100000'
-NUMBER_OF_COLUMNS = '5'
+COLUMN_SIZE = '10000000'
+NUMBER_OF_COLUMNS = '16'
 KDTREE_THRESHOLD = '10'  # Only used for KDTree
 
 SELECTIVITY_PERCENTAGE = "0.5"
@@ -54,54 +54,9 @@ if os.system('make') != 0:
     exit()
 
 print("Generating Data")
-if os.system("./gendata" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + SELECTIVITY_PERCENTAGE
-             + " " + ONE_SIDED_PERCENTAGE + " " + ZIPF_ALPHA + " " +
-             NUM_QUERIES + " " + COLUMN_SIZE + " " + UPPERBOUND
-             + " " + str(QUERIES_PATTERN) + " " + str(COLUMN_PATTERN) + " " + str(NUMBER_OF_COLUMNS)) != 0:
+if os.system("./gendata") != 0:
     print("Generating Data Failed")
     exit()
 
-
-if FULL_SCAN_VERTICAL in experiments:
-    print("Running Full Scan Vertical")
-    if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                 + " " + COLUMN_SIZE + " " + str(FULL_SCAN_VERTICAL) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "fsv.txt") != 0:
-        print("Running Failed")
-        exit()
-
-if FULL_SCAN_HORIZONTAL in experiments:
-    print("Running Full Scan Horizontal")
-    if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                 + " " + COLUMN_SIZE + " " + str(FULL_SCAN_HORIZONTAL) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "fsh.txt") != 0:
-        print("Running Failed")
-        exit()
-
-if STANDARD_CRACKING in experiments:
-    print("Running Standard Cracking")
-    if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                 + " " + COLUMN_SIZE + " " + str(STANDARD_CRACKING) + " " + str(NUMBER_OF_COLUMNS) + " >> " + PATH + "std.txt") != 0:
-        print("Running Failed")
-        exit()
-
-if FULL_INDEX in experiments:
-    print("Running Full Index")
-    if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                 + " " + COLUMN_SIZE + " " + str(FULL_INDEX) + " " + str(NUMBER_OF_COLUMNS) + " " + BPTREE_ELEMENTSPERNODE + " >> " + PATH + "fi.txt") != 0:
-        print("Running Failed")
-        exit()
-
-if KD_TREE in experiments:
-    print("Running KDTree")
-    print("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-          + " " + COLUMN_SIZE + " " + str(KD_TREE) + " " + str(NUMBER_OF_COLUMNS))
-    if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                 + " " + COLUMN_SIZE + " " + str(KD_TREE) + " " + str(NUMBER_OF_COLUMNS) + " " + str(KDTREE_THRESHOLD) + " >> " + PATH + "kd.txt") != 0:
-        print("Running Failed")
-        exit()
-
-if FULL_KD_TREE in experiments:
-    print("Running Full KDTree")
-    if os.system("./crackingmain" + " " + COLUMN_FILE_PATH + " " + QUERIES_FILE_PATH + " " + NUM_QUERIES
-                 + " " + COLUMN_SIZE + " " + str(FULL_KD_TREE) + " " + str(NUMBER_OF_COLUMNS) + " " + str(KDTREE_THRESHOLD) + " >> " + PATH + "kdf.txt") != 0:
-        print("Running Failed")
-        exit()
+if os.system("./crackingmain" + " >> " + PATH + "fsv.txt") != 0:
+    print("Running Failed")

@@ -42,8 +42,8 @@ void generateQuerySQL() {
 }
 
 int main(int argc, char const *argv[]) {
-	COLUMN_FILE_PATH = "/export/scratch1/home/holanda/MultidimensionalAdaptiveIndexing/column.txt";
-	QUERIES_FILE_PATH = "/export/scratch1/home/holanda/MultidimensionalAdaptiveIndexing/query.txt";
+	COLUMN_FILE_PATH = "/export/scratch1/home/holanda/MultidimensionalAdaptiveIndexing/column";
+	QUERIES_FILE_PATH = "/export/scratch1/home/holanda/MultidimensionalAdaptiveIndexing/query";
 	COLUMN_SIZE = 10000000;
 	NUMBER_OF_COLUMNS = 16;
 	NUM_QUERIES = 1000;

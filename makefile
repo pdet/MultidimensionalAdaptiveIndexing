@@ -11,7 +11,7 @@ INC=-I/src/cracking
 ifneq ($(OPTIMIZE), true)
 	OPTFLAGS=-O0 -g
 else
-	OPTFLAGS=-O3 -march=native
+	OPTFLAGS=-O3 -march=native -fno-tree-vectorize
 endif
 
 adaptive_lala: src/main.cpp
