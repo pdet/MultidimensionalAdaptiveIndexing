@@ -481,8 +481,8 @@ struct ResultStruct {
 int select_rq_scan_sel_vec (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n){
 	int j;
 	for (int i = j = 0; i < n; i++){
-		int matching =  keyL <= col[sel[i]] &&  col[sel[i]] <= keyH;
-		sel[j] = i;
+		int matching =  keyL <= col[sel[i]] &&  col[sel[i]] < keyH;
+		sel[j] = sel[i];
 		j += matching;
 	}
 	return j;
@@ -491,8 +491,10 @@ int select_rq_scan_sel_vec (int*__restrict__ sel, int64_t*__restrict__ col, int6
 
 int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n){
 	int j;
+	// fprintf(stderr, "%d", n);
 	for (int i = j = 0 ; i < n; i++){
-		int matching =  keyL <= col[i] &&  col[i]<= keyH;
+		int matching =  keyL <= col[i] &&  col[i] < keyH;
+
 		sel[j] = i;
 		j += matching;
 
@@ -502,7 +504,7 @@ int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t 
 
 void full_scan()
 {
-	int vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
+	size_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
     chrono::time_point<chrono::system_clock> start, end;
 
     Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
@@ -510,13 +512,14 @@ void full_scan()
 
     RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
     loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
+	int sel_size;
+	int sel_vector [vector_size];
     int res [NUM_QUERIES];
     for (int q = 0; q < NUM_QUERIES; q ++){
     	res[q] = 0;
-    	int sel_size;
-    	int sel_vector [vector_size];
+
     	start = chrono::system_clock::now();
-    	for (int i = 0; i < COLUMN_SIZE/vector_size; ++ i){
+    	for (size_t i = 0; i < COLUMN_SIZE/vector_size; ++ i){
 			sel_size = select_rq_scan_new (sel_vector, &c[0].data[vector_size*i],rangequeries[0].leftpredicate[q],rangequeries[0].rightpredicate[q],vector_size);
 			for (int column_num = 1; column_num < NUMBER_OF_COLUMNS; column_num++){
 				sel_size = select_rq_scan_sel_vec(sel_vector, &c[column_num].data[vector_size*i],rangequeries[column_num].leftpredicate[q],rangequeries[column_num].rightpredicate[q],sel_size);
@@ -525,7 +528,7 @@ void full_scan()
     	}
         end = chrono::system_clock::now();
         totalTime.at(q)  = chrono::duration<double>(end - start).count();
-    fprintf(stderr, "%d \n", res[q] );
+    	fprintf(stderr, "%d \n", res[q] );
     }
 }
 
