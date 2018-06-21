@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-BASE_DIR = './experimentresults/'
+BASE_DIR = '../experimentresults/'
 
 
 def reset_plot():
@@ -27,11 +27,7 @@ def translate_alg(alg):
 def response_time_all_cols():
     algs = ['fs', 'stdavl', 'fibpt', 'stdkd', 'fikd']
     directories = [
-        [1,2,3,4],
-        [5,6,7,8],
-        [9,10,11,12],
-        [13,14,15,16],
-        [17,18,19,20]
+        [1,2,3,4,5]
     ]
     cols = [2, 4, 8, 16]
 
@@ -116,7 +112,7 @@ def response_time_accumulated_8_cols():
     
 
 def response_time_accumulated_16_cols():
-    dirs = [4, 8, 12, 16, 20]
+    dirs = [1,2,3,4,5]
     markers=['.', 's', '+', 'D', 'p']
     markers_every = [100, 120, 140, 160, 180]
 
@@ -171,7 +167,7 @@ def total_time_2_cols():
 
 
 def total_time_16_cols():
-    dirs = [4, 8, 12, 16, 20]
+    dirs = [1,2,3,4,5]
     i_c = []
     i_l = []
     s_t = []
@@ -245,15 +241,15 @@ def config():
     return
 
 def main():
-    variance_2_cols()
-    variance_16_cols()
-    response_time_all_cols()
-    response_time_accumulated_2_cols()
-    response_time_accumulated_4_cols()
-    response_time_accumulated_8_cols()
+    # variance_2_cols()
+    # variance_16_cols()
+    # response_time_all_cols()
+    # response_time_accumulated_2_cols()
+    # response_time_accumulated_4_cols()
+    # response_time_accumulated_8_cols()
     response_time_accumulated_16_cols()
-    total_time_2_cols()
-    total_time_16_cols()
+    # total_time_2_cols()
+    # total_time_16_cols()
 
 if __name__ == '__main__':
     config()

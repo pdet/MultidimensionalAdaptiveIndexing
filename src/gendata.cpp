@@ -375,7 +375,7 @@ int main(int argc, char** argv) {
             } else if (arg_name == "zipf-alpha") {
                 ZIPF_ALPHA = atof(arg_value.c_str());
             } else if (arg_name == "num-queries") {
-                NUM_QUERIES = stoi(arg_value.c_str());
+                NUM_QUERIES = atoi(arg_value.c_str());
             } else if (arg_name == "column-size") {
                 COLUMN_SIZE = atoi(arg_value.c_str());
             } else if (arg_name == "upperbound") {

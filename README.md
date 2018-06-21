@@ -1,3 +1,1 @@
 # MultidimensionalAdaptiveIndexing
-# MultidimensionalAdaptiveIndexing
-# MultidimensionalAdaptiveIndexing
