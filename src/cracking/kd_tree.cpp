@@ -4,10 +4,11 @@
 #include <algorithm>
 #include <chrono>
 int64_t THRESHOLD = 100;
+using namespace std;
 
 struct KDNode
 {
-    ElementType element;
+    int64_t element;
     int64_t column;
 
     KDNode *left;  // less than element
@@ -44,7 +45,7 @@ void exchange(Table &t, int64_t x1, int64_t x2)
 }
 
 // Cracks table from position i = low_ until i == high_, on determined column with the element
-int64_t CrackTable(Table &table, int64_t low, int64_t high, ElementType element, int64_t c)
+int64_t CrackTable(Table &table, int64_t low, int64_t high, int64_t element, int64_t c)
 {
     int64_t x1 = low;
     int64_t x2 = high;
@@ -71,7 +72,7 @@ int64_t CrackTable(Table &table, int64_t low, int64_t high, ElementType element,
     return x1;
 }
 
-KDTree CreateNode(int64_t column, ElementType element, int64_t left_position, int64_t right_position)
+KDTree CreateNode(int64_t column, int64_t element, int64_t left_position, int64_t right_position)
 {
     KDTree node = new KDNode();
     node->column = column;
@@ -83,7 +84,7 @@ KDTree CreateNode(int64_t column, ElementType element, int64_t left_position, in
     return node;
 }
 
-KDTree CheckLeftSide(KDTree current, int64_t column, ElementType element, int64_t lower_limit, int64_t upper_limit, Table &table)
+KDTree CheckLeftSide(KDTree current, int64_t column, int64_t element, int64_t lower_limit, int64_t upper_limit, Table &table)
 {
     if (current->left == NULL)
     {
@@ -112,7 +113,7 @@ KDTree CheckLeftSide(KDTree current, int64_t column, ElementType element, int64_
     }
 }
 
-KDTree CheckRightSide(KDTree current, int64_t column, ElementType element, int64_t lower_limit, int64_t upper_limit, Table &table)
+KDTree CheckRightSide(KDTree current, int64_t column, int64_t element, int64_t lower_limit, int64_t upper_limit, Table &table)
 {
     if (current->right == NULL)
     {
@@ -141,7 +142,7 @@ KDTree CheckRightSide(KDTree current, int64_t column, ElementType element, int64
     }
 }
 
-void InsertIntoRoot(KDTree &tree, int64_t column, ElementType element, Table &table)
+void InsertIntoRoot(KDTree &tree, int64_t column, int64_t element, Table &table)
 {
     int64_t lower_limit = 0;
     int64_t upper_limit = table.ids.size() - 1;
@@ -161,15 +162,15 @@ void InsertIntoRoot(KDTree &tree, int64_t column, ElementType element, Table &ta
     }
 }
 
-void Insert(KDTree &tree, int64_t column, ElementType element, Table &table)
+void Insert(KDTree &tree, int64_t column, int64_t element, Table &table)
 {
     if (tree == NULL)
     {
         return InsertIntoRoot(tree, column, element, table);
     }
 
-    std::vector<KDTree> nodes_to_check;
-    std::vector<int64_t> lower_limits, upper_limits;
+    vector<KDTree> nodes_to_check;
+    vector<int64_t> lower_limits, upper_limits;
 
     lower_limits.push_back(0);
     upper_limits.push_back(table.ids.size() - 1);
@@ -245,41 +246,58 @@ void Insert(KDTree &tree, int64_t column, ElementType element, Table &table)
     }
 }
 
-int64_t collect_results(Table &table, int64_t lower_limit, int64_t upper_limit, std::vector<std::pair<int64_t, int64_t>> query, size_t currentQueryNum)
-{
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-
-    start = std::chrono::system_clock::now();
-
-    // fprintf(stderr, "%ld -- %ld\n", lower_limit, upper_limit);
-    int64_t result = 0;
-    for (size_t line = lower_limit; line <= upper_limit; ++line)
-    {
-        bool valid = true;
-        for (size_t col = 0; col < table.columns.size() && valid; col++)
-        {
-            int64_t e = table.columns.at(col).at(line);
-            if (!(query.at(col).first <= e && e < query.at(col).second))
-            {
-                valid = false;
-            }
-        }
-        if (valid)
-            result += table.columns.at(0).at(line);
+int select_rq_scan_sel_vec (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n){
+    int j;
+    for (int i = j = 0; i < n; i++){
+        int matching =  keyL <= col[sel[i]] &&  col[sel[i]] < keyH;
+        sel[j] = sel[i];
+        j += matching;
     }
-    end = std::chrono::system_clock::now();
-    scanTime.at(currentQueryNum) += std::chrono::duration<double>(end - start).count();
+    return j;
+
+}
+
+int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n){
+    int j;
+    for (int i = j = 0 ; i < n; i++){
+        int matching =  keyL <= col[i] &&  col[i] < keyH;
+
+        sel[j] = i;
+        j += matching;
+
+    }
+    return j;
+}
+
+
+int64_t collect_results(Table &table, int64_t lower_limit, int64_t upper_limit, vector<pair<int64_t, int64_t>> query, size_t currentQueryNum)
+{
+    chrono::time_point<chrono::system_clock> start, end;
+    start = chrono::system_clock::now();
+    int sel_size;
+    int sel_vector[upper_limit - lower_limit];
+
+    int64_t result = 0;
+
+    sel_size = select_rq_scan_new (sel_vector, &table.columns[0][lower_limit],query.at(0).first,query.at(0).second,upper_limit - lower_limit);
+        for (int column_num = 1; column_num < table.columns.size(); column_num++){
+            sel_size = select_rq_scan_sel_vec(sel_vector, &table.columns[column_num][lower_limit],query.at(column_num).first,query.at(column_num).second,sel_size);
+        }
+        result += sel_size;
+    
+    end = chrono::system_clock::now();
+    scanTime.at(currentQueryNum) += chrono::duration<double>(end - start).count();
     return result;
 }
 
-int64_t SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, int64_t>> query, Table &table, bool should_crack = false, size_t currentQueryNum = 0)
+int64_t SearchKDTree(KDTree &tree, vector<pair<int64_t, int64_t>> query, Table &table, bool should_crack = false, size_t currentQueryNum = 0)
 {
-    std::chrono::time_point<std::chrono::system_clock> start, end;
+    chrono::time_point<chrono::system_clock> start, end;
     int64_t result = 0;
 
     if (should_crack)
     {
-        start = std::chrono::system_clock::now();
+        start = chrono::system_clock::now();
         for (size_t col = 0; col < query.size(); ++col)
         {
             int64_t leftKey = query.at(col).first;
@@ -288,16 +306,16 @@ int64_t SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, int64_t>> quer
             Insert(tree, col, leftKey, table);
             Insert(tree, col, rightKey, table);
         }
-        end = std::chrono::system_clock::now();
-        indexCreation.at(currentQueryNum) = std::chrono::duration<double>(end - start).count();
+        end = chrono::system_clock::now();
+        indexCreation.at(currentQueryNum) = chrono::duration<double>(end - start).count();
     }
 
-    start = std::chrono::system_clock::now();
+    start = chrono::system_clock::now();
 
     // fprintf(stderr, "Query: %ld -- %ld\n", query.at(0).first, query.at(0).second);
 
-    std::vector<KDTree> nodes_to_check;
-    std::vector<int64_t> lower_limits, upper_limits;
+    vector<KDTree> nodes_to_check;
+    vector<int64_t> lower_limits, upper_limits;
 
     lower_limits.push_back(0);
     upper_limits.push_back(table.ids.size() - 1);
@@ -375,36 +393,36 @@ int64_t SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, int64_t>> quer
             }
         }
     }
-    end = std::chrono::system_clock::now();
-    indexLookup.at(currentQueryNum) = std::chrono::duration<double>(end - start).count() - scanTime.at(currentQueryNum);
+    end = chrono::system_clock::now();
+    indexLookup.at(currentQueryNum) = chrono::duration<double>(end - start).count() - scanTime.at(currentQueryNum);
 
     return result;
 }
 
-// std::vector<int64_t> SearchKDTreeProgressive(KDTree &tree, std::vector<std::pair<int64_t, int64_t>> query, Table &table, bool should_crack = false, size_t currentQueryNum = 0)
+// vector<int64_t> SearchKDTreeProgressive(KDTree &tree, vector<pair<int64_t, int64_t>> query, Table &table, bool should_crack = false, size_t currentQueryNum = 0)
 // {
-//     std::chrono::time_point<std::chrono::system_clock> start, end;
-//     std::vector<int64_t> ids;
+//     chrono::time_point<chrono::system_clock> start, end;
+//     vector<int64_t> ids;
 //     int col_size = table.ids.size() - 1;
 //     if (should_crack)
 //     {
-//         start = std::chrono::system_clock::now();
+//         start = chrono::system_clock::now();
 //         for (size_t col = 0; col < query.size(); ++col)
 //         {
 // //            Choosing random key for now.
 //             int64_t key = rand() % col_size;
 //             Insert(tree, col, key, table);
 //         }
-//         end = std::chrono::system_clock::now();
-// //        indexCreation.at(currentQueryNum) = std::chrono::duration<double>(end - start).count();
+//         end = chrono::system_clock::now();
+// //        indexCreation.at(currentQueryNum) = chrono::duration<double>(end - start).count();
 //     }
 
-//     start = std::chrono::system_clock::now();
+//     start = chrono::system_clock::now();
 
 //     // fprintf(stderr, "Query: %ld -- %ld\n", query.at(0).first, query.at(0).second);
 
-//     std::vector<KDTree> nodes_to_check;
-//     std::vector<int64_t> lower_limits, upper_limits;
+//     vector<KDTree> nodes_to_check;
+//     vector<int64_t> lower_limits, upper_limits;
 
 //     lower_limits.push_back(0);
 //     upper_limits.push_back(table.ids.size() - 1);
@@ -426,7 +444,7 @@ int64_t SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, int64_t>> quer
 //             {
 //                 if (current->left == NULL)
 //                 {
-//                     std::vector<int64_t> partial = collect_results(table, lower_limit, current->left_position, query, currentQueryNum);
+//                     vector<int64_t> partial = collect_results(table, lower_limit, current->left_position, query, currentQueryNum);
 //                     ids.insert(ids.end(), partial.begin(), partial.end());
 //                 }
 //                 else
@@ -443,7 +461,7 @@ int64_t SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, int64_t>> quer
 //             {
 //                 if (current->right == NULL)
 //                 {
-//                     std::vector<int64_t> partial = collect_results(table, current->right_position, upper_limit, query, currentQueryNum);
+//                     vector<int64_t> partial = collect_results(table, current->right_position, upper_limit, query, currentQueryNum);
 //                     ids.insert(ids.end(), partial.begin(), partial.end());
 //                 }
 //                 else
@@ -460,7 +478,7 @@ int64_t SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, int64_t>> quer
 //             {
 //                 if (current->left == NULL)
 //                 {
-//                     std::vector<int64_t> partial = collect_results(table, lower_limit, current->left_position, query, currentQueryNum);
+//                     vector<int64_t> partial = collect_results(table, lower_limit, current->left_position, query, currentQueryNum);
 //                     ids.insert(ids.end(), partial.begin(), partial.end());
 //                 }
 //                 else
@@ -474,7 +492,7 @@ int64_t SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, int64_t>> quer
 //             {
 //                 if (current->right == NULL)
 //                 {
-//                     std::vector<int64_t> partial = collect_results(table, current->right_position, upper_limit, query, currentQueryNum);
+//                     vector<int64_t> partial = collect_results(table, current->right_position, upper_limit, query, currentQueryNum);
 //                     ids.insert(ids.end(), partial.begin(), partial.end());
 //                 }
 //                 else
@@ -485,8 +503,8 @@ int64_t SearchKDTree(KDTree &tree, std::vector<std::pair<int64_t, int64_t>> quer
 //                 }
 //             }
 //         }
-//         end = std::chrono::system_clock::now();
-// //        indexLookup.at(currentQueryNum) = std::chrono::duration<double>(end - start).count() - scanTime.at(currentQueryNum);
+//         end = chrono::system_clock::now();
+// //        indexLookup.at(currentQueryNum) = chrono::duration<double>(end - start).count() - scanTime.at(currentQueryNum);
 //     }
 
 //     return ids;
@@ -509,7 +527,7 @@ int pivot_table(Table &table, int64_t column, int64_t low, int64_t high, int64_t
     return i + 1;
 }
 
-std::pair<int64_t, int64_t> find_median(Table &table, int64_t column, int64_t lower_limit, int64_t upper_limit)
+pair<int64_t, int64_t> find_median(Table &table, int64_t column, int64_t lower_limit, int64_t upper_limit)
 {
     int64_t low = lower_limit;
     int64_t high = upper_limit;
@@ -543,7 +561,7 @@ std::pair<int64_t, int64_t> find_median(Table &table, int64_t column, int64_t lo
             break;
     }
 
-    return std::make_pair(element, position - 1);
+    return make_pair(element, position - 1);
 }
 
 
@@ -552,16 +570,15 @@ KDTree FullKDTree(Table &table)
 {
     int n_of_cols = table.columns.size();
     int col_size = table.ids.size() - 1;
-    std::vector<KDTree> nodes;
-    std::vector<int64_t> columns;
-    std::vector<int64_t> lower_limits;
-    std::vector<int64_t> upper_limits;
+    vector<KDTree> nodes;
+    vector<int64_t> columns;
+    vector<int64_t> lower_limits;
+    vector<int64_t> upper_limits;
 
-    std::pair<int64_t, int64_t> median_result;
+    pair<int64_t, int64_t> median_result;
     median_result = find_median(table, 0, 0, col_size);
     int64_t median = median_result.first;
     int64_t p = median_result.second;
-
     KDTree tree;
 
     if (p < 0)
@@ -673,28 +690,6 @@ void freeKDTree(KDTree tree)
     }
     delete tree;
 }
-
-//struct KDNode
-//{
-//    ElementType element;
-//    int64_t column;
-//
-//    KDNode *left;  // less than element
-//    KDNode *right; // greater or equal than element
-//
-//    int64_t left_position;
-//    int64_t right_position;
-//};
-//
-//struct AvlNode
-//{
-//    ElementType Element;
-//    int64_t offset;
-//
-//    AvlTree  Left;
-//    AvlTree  Right;
-//    int64_t      Height;
-//};
 
 void Print(KDTree T)
 {

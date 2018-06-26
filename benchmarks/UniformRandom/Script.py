@@ -20,15 +20,15 @@ FULL_KD_TREE = "4"
 PATH = ""
 
 # Select Experiments to run
-experiments = [FULL_SCAN]
+experiments = [FULL_SCAN,STANDARD_CRACKING,FULL_INDEX,KD_TREE,FULL_KD_TREE]
 # Main Configurations
 NUM_QUERIES = "10"
 NUMBER_OF_REPETITIONS = 1
 COLUMN_SIZE = '10000000'
-NUMBER_OF_COLUMNS = '16'
+NUMBER_OF_COLUMNS = '8'
 KDTREE_THRESHOLD = '1000'  # Only used for KDTree
 
-SELECTIVITY_PERCENTAGE = "0.5"
+SELECTIVITY_PERCENTAGE = "0.2"
 QUERIES_PATTERN =  RANDOM 
 COLUMN_PATTERN = RANDOM  
 
@@ -96,6 +96,7 @@ if os.system("./gendata --num-queries=" + NUM_QUERIES + " --column-size=" + COLU
 for experiment in experiments:
     for repetition in range(NUMBER_OF_REPETITIONS):
         getFolderToSaveExperiments()
-        result = os.popen("./crackingmain --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  NUMBER_OF_COLUMNS + " --indexing-type="+experiment).read()
+        result = os.popen("./crackingmain --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  NUMBER_OF_COLUMNS + " --indexing-type="+experiment
+            +" --kdtree-threshold=" + KDTREE_THRESHOLD).read()
         file = create_output()
         generate_output(file,result,repetition,experiment)

@@ -25,7 +25,7 @@
 #include "util/timer.h"
 
 
-#define VERIFY
+// #define VERIFY
 
 using namespace std;
 
@@ -71,7 +71,7 @@ bool verify_range_query(Column *c, RangeQuery *queries, size_t query_index, int6
 		fprintf(stderr, "Incorrect Results!\n");
 		fprintf(stderr, "Expected: %ld\n", result);
 		fprintf(stderr, "Got: %ld\n", received);
-		assert(0);
+		// assert(0);
 		return false;
 	}
 	return true;
@@ -91,7 +91,7 @@ int64_t sum_bitmap(boost::dynamic_bitset<> bitmap, Column first_column){
 	size_t j = 0;
 	for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i, ++j){
 		if(bitmap[i]){
-			result += first_column.data[j];
+			result += 1;
 		}
 	}
 
@@ -117,60 +117,6 @@ join_bitmaps(std::vector<boost::dynamic_bitset<>> bitmaps, Column * columns){
 	}
 
 }
-
-void filterQuery3(IndexEntry *c, RangeQuery queries, size_t query_index, int64_t from, int64_t to,
-				  boost::dynamic_bitset<> &results, bool first_time)
-{
-	int64_t keyL = queries.leftpredicate[query_index];
-	int64_t keyH = queries.rightpredicate[query_index];
-	boost::dynamic_bitset<>::size_type j = from;
-	// fprintf(stderr, "----------------------");
-	if(first_time){
-		for (size_t i = from; i <= to; ++i, ++j)
-		{
-			// fprintf(stderr, "KeyL: %ld, key: %ld, keyH: %ld\n", keyL, c[i].m_key, keyH);
-			if (c[i].m_key >= keyL && c[i].m_key < keyH)
-			{
-				results[j] = 1;
-			}
-		}
-	}else{
-		for (size_t i = from; i <= to; ++i, ++j)
-		{
-			if(results[j]) {
-				if (!(c[i].m_key >= keyL && c[i].m_key < keyH))
-				{
-					results[j] = 0;
-				}
-			}
-		}
-	}
-}
-
-
-set<int64_t> tuple_scan(IndexEntry **c, RangeQuery *queries, size_t query_index, int64_t from, int64_t to)
-{
-	set<int64_t> ids;
-	for (size_t i = from; i <= to; ++i)
-	{
-		bool is_valid = true;
-		for (size_t j = 0; j < NUMBER_OF_COLUMNS && is_valid; ++j)
-		{
-			int64_t keyL = queries[j].leftpredicate[query_index];
-			int64_t keyH = queries[j].rightpredicate[query_index];
-			if (!(c[j][i].m_key >= keyL && c[j][i].m_key < keyH))
-			{
-				is_valid = false;
-			}
-		}
-		if (is_valid)
-		{
-			ids.insert(i);
-		}
-	}
-	return ids;
-}
-
 
 
 void standardCracking()
@@ -246,6 +192,7 @@ void standardCracking()
 			if (pass == 0)
 				cout << "Query : " << i << " " << pass << "\n";
 #endif
+			fprintf(stderr, "%ld \n", result );
 		totalTime.at(i) = scanTime.at(i) + indexCreation.at(i) + indexLookup.at(i) + joinTime.at(i);
 	}
 	//    Print(*T);
@@ -322,6 +269,7 @@ void bptree_bulk_index3()
 			if (pass == 0)
 				cout << "Query : " << i << " " << pass << "\n";
 #endif
+			fprintf(stderr, "%ld \n", result );
 		totalTime.at(i) = scanTime.at(i) + indexCreation.at(i) + indexLookup.at(i) + joinTime.at(i);
 	}
 	for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
@@ -372,6 +320,7 @@ void kdtree_cracking()
 		}
 
 		int64_t result = SearchKDTree(index, query, table, true, query_index);
+		fprintf(stderr, "%ld \n", result );
 
 #ifdef VERIFY
 		bool pass = verify_range_query(c, rangequeries, query_index, result);
@@ -380,7 +329,6 @@ void kdtree_cracking()
 #endif
 		totalTime.at(query_index) = scanTime.at(query_index) + indexCreation.at(query_index) + indexLookup.at(query_index) + joinTime.at(query_index);
 	}
-	//    Print(index);
 	freeKDTree(index);
 	for (int i = 0; i < NUMBER_OF_COLUMNS; ++i)
 	{
@@ -433,6 +381,7 @@ void full_kdtree()
 		}
 
 		int64_t result = SearchKDTree(index, query, table, false, query_index);
+		fprintf(stderr, "%ld \n", result );
 
 #ifdef VERIFY
 		bool pass = verify_range_query(c, rangequeries, query_index, result);
@@ -478,29 +427,6 @@ struct ResultStruct {
 	ResultStruct() : values(nullptr), elements(0) { }
 };
 
-int select_rq_scan_sel_vec (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n){
-	int j;
-	for (int i = j = 0; i < n; i++){
-		int matching =  keyL <= col[sel[i]] &&  col[sel[i]] < keyH;
-		sel[j] = sel[i];
-		j += matching;
-	}
-	return j;
-
-}
-
-int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n){
-	int j;
-	// fprintf(stderr, "%d", n);
-	for (int i = j = 0 ; i < n; i++){
-		int matching =  keyL <= col[i] &&  col[i] < keyH;
-
-		sel[j] = i;
-		j += matching;
-
-	}
-	return j;
-}
 
 void full_scan()
 {
