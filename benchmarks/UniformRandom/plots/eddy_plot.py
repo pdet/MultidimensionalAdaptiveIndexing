@@ -17,24 +17,10 @@ BASE_DIR = '../ResultsEddy/'
 # 31 - 40 cracking kd
 # 41 - 50 kd-tree
 
-
 def reset_plot():
     plt.cla()
     plt.clf()
     plt.close()
-
-def translate_alg(alg):
-    if alg == 'fs':
-        return 'Full Scan'
-    if alg == 'stdavl':
-        return 'Database Cracking'
-    if alg == 'fibpt':
-        return 'Full Index B+Tree'
-    if alg == 'stdkd':
-        return 'Cracking KDTree'
-    if alg == 'fikd':
-        return 'Full Index KDTree'
-    return alg
 
 def get_me_the_average(column, folders):
     average = 0.0
@@ -155,10 +141,47 @@ def time_breakdown_8_cols():
     plt.savefig('time_break_down_8.pdf')
     reset_plot()
 
+def response_time_all_columns():
+    full_scan = [xrange(51, 61), xrange(101, 111), xrange(1, 11), xrange(151, 161)]
+    db_cracking = [xrange(61, 71), xrange(111, 121), xrange(11, 21), xrange(161, 171)]
+    b_tree = [xrange(71, 81), xrange(121, 131), xrange(21, 31), xrange(171, 181)]
+    cracking_kd = [xrange(81, 91), xrange(131, 141), xrange(31, 41), xrange(181, 191)]
+    full_kd = [xrange(91, 101), xrange(141, 151), xrange(41, 51), xrange(191, 201)]
+
+    algs = [full_scan, db_cracking, b_tree, cracking_kd, full_kd]
+    alg_names = ('Full Scan', 'Database Cracking', 'B+ Tree', 'Cracking KD-Tree', 'KD-Tree')
+    cols = ('2', '4', '8', '16')
+    markers=['.', 's', '*', 'D', 'X']
+    colors = [
+        (105/255.0,105/255.0,105/255.0),
+        (128/255.0,128/255.0,128/255.0),
+        (169/255.0,169/255.0,169/255.0),
+        (105/255.0,105/255.0,105/255.0),
+        (128/255.0,128/255.0,128/255.0)
+    ]
+    times = []
+
+    for x in algs:
+        temp = []
+        for d in x:
+            temp.append(get_me_the_average('total_time', d))
+        times.append(temp)
+
+    for time, name, marker, color in zip(times, alg_names, markers, colors):
+        plt.plot(cols, time, label=name, marker=marker, linewidth=2.0, color=color)
+        plt.legend(loc=2)
+    
+    plt.ylabel('Response time (s)')
+    plt.xlabel('Number of Columns')
+    plt.title('Total Response Time')
+    plt.savefig('all_response_times.pdf')
+    reset_plot()
+
 def main():
     # total_time_8_cols()
     # cumulative_time_8_cols()
-    time_breakdown_8_cols()
+    # time_breakdown_8_cols()
+    response_time_all_columns()
 
 if __name__ == '__main__':
     main()
