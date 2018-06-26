@@ -178,9 +178,9 @@ def response_time_all_columns():
     reset_plot()
 
 def main():
-    # total_time_8_cols()
-    # cumulative_time_8_cols()
-    # time_breakdown_8_cols()
+    total_time_8_cols()
+    cumulative_time_8_cols()
+    time_breakdown_8_cols()
     response_time_all_columns()
 
 if __name__ == '__main__':
