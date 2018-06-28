@@ -3,8 +3,7 @@
 
 #include "cracker_index.h"
 #include "stdio.h"
-
-// #include "structs.h"
+#include "../util/util.h"
 #include <cstdlib>
 #include <stdlib.h>
 using namespace std;
@@ -33,9 +32,6 @@ KDTree CreateNode(int64_t column, int64_t element, int64_t left_position, int64_
 pair<int64_t, int64_t> find_median(Table &table, int64_t column, int64_t lower_limit, int64_t upper_limit);
 
 void Print( KDTree T );
-
-int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n);
-int select_rq_scan_sel_vec (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n);
 
 // void PatialKDTree(vector<pair<KDTree, int64_t>> *nodes, int n_of_cols);
 

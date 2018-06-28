@@ -20,7 +20,7 @@ FULL_KD_TREE = "4"
 PATH = ""
 
 # Select Experiments to run
-experiments = [FULL_SCAN,STANDARD_CRACKING,FULL_INDEX,KD_TREE,FULL_KD_TREE]
+experiments = [FULL_SCAN]
 # Main Configurations
 NUM_QUERIES = "10"
 NUMBER_OF_REPETITIONS = 1

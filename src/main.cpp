@@ -11,7 +11,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <boost/dynamic_bitset.hpp>
 
 #include "cracking/avl_tree.h"
 
@@ -21,17 +20,16 @@
 #include "fullindex/hybrid_radix_insert_sort.h"
 #include "util/file_manager.h"
 #include "util/structs.h"
-
 #include "util/timer.h"
-
-
-// #define VERIFY
+#include "util/util.h"
 
 using namespace std;
 
+typedef int (*scan_data_function)(Column *c, vector<pair<int64_t,int64_t>>  *rangequeries);
+
 
 string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
-extern int64_t COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
+int64_t COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
 int64_t NUM_QUERIES, NUMBER_OF_COLUMNS, KDTREE_THRESHOLD, INDEXING_TYPE;
 
 vector<double> indexCreation;
@@ -39,84 +37,6 @@ vector<double> indexLookup;
 vector<double> scanTime;
 vector<double> joinTime;
 vector<double> totalTime;
-
-int64_t range_query_baseline(Column *c, RangeQuery *queries, size_t query_index)
-{
-	int64_t result = 0;
-	for (size_t i = 0; i <= COLUMN_SIZE - 1; ++i)
-	{
-		bool is_valid = true;
-		for (size_t j = 0; j < NUMBER_OF_COLUMNS && is_valid; ++j)
-		{
-			int64_t keyL = queries[j].leftpredicate[query_index];
-			int64_t keyH = queries[j].rightpredicate[query_index];
-			if (!(c[j].data[i] >= keyL && c[j].data[i] < keyH))
-			{
-				is_valid = false;
-			}
-		}
-		if (is_valid)
-		{
-			result += c[0].data[i];
-		}
-	}
-	return result;
-}
-
-bool verify_range_query(Column *c, RangeQuery *queries, size_t query_index, int64_t received)
-{
-	int64_t result = range_query_baseline(c, queries, query_index);
-	if (received != result)
-	{
-		fprintf(stderr, "Incorrect Results!\n");
-		fprintf(stderr, "Expected: %ld\n", result);
-		fprintf(stderr, "Got: %ld\n", received);
-		// assert(0);
-		return false;
-	}
-	return true;
-}
-
-void scanQuery(IndexEntry *c, int64_t from, int64_t to, boost::dynamic_bitset<> &bitmap)
-{
-	for (size_t i = from; i <= to; i++)
-	{
-		boost::dynamic_bitset<>::size_type id = (boost::dynamic_bitset<>::size_type) c[i].m_rowId;
-		bitmap[id] = 1;
-	}
-}
-
-int64_t sum_bitmap(boost::dynamic_bitset<> bitmap, Column first_column){
-	int64_t result = 0;
-	size_t j = 0;
-	for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i, ++j){
-		if(bitmap[i]){
-			result += 1;
-		}
-	}
-
-	return result;
-}
-
-int64_t
-join_bitmaps(std::vector<boost::dynamic_bitset<>> bitmaps, Column * columns){
-	if(bitmaps.size() > 1){
-		boost::dynamic_bitset<> final_bitmap(COLUMN_SIZE);
-
-		for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
-			final_bitmap[i] = bitmaps.at(0)[i];
-		}
-
-		for(boost::dynamic_bitset<>::size_type i = 1; i < bitmaps.size(); ++i){
-			final_bitmap = (final_bitmap & bitmaps.at(i));
-		}
-
-		return sum_bitmap(final_bitmap, columns[0]);
-	}else{
-		return sum_bitmap(bitmaps.at(0), columns[0]);
-	}
-
-}
 
 
 void standardCracking()
@@ -403,60 +323,56 @@ void full_kdtree()
 	free(rangequeries);
 }
 
-struct ResultStruct {
-	int* values = nullptr;
-	size_t elements = 0;
-
-	void reserve(size_t capacity) {
-		values = new int[capacity];
-	}
-
-	size_t size() { return elements; }
-	int* begin() { return values; }
-	int* end() { return values + elements; }
-	inline void push_back(int value) {
-		values[elements++] = value;
-	}
-	int& operator[] (const int index) {
-		return values[index];
-	}
-	const int operator[] (const int index) const {
-		return values[index];
-	}
-
-	ResultStruct() : values(nullptr), elements(0) { }
-};
 
 
-void full_scan()
-{
-	size_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
-    chrono::time_point<chrono::system_clock> start, end;
+void benchmarkFunction(Column *column, vector<vector<pair<int64_t,int64_t>>> rangeQueries, 
+	// pre_processing_function pre_processing, partial_index_built_function partial_index_built,
+	// index_lookup_function index_lookup, 
+	scan_data_function scan_data
+	// , intersect_data_function intersect_data
+	){
+    chrono::time_point<std::chrono::system_clock> start, end;
 
-    Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
-    loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
+	// First we do pre-processing. In the case of full index we fully create the index. In the case of Partial Indexes we copy the elements to a cracker index structure.
+    // start = chrono::system_clock::now();
+    // pre_processing();
+    // end = chrono::system_clock::now();
+    indexCreation.at(0)  = chrono::duration<double>(end - start).count();
+    for(int i = 0; i < NUM_QUERIES; i++) {
+    	// If we are running cracking algorithms we do a partial index creation step
+    	// start = chrono::system_clock::now();
+    	// partial_index_built()
+    	// end = chrono::system_clock::now();
+     //    indexCreation.at(q) += chrono::duration<double>(end - start).count();
 
-    RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
-    loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
-	int sel_size;
-	int sel_vector [vector_size];
-    int res [NUM_QUERIES];
-    for (int q = 0; q < NUM_QUERIES; q ++){
-    	res[q] = 0;
+     //    start = chrono::system_clock::now();
+    	// index_lookup()
+    	// end = chrono::system_clock::now();
+     //    indexLookup.at(q)  = chrono::duration<double>(end - start).count();
+      
+       // Intersecting data for uni-dimensional indexes
+        start = chrono::system_clock::now();
+    	scan_data(column,&rangeQueries.at(i));
+    	end = chrono::system_clock::now();
+        scanTime.at(i)  = chrono::duration<double>(end - start).count();
+        
+     //    start = chrono::system_clock::now(); 
+    	// intersect_data()
+    	// end = chrono::system_clock::now();
+     //    joinTime.at(q)  = chrono::duration<double>(end - start).count();
 
-    	start = chrono::system_clock::now();
-    	for (size_t i = 0; i < COLUMN_SIZE/vector_size; ++ i){
-			sel_size = select_rq_scan_new (sel_vector, &c[0].data[vector_size*i],rangequeries[0].leftpredicate[q],rangequeries[0].rightpredicate[q],vector_size);
-			for (int column_num = 1; column_num < NUMBER_OF_COLUMNS; column_num++){
-				sel_size = select_rq_scan_sel_vec(sel_vector, &c[column_num].data[vector_size*i],rangequeries[column_num].leftpredicate[q],rangequeries[column_num].rightpredicate[q],sel_size);
-			}
-    		res[q] += sel_size;
-    	}
-        end = chrono::system_clock::now();
-        totalTime.at(q)  = chrono::duration<double>(end - start).count();
-    	fprintf(stderr, "%d \n", res[q] );
+        // totalTime.at(q)  = indexCreation.at(0) + indexLookup.at(0) + scanTime.at(0) + joinTime.at(0)
+
+        totalTime.at(i)  = scanTime.at(i);
+
     }
+	for (int q = 0; q < NUM_QUERIES; q++){
+		// cout << indexCreation.at(q) << ";" << indexLookup.at(q) << ";" << scanTime.at(q) << ";" << joinTime.at(q) << ";" << totalTime.at(q) << "\n";
+		fprintf(stderr, "%f\n",totalTime.at(q));
+	}
 }
+
+
 
 
 void print_help(int argc, char** argv) {
@@ -471,6 +387,7 @@ void print_help(int argc, char** argv) {
     fprintf(stderr, "   --bptree-elements-per-node\n");
     fprintf(stderr, "   --kdtree-threshold\n");
 }
+
 
 pair<string,string> split_once(string delimited, char delimiter) {
     auto pos = delimited.find_first_of(delimiter);
@@ -525,17 +442,25 @@ int main(int argc, char **argv)
 	scanTime = vector<double>(NUM_QUERIES, 0);
 	joinTime = vector<double>(NUM_QUERIES, 0);
 	totalTime = vector<double>(NUM_QUERIES);
+   
+    Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
+    loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
+
+    RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
+    loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
+	vector< vector<pair<int64_t, int64_t>> > query(NUM_QUERIES, vector<pair<int64_t, int64_t>> (NUMBER_OF_COLUMNS));  
+	
+	for (size_t q = 0; q < NUM_QUERIES; q ++ ){
+		for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i){
+			query.at(q).at(i).first = rangequeries[i].leftpredicate[q];
+			query.at(q).at(i).second = rangequeries[i].rightpredicate[q];
+		}
+	}
 
 	//FULL SCAN
 	if (INDEXING_TYPE == 0)
-	{
-		full_scan();
-		for (int q = 0; q < NUM_QUERIES; q++){
-			cout << indexCreation.at(q) << ";" << indexLookup.at(q) << ";" << scanTime.at(q) << ";" << joinTime.at(q) << ";" << totalTime.at(q) << "\n";
-			fprintf(stderr, "%f\n",totalTime.at(q));
-		}
-			
-	}
+		benchmarkFunction(c,query,full_scan);		
+	
 
 	//CRACKING W/ AVL
 	else if (INDEXING_TYPE == 1)

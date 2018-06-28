@@ -23,4 +23,6 @@ struct Row
     std::vector<int64_t> data;
 };
 
+
+
 #endif //MULTIDEMIONSIONALINDEXING_STRUCTS_H

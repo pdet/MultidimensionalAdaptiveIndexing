@@ -246,29 +246,6 @@ void Insert(KDTree &tree, int64_t column, int64_t element, Table &table)
     }
 }
 
-int select_rq_scan_sel_vec (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n){
-    int j;
-    for (int i = j = 0; i < n; i++){
-        int matching =  keyL <= col[sel[i]] &&  col[sel[i]] < keyH;
-        sel[j] = sel[i];
-        j += matching;
-    }
-    return j;
-
-}
-
-int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n){
-    int j;
-    for (int i = j = 0 ; i < n; i++){
-        int matching =  keyL <= col[i] &&  col[i] < keyH;
-
-        sel[j] = i;
-        j += matching;
-
-    }
-    return j;
-}
-
 
 int64_t collect_results(Table &table, int64_t lower_limit, int64_t upper_limit, vector<pair<int64_t, int64_t>> query, size_t currentQueryNum)
 {

@@ -6,7 +6,7 @@
 #include "../fullindex/binary_search.h"
 #include <cstring>
 
-int64_t BPTREE_ELEMENTSPERNODE, COLUMN_SIZE;
+extern int64_t BPTREE_ELEMENTSPERNODE, COLUMN_SIZE;
 int binary_search_pure(colKey_t *c, int key, int lower, int upper, bool* foundKey) {
 
     *foundKey = false;
