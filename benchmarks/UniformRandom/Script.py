@@ -55,10 +55,8 @@ def translate_alg(alg):
     if alg == '1':
         return 'stdavl'
     if alg == '2':
-        return 'fibpt'
-    if alg == '3':
         return 'stdkd'
-    if alg == '4':
+    if alg == '3':
         return 'fikd'
     return alg
 
