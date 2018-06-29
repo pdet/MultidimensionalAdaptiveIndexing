@@ -16,7 +16,7 @@ int64_t insertCount = 0;
 
 struct AvlNode
 {
-    ElementType Element;
+    int64_t Element;
     int64_t offset;
 
     AvlTree  Left;
@@ -37,7 +37,7 @@ MakeEmpty( AvlTree T )
 }
 
 int64_t
-FindLT( ElementType X, AvlTree T )
+FindLT( int64_t X, AvlTree T )
 {
     if( T == NULL )
         return -1;
@@ -51,7 +51,7 @@ FindLT( ElementType X, AvlTree T )
 }
 
 int64_t
-FindLTE( ElementType X, AvlTree T, ElementType limit )
+FindLTE( int64_t X, AvlTree T, int64_t limit )
 {
     if(T) {
         if( X < T->Element )
@@ -101,8 +101,8 @@ Height( PositionAVL P )
 }
 /* END */
 
-static ElementType
-Max( ElementType Lhs, ElementType Rhs )
+static int64_t
+Max( int64_t Lhs, int64_t Rhs )
 {
     return Lhs > Rhs ? Lhs : Rhs;
 }
@@ -179,7 +179,7 @@ DoubleRotateWithRight( PositionAVL K1 )
     return SingleRotateWithRight( K1 );
 }
 
-int64_t lookup(ElementType X, AvlTree T) {
+int64_t lookup(int64_t X, AvlTree T) {
     while (true) {
         if (X == T->Element)
             return T->offset;
@@ -195,7 +195,7 @@ int64_t lookup(ElementType X, AvlTree T) {
 
 /* START: fig4_37.txt */
 AvlTree
-Insert( int64_t offset, ElementType X, AvlTree T )
+Insert( int64_t offset, int64_t X, AvlTree T )
 {
     if( T == NULL )
     {
@@ -243,7 +243,7 @@ Insert( int64_t offset, ElementType X, AvlTree T )
 
 
 /* END */
-IntPair createOffsetPair(PositionAVL first, PositionAVL second, ElementType limit){
+IntPair createOffsetPair(PositionAVL first, PositionAVL second, int64_t limit){
     IntPair op = (IntPair) malloc(sizeof(struct int_pair));
     if (first && second){
         if (first->offset == 0)
@@ -281,7 +281,7 @@ FindMax( AvlTree T )
 }
 
 IntPair
-FindNeighborsLT( ElementType X, AvlTree T, ElementType limit )
+FindNeighborsLT( int64_t X, AvlTree T, int64_t limit )
 {
     PositionAVL first = 0, second = 0;
     //if( T == NULL )
@@ -309,7 +309,7 @@ FindNeighborsLT( ElementType X, AvlTree T, ElementType limit )
 }
 
 IntPair
-FindNeighborsGTE( ElementType X, AvlTree T, ElementType limit )
+FindNeighborsGTE( int64_t X, AvlTree T, int64_t limit )
 {
     PositionAVL first = 0, second = 0;
 

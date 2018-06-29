@@ -14,21 +14,19 @@ struct int_pair
 };
 typedef struct int_pair *IntPair;
 
-typedef int64_t ElementType;
-
 struct AvlNode;
 
 typedef struct AvlNode *PositionAVL;
 typedef struct AvlNode *AvlTree;
 AvlTree MakeEmpty( AvlTree T );
 
-int64_t FindLT( ElementType X, AvlTree T );
-int64_t FindLTE( ElementType X, AvlTree T, ElementType limit );
+int64_t FindLT( int64_t X, AvlTree T );
+int64_t FindLTE( int64_t X, AvlTree T, int64_t limit );
 PositionAVL FindMin( AvlTree T );
-AvlTree Insert( int64_t offset, ElementType X, AvlTree T );
-IntPair FindNeighborsLT( ElementType X, AvlTree T, ElementType limit );
-IntPair FindNeighborsGTE( ElementType X, AvlTree T, ElementType limit );
-int64_t lookup(ElementType X, AvlTree T);
+AvlTree Insert( int64_t offset, int64_t X, AvlTree T );
+IntPair FindNeighborsLT( int64_t X, AvlTree T, int64_t limit );
+IntPair FindNeighborsGTE( int64_t X, AvlTree T, int64_t limit );
+int64_t lookup(int64_t X, AvlTree T);
 
 
 void Print( AvlTree T );

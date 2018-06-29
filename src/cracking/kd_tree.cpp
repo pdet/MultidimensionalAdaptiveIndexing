@@ -2,7 +2,7 @@
 // #include "structs.h"
 #include "../util/timer.h"
 #include <algorithm>
-#include <chrono>
+
 int64_t THRESHOLD = 100;
 using namespace std;
 
@@ -249,8 +249,7 @@ void Insert(KDTree &tree, int64_t column, int64_t element, Table &table)
 
 int64_t collect_results(Table &table, int64_t lower_limit, int64_t upper_limit, vector<pair<int64_t, int64_t>> query, size_t currentQueryNum)
 {
-    chrono::time_point<chrono::system_clock> start, end;
-    start = chrono::system_clock::now();
+
     int sel_size;
     int sel_vector[upper_limit - lower_limit];
 
@@ -261,20 +260,15 @@ int64_t collect_results(Table &table, int64_t lower_limit, int64_t upper_limit, 
             sel_size = select_rq_scan_sel_vec(sel_vector, &table.columns[column_num][lower_limit],query.at(column_num).first,query.at(column_num).second,sel_size);
         }
         result += sel_size;
-    
-    end = chrono::system_clock::now();
-    scanTime.at(currentQueryNum) += chrono::duration<double>(end - start).count();
     return result;
 }
 
 int64_t SearchKDTree(KDTree &tree, vector<pair<int64_t, int64_t>> query, Table &table, bool should_crack = false, size_t currentQueryNum = 0)
 {
-    chrono::time_point<chrono::system_clock> start, end;
     int64_t result = 0;
 
     if (should_crack)
     {
-        start = chrono::system_clock::now();
         for (size_t col = 0; col < query.size(); ++col)
         {
             int64_t leftKey = query.at(col).first;
@@ -283,11 +277,8 @@ int64_t SearchKDTree(KDTree &tree, vector<pair<int64_t, int64_t>> query, Table &
             Insert(tree, col, leftKey, table);
             Insert(tree, col, rightKey, table);
         }
-        end = chrono::system_clock::now();
-        indexCreation.at(currentQueryNum) = chrono::duration<double>(end - start).count();
     }
 
-    start = chrono::system_clock::now();
 
     // fprintf(stderr, "Query: %ld -- %ld\n", query.at(0).first, query.at(0).second);
 
@@ -370,8 +361,6 @@ int64_t SearchKDTree(KDTree &tree, vector<pair<int64_t, int64_t>> query, Table &
             }
         }
     }
-    end = chrono::system_clock::now();
-    indexLookup.at(currentQueryNum) = chrono::duration<double>(end - start).count() - scanTime.at(currentQueryNum);
 
     return result;
 }

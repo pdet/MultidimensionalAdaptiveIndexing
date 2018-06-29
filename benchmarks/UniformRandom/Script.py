@@ -13,14 +13,13 @@ SKEWED = "3"
 # Setting Values For Algorithms
 FULL_SCAN = "0"
 STANDARD_CRACKING = "1"
-FULL_INDEX = "2"
-KD_TREE = "3"
-FULL_KD_TREE = "4"
+KD_TREE = "2"
+FULL_KD_TREE = "3"
 
 PATH = ""
 
 # Select Experiments to run
-experiments = [FULL_SCAN]
+experiments = [FULL_SCAN,STANDARD_CRACKING]
 # Main Configurations
 NUM_QUERIES = "10"
 NUMBER_OF_REPETITIONS = 1

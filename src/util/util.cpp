@@ -81,3 +81,21 @@ void full_scan(Column *c, vector<pair<int64_t,int64_t>>  *rangequeries, int64_t 
 		*result += sel_size;
 	}
 }
+
+void print_help(int argc, char** argv) {
+    fprintf(stderr, "Unrecognized command line option.\n");
+    fprintf(stderr, "Usage: %s [args]\n", argv[0]);
+    fprintf(stderr, "   --column-path\n");
+    fprintf(stderr, "   --query-path\n");
+    fprintf(stderr, "   --num-queries\n");
+    fprintf(stderr, "   --column-size\n");
+    fprintf(stderr, "   --column-number\n");
+    fprintf(stderr, "   --indexing-type\n");
+    fprintf(stderr, "   --kdtree-threshold\n");
+}
+
+
+pair<string,string> split_once(string delimited, char delimiter) {
+    auto pos = delimited.find_first_of(delimiter);
+    return { delimited.substr(0, pos), delimited.substr(pos+1) };
+}

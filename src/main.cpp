@@ -16,8 +16,6 @@
 
 #include "cracking/kd_tree.h"
 #include "cracking/standard_cracking.h"
-#include "fullindex/bulkloading_bp_tree.h"
-#include "fullindex/hybrid_radix_insert_sort.h"
 #include "util/file_manager.h"
 #include "util/structs.h"
 #include "util/timer.h"
@@ -31,23 +29,31 @@ typedef void (*index_lookup_function)(AvlTree * T,vector<pair<int64_t,int64_t>> 
 typedef void (*scan_data_function)(Column *c, vector<pair<int64_t,int64_t>>  *rangequeries, int64_t * result);
 typedef void (*intersect_data_function)(IndexEntry **crackercolumns,vector<pair<int,int>>  *offsets, vector<boost::dynamic_bitset<>> *bitmaps, int64_t * result);
 
+//Settings for Indexes
+const int FULL_SCAN = 0;
+const int UNIDIMENSIONAL_CRACKING = 1;
+const int CRACKING_KDTREE = 2;
+const int KDTREE = 3;
+
 string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
 int64_t COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
 int64_t NUM_QUERIES, NUMBER_OF_COLUMNS, KDTREE_THRESHOLD, INDEXING_TYPE;
-
-vector<double> indexCreation;
-vector<double> indexLookup;
-vector<double> scanTime;
-vector<double> joinTime;
-vector<double> totalTime;
 
 void benchmarkFunction(Column *column, vector<vector<pair<int64_t,int64_t>>> rangeQueries, 
 	pre_processing_function pre_processing, partial_index_built_function partial_index_built,
 	index_lookup_function index_lookup, scan_data_function scan_data, intersect_data_function intersect_data){
 
+	vector<double> indexCreation = vector<double>(NUM_QUERIES, 0);
+	vector<double> indexLookup = vector<double>(NUM_QUERIES, 0);
+	vector<double> scanTime = vector<double>(NUM_QUERIES, 0);
+	vector<double> joinTime = vector<double>(NUM_QUERIES, 0);
+	vector<double> totalTime = vector<double>(NUM_QUERIES);
+
     chrono::time_point<chrono::system_clock> start, end;
 	IndexEntry **crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
-   	AvlTree *T = (AvlTree *)malloc(sizeof(AvlTree) * NUMBER_OF_COLUMNS);
+
+	AvlTree *T = (AvlTree *)malloc(sizeof(AvlTree) * NUMBER_OF_COLUMNS);
+
 	vector<pair<int, int>> offsets(NUMBER_OF_COLUMNS);  
 	vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
 	// First we do pre-processing. In the case of full index we fully create the index.
@@ -94,37 +100,8 @@ void benchmarkFunction(Column *column, vector<vector<pair<int64_t,int64_t>>> ran
 	}
 }
 
-
-
-
-void print_help(int argc, char** argv) {
-    fprintf(stderr, "Unrecognized command line option.\n");
-    fprintf(stderr, "Usage: %s [args]\n", argv[0]);
-    fprintf(stderr, "   --column-path\n");
-    fprintf(stderr, "   --query-path\n");
-    fprintf(stderr, "   --num-queries\n");
-    fprintf(stderr, "   --column-size\n");
-    fprintf(stderr, "   --column-number\n");
-    fprintf(stderr, "   --indexing-type\n");
-    fprintf(stderr, "   --bptree-elements-per-node\n");
-    fprintf(stderr, "   --kdtree-threshold\n");
-}
-
-
-pair<string,string> split_once(string delimited, char delimiter) {
-    auto pos = delimited.find_first_of(delimiter);
-    return { delimited.substr(0, pos), delimited.substr(pos+1) };
-}
-
 int main(int argc, char **argv)
 {
-	//Settings for Indexes
-	const int FULL_SCAN = 0;
-	const int UNIDIMENSIONAL_CRACKING = 1;
-	const int UNIDIMENSIONAL_BPTREE = 2;
-	const int CRACKING_KDTREE = 3;
-	const int KDTREE = 4;
-
 	// Default Values
 	COLUMN_FILE_PATH = "column";
 	QUERIES_FILE_PATH = "query";
@@ -132,7 +109,6 @@ int main(int argc, char **argv)
 	COLUMN_SIZE = 10000000;
 	NUMBER_OF_COLUMNS = 16;
 	INDEXING_TYPE = 0;
-	BPTREE_ELEMENTSPERNODE = 16384;
 	KDTREE_THRESHOLD = 1000;
 
     for(int i = 1; i < argc; i++) {
@@ -156,21 +132,13 @@ int main(int argc, char **argv)
                 NUMBER_OF_COLUMNS = atoi(arg_value.c_str());
             } else if (arg_name == "indexing-type") {
                 INDEXING_TYPE = atoi(arg_value.c_str());
-            } else if (arg_name == "bptree-elements-per-node") {
-                BPTREE_ELEMENTSPERNODE = atoi(arg_value.c_str());
-            } else if (arg_name == "kdtree-threshold") {
+            }  else if (arg_name == "kdtree-threshold") {
                 KDTREE_THRESHOLD = atoi(arg_value.c_str());
             }  else {
                 print_help(argc, argv);
                 exit(EXIT_FAILURE);
             }
         }
-
-	indexCreation = vector<double>(NUM_QUERIES, 0);
-	indexLookup = vector<double>(NUM_QUERIES, 0);
-	scanTime = vector<double>(NUM_QUERIES, 0);
-	joinTime = vector<double>(NUM_QUERIES, 0);
-	totalTime = vector<double>(NUM_QUERIES);
    
     Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
     loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
@@ -185,16 +153,12 @@ int main(int argc, char **argv)
 			query.at(q).at(i).second = rangequeries[i].rightpredicate[q];
 		}
 	}
-
 	switch(INDEXING_TYPE){
 		case FULL_SCAN:
 			benchmarkFunction(c,query,NULL,NULL,NULL,full_scan,NULL);
 			break;
 		case UNIDIMENSIONAL_CRACKING:
 			benchmarkFunction(c,query,cracking_pre_processing,cracking_partial_built,cracking_index_lookup,NULL,cracking_intersection);
-			break;
-		case UNIDIMENSIONAL_BPTREE:
-			benchmarkFunction(c,query,NULL,NULL,NULL,full_scan,NULL);
 			break;
 		case CRACKING_KDTREE:
 			benchmarkFunction(c,query,NULL,NULL,NULL,full_scan,NULL);
