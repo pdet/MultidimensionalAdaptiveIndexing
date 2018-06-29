@@ -6,6 +6,9 @@
 //
 #include "standard_cracking.h"
 
+using namespace std;
+
+extern int64_t COLUMN_SIZE, NUMBER_OF_COLUMNS;
 void exchange(IndexEntry *&c, int64_t x1, int64_t x2)
 {
     IndexEntry tmp = *(c + x1);
@@ -113,3 +116,105 @@ AvlTree standardCracking(IndexEntry *&c, int dataSize, AvlTree T, int lowKey, in
 
     return T;
 }
+
+// Create Cracker Columns + Cracker Indexes
+void cracking_pre_processing(Column *c,IndexEntry **crackercolumns, AvlTree * T){
+     for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
+    {
+        crackercolumns[j] = (IndexEntry *)malloc(COLUMN_SIZE * sizeof(IndexEntry));
+        // Already create the cracker column
+        for (size_t i = 0; i < COLUMN_SIZE; ++i)
+        {
+            crackercolumns[j][i].m_key = c[j].data[i];
+            crackercolumns[j][i].m_rowId = i;
+        }
+    }
+    //Initialitizing multiple Cracker Indexes
+    for (size_t k = 0; k < NUMBER_OF_COLUMNS; ++k)
+    {
+        T[k] = NULL;
+    }
+}
+
+void cracking_partial_built(IndexEntry **crackercolumns, AvlTree * T,vector<pair<int64_t,int64_t>>  *rangequeries){
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; i ++)
+        T[i] = standardCracking(crackercolumns[i],COLUMN_SIZE,T[i],rangequeries->at(i).first,rangequeries->at(i).second);
+}
+
+void cracking_index_lookup(AvlTree * T,vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets){
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; i ++){
+        IntPair p1 = FindNeighborsGTE(rangequeries->at(i).first, T[i], COLUMN_SIZE - 1);
+        IntPair p2 = FindNeighborsLT(rangequeries->at(i).second, T[i], COLUMN_SIZE - 1);
+        offsets->at(i).first = p1->first;
+        offsets->at(i).second = p2->second;
+    }
+    
+}
+
+void cracking_intersection(IndexEntry **crackercolumns,vector<pair<int,int>>  *offsets, vector<boost::dynamic_bitset<>> *bitmaps, int64_t * result){
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; i ++){
+        bitmaps->at(i) = boost::dynamic_bitset<>(COLUMN_SIZE); 
+        create_bitmap(crackercolumns[i], offsets->at(i).first, offsets->at(i).second, bitmaps->at(i));
+    }
+    *result = join_bitmaps(bitmaps);
+}
+// void standardCracking()
+// {
+//     chrono::time_point<chrono::system_clock> start, end;
+
+//     Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
+//     loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
+
+//     RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
+//     loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
+
+//     start = chrono::system_clock::now();
+//     IndexEntry **crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
+   
+//     end = chrono::system_clock::now();
+//     indexCreation.at(0) += chrono::duration<double>(end - start).count();
+
+//     for (size_t i = 0; i < NUM_QUERIES; i++)
+//     {
+//         vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
+//         for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
+//         {
+//             //Partitioning Column and Inserting in Cracker Indexing
+//             start = chrono::system_clock::now();
+//             bitmaps.at(j).resize(COLUMN_SIZE);
+
+//             end = chrono::system_clock::now();
+//             indexCreation.at(i) += chrono::duration<double>(end - start).count();
+//             start = chrono::system_clock::now();
+//             //Querying
+           
+//             free(p1);
+//             free(p2);
+//             end = chrono::system_clock::now();
+//             indexLookup.at(i) += chrono::duration<double>(end - start).count();
+//             start = chrono::system_clock::now();
+//             scanQuery(crackercolumns[j], offset1, offset2, bitmaps[j]);
+//             end = chrono::system_clock::now();
+//             scanTime.at(i) += chrono::duration<double>(end - start).count();
+//         }
+//         int64_t result;
+//         start = std::chrono::system_clock::now();
+//         result = join_bitmaps(bitmaps, c);
+//         end = std::chrono::system_clock::now();
+//         joinTime.at(i) += std::chrono::duration<double>(end - start).count();
+//         // Join the partial results
+// #ifdef VERIFY
+//             bool pass = verify_range_query(c, rangequeries, i, result);
+//             if (pass == 0)
+//                 cout << "Query : " << i << " " << pass << "\n";
+// #endif
+//             fprintf(stderr, "%ld \n", result );
+//         totalTime.at(i) = scanTime.at(i) + indexCreation.at(i) + indexLookup.at(i) + joinTime.at(i);
+//     }
+//     //    Print(*T);
+//     for (size_t l = 0; l < NUMBER_OF_COLUMNS; ++l)
+//     {
+//         free(crackercolumns[l]);
+//     }
+//     free(crackercolumns);
+// }

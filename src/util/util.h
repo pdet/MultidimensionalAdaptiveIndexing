@@ -8,11 +8,10 @@
 using namespace std;
 
 
-void scanQuery(IndexEntry *c, int64_t from, int64_t to, boost::dynamic_bitset<> &bitmap);
-int64_t sum_bitmap(boost::dynamic_bitset<> bitmap, Column first_column);
-int64_t join_bitmaps(std::vector<boost::dynamic_bitset<>> bitmaps, Column * columns);
+void create_bitmap(IndexEntry *c, int64_t from, int64_t to, boost::dynamic_bitset<> &bitmap);
+int64_t join_bitmaps(vector<boost::dynamic_bitset<>> *bitmaps);
 int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n);
 int select_rq_scan_sel_vec (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n);
-int full_scan(Column *c, vector<pair<int64_t,int64_t>>  *rangequeries);
+void full_scan(Column *c, vector<pair<int64_t,int64_t>>  *rangequeries, int64_t * result);
 
 #endif //MULTIDEMIONSIONALINDEXING_UTIL_H

@@ -25,8 +25,11 @@
 
 using namespace std;
 
-typedef int (*scan_data_function)(Column *c, vector<pair<int64_t,int64_t>>  *rangequeries);
-
+typedef void (*pre_processing_function)(Column *c,IndexEntry **crackercolumns, AvlTree * t);
+typedef void (*partial_index_built_function)(IndexEntry **crackercolumns, AvlTree * T,vector<pair<int64_t,int64_t>>  *rangequeries);
+typedef void (*index_lookup_function)(AvlTree * T,vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets);
+typedef void (*scan_data_function)(Column *c, vector<pair<int64_t,int64_t>>  *rangequeries, int64_t * result);
+typedef void (*intersect_data_function)(IndexEntry **crackercolumns,vector<pair<int,int>>  *offsets, vector<boost::dynamic_bitset<>> *bitmaps, int64_t * result);
 
 string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
 int64_t COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
@@ -38,337 +41,56 @@ vector<double> scanTime;
 vector<double> joinTime;
 vector<double> totalTime;
 
-
-void standardCracking()
-{
-	chrono::time_point<chrono::system_clock> start, end;
-
-	Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
-	loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
-
-	RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
-	loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
-
-	start = chrono::system_clock::now();
-	IndexEntry **crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
-	for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
-	{
-		crackercolumns[j] = (IndexEntry *)malloc(COLUMN_SIZE * sizeof(IndexEntry));
-		// Already create the cracker column
-		for (size_t i = 0; i < COLUMN_SIZE; ++i)
-		{
-			crackercolumns[j][i].m_key = c[j].data[i];
-			crackercolumns[j][i].m_rowId = i;
-		}
-	}
-	//Initialitizing multiple Cracker Indexes
-	AvlTree *T = (AvlTree *)malloc(sizeof(AvlTree) * NUMBER_OF_COLUMNS);
-	for (size_t k = 0; k < NUMBER_OF_COLUMNS; ++k)
-	{
-		T[k] = NULL;
-	}
-	end = chrono::system_clock::now();
-	indexCreation.at(0) += chrono::duration<double>(end - start).count();
-
-	for (size_t i = 0; i < NUM_QUERIES; i++)
-	{
-		vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
-		for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
-		{
-			//Partitioning Column and Inserting in Cracker Indexing
-			start = chrono::system_clock::now();
-			bitmaps.at(j).resize(COLUMN_SIZE);
-			T[j] = standardCracking(
-				crackercolumns[j],
-				COLUMN_SIZE,
-				T[j],
-				rangequeries[j].leftpredicate[i],
-				rangequeries[j].rightpredicate[i]);
-			end = chrono::system_clock::now();
-			indexCreation.at(i) += chrono::duration<double>(end - start).count();
-			start = chrono::system_clock::now();
-			//Querying
-			IntPair p1 = FindNeighborsGTE(rangequeries[j].leftpredicate[i], T[j], COLUMN_SIZE - 1);
-			IntPair p2 = FindNeighborsLT(rangequeries[j].rightpredicate[i], T[j], COLUMN_SIZE - 1);
-			int offset1 = p1->first;
-			int offset2 = p2->second;
-			free(p1);
-			free(p2);
-			end = chrono::system_clock::now();
-			indexLookup.at(i) += chrono::duration<double>(end - start).count();
-			start = chrono::system_clock::now();
-			scanQuery(crackercolumns[j], offset1, offset2, bitmaps[j]);
-			end = chrono::system_clock::now();
-			scanTime.at(i) += chrono::duration<double>(end - start).count();
-		}
-		int64_t result;
-		start = std::chrono::system_clock::now();
-		result = join_bitmaps(bitmaps, c);
-		end = std::chrono::system_clock::now();
-		joinTime.at(i) += std::chrono::duration<double>(end - start).count();
-		// Join the partial results
-#ifdef VERIFY
-			bool pass = verify_range_query(c, rangequeries, i, result);
-			if (pass == 0)
-				cout << "Query : " << i << " " << pass << "\n";
-#endif
-			fprintf(stderr, "%ld \n", result );
-		totalTime.at(i) = scanTime.at(i) + indexCreation.at(i) + indexLookup.at(i) + joinTime.at(i);
-	}
-	//    Print(*T);
-	for (size_t l = 0; l < NUMBER_OF_COLUMNS; ++l)
-	{
-		free(crackercolumns[l]);
-	}
-	free(crackercolumns);
-}
-
-void *fullIndex(IndexEntry *c)
-{
-	hybrid_radixsort_insert(c, COLUMN_SIZE);
-	void *I = build_bptree_bulk(c, COLUMN_SIZE);
-
-	return I;
-}
-
-void bptree_bulk_index3()
-{
-	chrono::time_point<chrono::system_clock> start, end;
-	Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
-	loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
-
-	RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
-	loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
-
-	start = chrono::system_clock::now();
-	IndexEntry **crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
-	for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
-	{
-		crackercolumns[j] = (IndexEntry *)malloc(COLUMN_SIZE * sizeof(IndexEntry));
-		// Already create the cracker column
-		for (size_t i = 0; i < COLUMN_SIZE; ++i)
-		{
-			crackercolumns[j][i].m_key = c[j].data[i];
-			crackercolumns[j][i].m_rowId = i;
-		}
-	}
-
-	BulkBPTree **T = (BulkBPTree **)malloc(sizeof(BulkBPTree *) * NUMBER_OF_COLUMNS);
-	for (size_t k = 0; k < NUMBER_OF_COLUMNS; ++k)
-	{
-		T[k] = (BulkBPTree *)fullIndex(crackercolumns[k]);
-	}
-	end = chrono::system_clock::now();
-	indexCreation.at(0) += chrono::duration<double>(end - start).count();
-
-	for (size_t i = 0; i < NUM_QUERIES; i++)
-	{
-		vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
-		// query
-		for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
-		{
-			start = chrono::system_clock::now();
-			bitmaps.at(j).resize(COLUMN_SIZE);
-			int64_t offset1 = (T[j])->gte(rangequeries[j].leftpredicate[i]);
-			int64_t offset2 = (T[j])->lt(rangequeries[j].rightpredicate[i]);
-			end = chrono::system_clock::now();
-			indexLookup.at(i) += chrono::duration<double>(end - start).count();
-			start = chrono::system_clock::now();
-			scanQuery(crackercolumns[j], offset1, offset2, bitmaps[j]);
-			end = chrono::system_clock::now();
-			scanTime.at(i) += chrono::duration<double>(end - start).count();
-		}
-		int64_t result;
-		start = std::chrono::system_clock::now();
-		result = join_bitmaps(bitmaps, c);
-		end = std::chrono::system_clock::now();
-		joinTime.at(i) += std::chrono::duration<double>(end - start).count();
-		// Join the partial results
-#ifdef VERIFY
-			bool pass = verify_range_query(c, rangequeries, i, result);
-			if (pass == 0)
-				cout << "Query : " << i << " " << pass << "\n";
-#endif
-			fprintf(stderr, "%ld \n", result );
-		totalTime.at(i) = scanTime.at(i) + indexCreation.at(i) + indexLookup.at(i) + joinTime.at(i);
-	}
-	for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
-	{
-		free(crackercolumns[i]);
-		free(T[i]);
-	}
-	free(crackercolumns);
-	free(T);
-}
-
-void kdtree_cracking()
-{
-	configKDTree(KDTREE_THRESHOLD);
-	chrono::time_point<chrono::system_clock> start, end;
-	Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
-	loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
-
-	RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
-	loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
-
-	start = chrono::system_clock::now();
-	Table table;
-	table.columns = vector<vector<ElementType>>(NUMBER_OF_COLUMNS);
-	table.ids = vector<int64_t>(COLUMN_SIZE);
-	for (size_t col = 0; col < NUMBER_OF_COLUMNS; ++col)
-	{
-		table.columns.at(col) = vector<ElementType>(COLUMN_SIZE);
-		for (size_t line = 0; line < COLUMN_SIZE; ++line)
-		{
-			table.ids.at(line) = line;
-			table.columns.at(col).at(line) = c[col].data[line];
-		}
-	}
-
-	KDTree index = NULL;
-	end = chrono::system_clock::now();
-	indexCreation.at(0) += chrono::duration<double>(end - start).count();
-
-	for (size_t query_index = 0; query_index < NUM_QUERIES; ++query_index)
-	{
-		// Transform query in a format easier to handle
-		vector<pair<int64_t, int64_t>> query(NUMBER_OF_COLUMNS);
-		for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
-		{
-			query.at(i).first = rangequeries[i].leftpredicate[query_index];
-			query.at(i).second = rangequeries[i].rightpredicate[query_index];
-		}
-
-		int64_t result = SearchKDTree(index, query, table, true, query_index);
-		fprintf(stderr, "%ld \n", result );
-
-#ifdef VERIFY
-		bool pass = verify_range_query(c, rangequeries, query_index, result);
-		if (pass == 0)
-			cout << "Query : " << query_index << " " << pass << "\n";
-#endif
-		totalTime.at(query_index) = scanTime.at(query_index) + indexCreation.at(query_index) + indexLookup.at(query_index) + joinTime.at(query_index);
-	}
-	freeKDTree(index);
-	for (int i = 0; i < NUMBER_OF_COLUMNS; ++i)
-	{
-		free(c[i].data);
-		free(rangequeries[i].leftpredicate);
-		free(rangequeries[i].rightpredicate);
-	}
-
-	free(c);
-	free(rangequeries);
-}
-
-void full_kdtree()
-{
-	configKDTree(KDTREE_THRESHOLD);
-	chrono::time_point<chrono::system_clock> start, end;
-	Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
-	loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
-
-	RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
-	loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
-
-	start = chrono::system_clock::now();
-	Table table;
-	table.columns = vector<vector<ElementType>>(NUMBER_OF_COLUMNS);
-	table.ids = vector<int64_t>(COLUMN_SIZE);
-	for (size_t col = 0; col < NUMBER_OF_COLUMNS; ++col)
-	{
-		table.columns.at(col) = vector<ElementType>(COLUMN_SIZE);
-		for (size_t line = 0; line < COLUMN_SIZE; ++line)
-		{
-			table.ids.at(line) = line;
-			table.columns.at(col).at(line) = c[col].data[line];
-		}
-	}
-
-	KDTree index = FullKDTree(table);
-	end = chrono::system_clock::now();
-
-	indexCreation.at(0) += chrono::duration<double>(end - start).count();
-
-	for (size_t query_index = 0; query_index < NUM_QUERIES; ++query_index)
-	{
-		// Transform query in a format easier to handle
-		vector<pair<int64_t, int64_t>> query(NUMBER_OF_COLUMNS);
-		for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
-		{
-			query.at(i).first = rangequeries[i].leftpredicate[query_index];
-			query.at(i).second = rangequeries[i].rightpredicate[query_index];
-		}
-
-		int64_t result = SearchKDTree(index, query, table, false, query_index);
-		fprintf(stderr, "%ld \n", result );
-
-#ifdef VERIFY
-		bool pass = verify_range_query(c, rangequeries, query_index, result);
-		if (pass == 0)
-			cout << "Query : " << query_index << " " << pass << "\n";
-#endif
-		totalTime.at(query_index) = scanTime.at(query_index) + indexCreation.at(query_index) + indexLookup.at(query_index) + joinTime.at(query_index);
-	}
-
-	freeKDTree(index);
-	for (int i = 0; i < NUMBER_OF_COLUMNS; ++i)
-	{
-		free(c[i].data);
-		free(rangequeries[i].leftpredicate);
-		free(rangequeries[i].rightpredicate);
-	}
-
-	free(c);
-	free(rangequeries);
-}
-
-
-
 void benchmarkFunction(Column *column, vector<vector<pair<int64_t,int64_t>>> rangeQueries, 
-	// pre_processing_function pre_processing, partial_index_built_function partial_index_built,
-	// index_lookup_function index_lookup, 
-	scan_data_function scan_data
-	// , intersect_data_function intersect_data
-	){
-    chrono::time_point<std::chrono::system_clock> start, end;
+	pre_processing_function pre_processing, partial_index_built_function partial_index_built,
+	index_lookup_function index_lookup, scan_data_function scan_data, intersect_data_function intersect_data){
 
-	// First we do pre-processing. In the case of full index we fully create the index. In the case of Partial Indexes we copy the elements to a cracker index structure.
-    // start = chrono::system_clock::now();
-    // pre_processing();
-    // end = chrono::system_clock::now();
+    chrono::time_point<chrono::system_clock> start, end;
+	IndexEntry **crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
+   	AvlTree *T = (AvlTree *)malloc(sizeof(AvlTree) * NUMBER_OF_COLUMNS);
+	vector<pair<int, int>> offsets(NUMBER_OF_COLUMNS);  
+	vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
+	// First we do pre-processing. In the case of full index we fully create the index.
+	// In the case of Partial Indexes we copy the elements to a cracker index structure.
+    start = chrono::system_clock::now();
+    if(pre_processing)
+    	pre_processing(column, crackercolumns,T);
+    end = chrono::system_clock::now();
     indexCreation.at(0)  = chrono::duration<double>(end - start).count();
     for(int i = 0; i < NUM_QUERIES; i++) {
+    	int64_t result = 0;
     	// If we are running cracking algorithms we do a partial index creation step
-    	// start = chrono::system_clock::now();
-    	// partial_index_built()
-    	// end = chrono::system_clock::now();
-     //    indexCreation.at(q) += chrono::duration<double>(end - start).count();
+    	start = chrono::system_clock::now();
+    	if(partial_index_built)
+    		partial_index_built(crackercolumns,T,&rangeQueries.at(i));
+    	end = chrono::system_clock::now();
+        indexCreation.at(i) += chrono::duration<double>(end - start).count();
 
-     //    start = chrono::system_clock::now();
-    	// index_lookup()
-    	// end = chrono::system_clock::now();
-     //    indexLookup.at(q)  = chrono::duration<double>(end - start).count();
+        start = chrono::system_clock::now();
+        if(index_lookup)
+    		index_lookup(T,&rangeQueries.at(i),&offsets);
+    	end = chrono::system_clock::now();
+        indexLookup.at(i) = chrono::duration<double>(end - start).count();
       
        // Intersecting data for uni-dimensional indexes
         start = chrono::system_clock::now();
-    	scan_data(column,&rangeQueries.at(i));
+    	if (scan_data)
+    		scan_data(column,&rangeQueries.at(i),&result);
     	end = chrono::system_clock::now();
         scanTime.at(i)  = chrono::duration<double>(end - start).count();
         
-     //    start = chrono::system_clock::now(); 
-    	// intersect_data()
-    	// end = chrono::system_clock::now();
-     //    joinTime.at(q)  = chrono::duration<double>(end - start).count();
+        start = chrono::system_clock::now(); 
+    	if(intersect_data)
+    		intersect_data(crackercolumns,&offsets,&bitmaps,&result);
+    	end = chrono::system_clock::now();
+        joinTime.at(i)  = chrono::duration<double>(end - start).count();
 
-        // totalTime.at(q)  = indexCreation.at(0) + indexLookup.at(0) + scanTime.at(0) + joinTime.at(0)
-
-        totalTime.at(i)  = scanTime.at(i);
-
+        totalTime.at(i)  = indexCreation.at(i) + indexLookup.at(i) + scanTime.at(i) + joinTime.at(i);
+        fprintf(stderr, "Result : %lu\n",result);
     }
-	for (int q = 0; q < NUM_QUERIES; q++){
-		// cout << indexCreation.at(q) << ";" << indexLookup.at(q) << ";" << scanTime.at(q) << ";" << joinTime.at(q) << ";" << totalTime.at(q) << "\n";
-		fprintf(stderr, "%f\n",totalTime.at(q));
+	for (int i = 0; i < NUM_QUERIES; i++){
+		cout << indexCreation.at(i) << ";" << indexLookup.at(i) << ";" << scanTime.at(i) << ";" << joinTime.at(i) << ";" << totalTime.at(i) << "\n";
+		fprintf(stderr, "%f\n",totalTime.at(i));
 	}
 }
 
@@ -396,6 +118,13 @@ pair<string,string> split_once(string delimited, char delimiter) {
 
 int main(int argc, char **argv)
 {
+	//Settings for Indexes
+	const int FULL_SCAN = 0;
+	const int UNIDIMENSIONAL_CRACKING = 1;
+	const int UNIDIMENSIONAL_BPTREE = 2;
+	const int CRACKING_KDTREE = 3;
+	const int KDTREE = 4;
+
 	// Default Values
 	COLUMN_FILE_PATH = "column";
 	QUERIES_FILE_PATH = "query";
@@ -457,41 +186,21 @@ int main(int argc, char **argv)
 		}
 	}
 
-	//FULL SCAN
-	if (INDEXING_TYPE == 0)
-		benchmarkFunction(c,query,full_scan);		
-	
-
-	//CRACKING W/ AVL
-	else if (INDEXING_TYPE == 1)
-	{
-		standardCracking();
-		for (int q = 0; q < NUM_QUERIES; q++)
-			cout << indexCreation.at(q) << ";" << indexLookup.at(q) << ";" << scanTime.at(q) << ";" << joinTime.at(q) << ";" << totalTime.at(q) << "\n";
+	switch(INDEXING_TYPE){
+		case FULL_SCAN:
+			benchmarkFunction(c,query,NULL,NULL,NULL,full_scan,NULL);
+			break;
+		case UNIDIMENSIONAL_CRACKING:
+			benchmarkFunction(c,query,cracking_pre_processing,cracking_partial_built,cracking_index_lookup,NULL,cracking_intersection);
+			break;
+		case UNIDIMENSIONAL_BPTREE:
+			benchmarkFunction(c,query,NULL,NULL,NULL,full_scan,NULL);
+			break;
+		case CRACKING_KDTREE:
+			benchmarkFunction(c,query,NULL,NULL,NULL,full_scan,NULL);
+			break;
+		case KDTREE:
+			benchmarkFunction(c,query,NULL,NULL,NULL,full_scan,NULL);
+			break;
 	}
-
-	// FULL INDEX B+ Tree
-	else if (INDEXING_TYPE == 2)
-	{
-		bptree_bulk_index3();
-		for (int q = 0; q < NUM_QUERIES; q++)
-			cout << indexCreation.at(q) << ";" << indexLookup.at(q) << ";" << scanTime.at(q) << ";" << joinTime.at(q) << ";" << totalTime.at(q) << "\n";
-	}
-
-	//  Cracking W/ KD-Tree
-	else if (INDEXING_TYPE == 3)
-	{
-		kdtree_cracking();
-		for (int q = 0; q < NUM_QUERIES; q++)
-			cout << indexCreation.at(q) << ";" << indexLookup.at(q) << ";" << scanTime.at(q) << ";" << joinTime.at(q) << ";" << totalTime.at(q) << "\n";
-	}
-
-	// Full Index KD-TREE
-	else if (INDEXING_TYPE == 4)
-	{
-		full_kdtree();
-		for (int q = 0; q < NUM_QUERIES; q++)
-			cout << indexCreation.at(q) << ";" << indexLookup.at(q) << ";" << scanTime.at(q) << ";" << joinTime.at(q) << ";" << totalTime.at(q) << "\n";
-	}
-
 }
