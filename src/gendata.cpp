@@ -11,7 +11,6 @@
 #include <map>
 #include <chrono>
 #include <algorithm>
-#include "cracking/cracker_index.h"
 
 using namespace std;
 

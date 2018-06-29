@@ -1,31 +1,12 @@
-//
-// Created by PHolanda on 17/12/17.
-//
-
-#include "avl_tree.h"
-
-//
-// Imp from Weiss
-//
-
 #include "avl_tree.h"
 #include <stdio.h>
 #include <iostream>
 
 int64_t insertCount = 0;
 
-struct AvlNode
-{
-    int64_t Element;
-    int64_t offset;
 
-    AvlTree  Left;
-    AvlTree  Right;
-    int64_t      Height;
-};
-
-AvlTree
-MakeEmpty( AvlTree T )
+Tree
+MakeEmpty( Tree T )
 {
     if( T != NULL )
     {
@@ -37,7 +18,7 @@ MakeEmpty( AvlTree T )
 }
 
 int64_t
-FindLT( int64_t X, AvlTree T )
+FindLT( int64_t X, Tree T )
 {
     if( T == NULL )
         return -1;
@@ -51,7 +32,7 @@ FindLT( int64_t X, AvlTree T )
 }
 
 int64_t
-FindLTE( int64_t X, AvlTree T, int64_t limit )
+FindLTE( int64_t X, Tree T, int64_t limit )
 {
     if(T) {
         if( X < T->Element )
@@ -77,8 +58,8 @@ FindLTE( int64_t X, AvlTree T, int64_t limit )
     return limit;
 }
 
-PositionAVL
-FindMin( AvlTree T )
+Position
+FindMin( Tree T )
 {
     if( T == NULL )
         return NULL;
@@ -92,7 +73,7 @@ FindMin( AvlTree T )
 
 /* START: fig4_36.txt */
 static int64_t
-Height( PositionAVL P )
+Height( Position P )
 {
     if( P == NULL )
         return -1;
@@ -112,10 +93,10 @@ Max( int64_t Lhs, int64_t Rhs )
 /* Perform a rotate between a node (K2) and its left child */
 /* Update heights, then return new root */
 
-static PositionAVL
-SingleRotateWithLeft( PositionAVL K2 )
+static Position
+SingleRotateWithLeft( Position K2 )
 {
-    PositionAVL K1;
+    Position K1;
 
     K1 = K2->Left;
     K2->Left = K1->Right;
@@ -132,10 +113,10 @@ SingleRotateWithLeft( PositionAVL K2 )
 /* Perform a rotate between a node (K1) and its right child */
 /* Update heights, then return new root */
 
-static PositionAVL
-SingleRotateWithRight( PositionAVL K1 )
+static Position
+SingleRotateWithRight( Position K1 )
 {
-    PositionAVL K2;
+    Position K2;
 
     K2 = K1->Right;
     K1->Right = K2->Left;
@@ -153,8 +134,8 @@ SingleRotateWithRight( PositionAVL K1 )
 /* Do the left-right double rotation */
 /* Update heights, then return new root */
 
-static PositionAVL
-DoubleRotateWithLeft( PositionAVL K3 )
+static Position
+DoubleRotateWithLeft( Position K3 )
 {
     /* Rotate between K1 and K2 */
     K3->Left = SingleRotateWithRight( K3->Left );
@@ -169,8 +150,8 @@ DoubleRotateWithLeft( PositionAVL K3 )
 /* Do the right-left double rotation */
 /* Update heights, then return new root */
 
-static PositionAVL
-DoubleRotateWithRight( PositionAVL K1 )
+static Position
+DoubleRotateWithRight( Position K1 )
 {
     /* Rotate between K3 and K2 */
     K1->Right = SingleRotateWithLeft( K1->Right );
@@ -179,7 +160,7 @@ DoubleRotateWithRight( PositionAVL K1 )
     return SingleRotateWithRight( K1 );
 }
 
-int64_t lookup(int64_t X, AvlTree T) {
+int64_t lookup(int64_t X, Tree T) {
     while (true) {
         if (X == T->Element)
             return T->offset;
@@ -194,15 +175,15 @@ int64_t lookup(int64_t X, AvlTree T) {
 
 
 /* START: fig4_37.txt */
-AvlTree
-Insert( int64_t offset, int64_t X, AvlTree T )
+Tree
+Insert( int64_t offset, int64_t X, Tree T )
 {
     if( T == NULL )
     {
         insertCount++;
 //        std::cout << "Insert Count: " << insertCount << "s\n";
         /* Create and return a one-node tree */
-        T = (AvlTree) malloc( sizeof( struct AvlNode ) );
+        T = (Tree) malloc( sizeof( struct Node ) );
         if( T == NULL )
             printf( "Out of space!!!" );
         else
@@ -243,7 +224,7 @@ Insert( int64_t offset, int64_t X, AvlTree T )
 
 
 /* END */
-IntPair createOffsetPair(PositionAVL first, PositionAVL second, int64_t limit){
+IntPair createOffsetPair(Position first, Position second, int64_t limit){
     IntPair op = (IntPair) malloc(sizeof(struct int_pair));
     if (first && second){
         if (first->offset == 0)
@@ -270,8 +251,8 @@ IntPair createOffsetPair(PositionAVL first, PositionAVL second, int64_t limit){
     return op;
 }
 
-PositionAVL
-FindMax( AvlTree T )
+Position
+FindMax( Tree T )
 {
     if( T != NULL )
         while( T->Right != NULL )
@@ -281,9 +262,9 @@ FindMax( AvlTree T )
 }
 
 IntPair
-FindNeighborsLT( int64_t X, AvlTree T, int64_t limit )
+FindNeighborsLT( int64_t X, Tree T, int64_t limit )
 {
-    PositionAVL first = 0, second = 0;
+    Position first = 0, second = 0;
     //if( T == NULL )
     //	return NULL;
 
@@ -309,9 +290,9 @@ FindNeighborsLT( int64_t X, AvlTree T, int64_t limit )
 }
 
 IntPair
-FindNeighborsGTE( int64_t X, AvlTree T, int64_t limit )
+FindNeighborsGTE( int64_t X, Tree T, int64_t limit )
 {
-    PositionAVL first = 0, second = 0;
+    Position first = 0, second = 0;
 
     while (T != NULL) {
         if( X < T->Element ){
@@ -331,16 +312,3 @@ FindNeighborsGTE( int64_t X, AvlTree T, int64_t limit )
     return createOffsetPair(first, second, limit);
 }
 
-
-
-void Print( AvlTree T ){
-
-    if(T==NULL)
-        return;
-
-    printf("(%lld,%lld) ",(long long int) T->Element, (long long int) T->offset);
-    printf("\n");
-    Print(T->Right);
-    Print(T->Left);
-//    printf("\n");
-}

@@ -69,15 +69,15 @@ int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t 
     return j;
 }
 
-void full_scan(Column *c, vector<pair<int64_t,int64_t>>  *rangequeries, int64_t * result)
+void full_scan(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries, int64_t * result)
 {
 	size_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
 	size_t sel_size;
 	int sel_vector [vector_size];
 	for (size_t i = 0; i < COLUMN_SIZE/vector_size; ++ i){
-		sel_size = select_rq_scan_new (sel_vector, &c[0].data[vector_size*i],rangequeries->at(0).first,rangequeries->at(0).second,vector_size);
+		sel_size = select_rq_scan_new (sel_vector, &table->columns[0][vector_size*i],rangequeries->at(0).first,rangequeries->at(0).second,vector_size);
 		for (size_t column_num = 1; column_num < NUMBER_OF_COLUMNS; column_num++)
-			sel_size = select_rq_scan_sel_vec(sel_vector, &c[column_num].data[vector_size*i],rangequeries->at(column_num).first,rangequeries->at(column_num).second,sel_size);
+			sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[column_num][vector_size*i],rangequeries->at(column_num).first,rangequeries->at(column_num).second,sel_size);
 		*result += sel_size;
 	}
 }

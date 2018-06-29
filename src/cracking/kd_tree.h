@@ -1,38 +1,16 @@
 #ifndef MULTIDEMIONSIONALINDEXING_KD_TREE_H
 #define MULTIDEMIONSIONALINDEXING_KD_TREE_H
 
-#include "cracker_index.h"
 #include "stdio.h"
 #include "../util/util.h"
 #include <cstdlib>
 #include <stdlib.h>
 using namespace std;
-struct Table
-{
-    vector<int64_t> ids;
-    vector<vector<int64_t>> columns;
-};
 
-struct KDNode;
+Tree FullTree(Table &table);
 
-typedef struct KDNode *KDTree;
+void freeTree(Tree tree);
 
-int64_t SearchKDTree(KDTree &index, vector<pair<int64_t, int64_t>> query, Table &table, bool should_crack, size_t currentQueryNum);
-
-vector<int64_t> SearchKDTreeProgressive(KDTree &tree, vector<pair<int64_t, int64_t>> query, Table &table, bool should_crack, size_t currentQueryNum);
-
-KDTree FullKDTree(Table &table);
-
-void freeKDTree(KDTree tree);
-
-void configKDTree(int64_t threshold);
-
-KDTree CreateNode(int64_t column, int64_t element, int64_t left_position, int64_t right_position);
-
-pair<int64_t, int64_t> find_median(Table &table, int64_t column, int64_t lower_limit, int64_t upper_limit);
-
-void Print( KDTree T );
-
-// void PatialKDTree(vector<pair<KDTree, int64_t>> *nodes, int n_of_cols);
+void Print( Tree T );
 
 #endif //MULTIDEMIONSIONALINDEXING_KD_TREE_H
