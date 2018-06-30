@@ -22,7 +22,7 @@ using namespace std;
 typedef void (*pre_processing_function)(Table *table, Tree * t);
 typedef void (*partial_index_built_function)(Table *table, Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries);
 typedef void (*index_lookup_function)(Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets);
-typedef void (*scan_data_function)(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries, int64_t * result);
+typedef void (*scan_data_function)(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets, int64_t * result);
 typedef void (*intersect_data_function)(Table *table,vector<pair<int,int>>  *offsets, vector<boost::dynamic_bitset<>> *bitmaps, int64_t * result);
 
 //Settings for Indexes
@@ -47,20 +47,28 @@ void benchmarkFunction(Table *table, vector<vector<pair<int64_t,int64_t>>> range
 	chrono::time_point<chrono::system_clock> start, end;
 	
 	table->crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
-	Tree *T = (Tree *)malloc(sizeof(Tree) * NUMBER_OF_COLUMNS);
+	Tree *T;
+	if(INDEXING_TYPE == 1)
+		T = (Tree *)malloc(sizeof(Tree) * NUMBER_OF_COLUMNS);
+	else 
+		T = (Tree *)malloc(sizeof(Tree));
+
 	vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
 	// First we do pre-processing. In the case of full index we fully create the index.
 	// In the case of Partial Indexes we copy the elements to a cracker index structure.
     start = chrono::system_clock::now();
+
     if(pre_processing)
     	pre_processing(table,T);
     end = chrono::system_clock::now();
     indexCreation.at(0)  = chrono::duration<double>(end - start).count();
+
     for(int i = 0; i < NUM_QUERIES; i++) {
 		vector<pair<int, int>> offsets;  
     	int64_t result = 0;
     	// If we are running cracking algorithms we do a partial index creation step
     	start = chrono::system_clock::now();
+
     	if(partial_index_built)
     		partial_index_built(table,T,&rangeQueries.at(i));
     	end = chrono::system_clock::now();
@@ -75,7 +83,7 @@ void benchmarkFunction(Table *table, vector<vector<pair<int64_t,int64_t>>> range
        // Intersecting data for uni-dimensional indexes
         start = chrono::system_clock::now();
     	if (scan_data)
-    		scan_data(table,&rangeQueries.at(i),&result);
+    		scan_data(table,&rangeQueries.at(i),&offsets,&result);
     	end = chrono::system_clock::now();
         scanTime.at(i)  = chrono::duration<double>(end - start).count();
         
@@ -139,6 +147,7 @@ int main(int argc, char **argv)
     Table table;
     table.columns = vector<vector<int64_t>>(NUMBER_OF_COLUMNS);
     table.ids = vector<int64_t>(COLUMN_SIZE);
+
     for (size_t col = 0; col < NUMBER_OF_COLUMNS; ++col)
     {
         table.columns.at(col) = vector<int64_t>(COLUMN_SIZE);
@@ -168,10 +177,10 @@ int main(int argc, char **argv)
 			benchmarkFunction(&table,query,cracking_pre_processing,cracking_partial_built,cracking_index_lookup,NULL,cracking_intersection);
 			break;
 		case CRACKING_KDTREE:
-			benchmarkFunction(&table,query,NULL,NULL,NULL,full_scan,NULL);
+			benchmarkFunction(&table,query,cracking_kdtree_pre_processing,cracking_kdtree_partial_built,kdtree_index_lookup,kdtree_scan,NULL);
 			break;
-		// case KDTREE:
-		// 	benchmarkFunction(c,query,NULL,NULL,NULL,full_scan,NULL);
-		// 	break;
+		case KDTREE:
+			benchmarkFunction(&table,query,full_kdtree_pre_processing,NULL,kdtree_index_lookup,kdtree_scan,NULL);
+			break;
 	}
 }

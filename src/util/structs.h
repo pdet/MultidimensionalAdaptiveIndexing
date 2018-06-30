@@ -17,13 +17,19 @@ struct IndexEntry
     int64_t m_rowId;
 };
 
-struct Table;
+
+struct CrackerTable
+{
+    vector<int64_t> ids;
+    vector<vector<int64_t>> columns;
+};
 
 struct Table
 {
     vector<int64_t> ids;
     vector<vector<int64_t>> columns;
-    IndexEntry **crackercolumns; 
+    IndexEntry **crackercolumns;
+    CrackerTable crackertable;
 };
 
 struct Column {
@@ -52,8 +58,8 @@ struct Node
     Tree  Left;
     Tree  Right;
 
-    //     KDNode *left;  // less than element
-    // KDNode *right; // greater or equal than element
+    // Node *left;  // less than element
+    // Node *right; // greater or equal than element
     int64_t      Height;
     int64_t left_position;
     int64_t right_position;

@@ -9,7 +9,6 @@ void create_bitmap(IndexEntry *c, int64_t from, int64_t to, boost::dynamic_bitse
 {
 	for (size_t i = from; i <= to; i++)
 	{
-		// fprintf(stderr, "here");
 		boost::dynamic_bitset<>::size_type id = (boost::dynamic_bitset<>::size_type) c[i].m_rowId;
 		bitmap[id] = 1;
 	}
@@ -69,7 +68,7 @@ int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t 
     return j;
 }
 
-void full_scan(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries, int64_t * result)
+void full_scan(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries, vector<pair<int,int>> *offsets, int64_t * result)
 {
 	size_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
 	size_t sel_size;
