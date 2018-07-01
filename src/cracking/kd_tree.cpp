@@ -1,5 +1,4 @@
 #include "kd_tree.h"
-// #include "structs.h"
 #include <algorithm>
 
 extern int64_t KDTREE_THRESHOLD, COLUMN_SIZE, NUMBER_OF_COLUMNS;
@@ -527,7 +526,7 @@ void kdtree_index_lookup(Tree * tree,vector<pair<int64_t,int64_t>>  *query,vecto
             {
                 if (current->Left == NULL)
                 {
-                    offsets->push_back(make_pair(current->right_position, upper_limit));
+                    offsets->push_back(make_pair(lower_limit, current->left_position));
                 }
                 else
                 {
@@ -552,6 +551,7 @@ void kdtree_index_lookup(Tree * tree,vector<pair<int64_t,int64_t>>  *query,vecto
         }
     }
 }
+
 
 void kdtree_scan(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries, vector<pair<int,int>>  *offsets, int64_t * result)
 {

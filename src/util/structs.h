@@ -58,8 +58,6 @@ struct Node
     Tree  Left;
     Tree  Right;
 
-    // Node *left;  // less than element
-    // Node *right; // greater or equal than element
     int64_t      Height;
     int64_t left_position;
     int64_t right_position;
