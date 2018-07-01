@@ -35,7 +35,13 @@ def total_time_8_cols():
     full_kd = xrange(41, 51)
 
     algs = ('Full Scan', 'Database Cracking', 'KD-Tree')
-    hatchs = ['//', '\\\\', '|']
+    # hatchs = ['//', '\\\\', '|']
+    hatchs = ['', '', '']
+    colors = [
+        (105/255.0,105/255.0,105/255.0),
+        (128/255.0,128/255.0,128/255.0),
+        (169/255.0,169/255.0,169/255.0)
+    ]
     pos = [0, 1, 2]
 
     performances = [
@@ -44,8 +50,8 @@ def total_time_8_cols():
         get_me_the_average('total_time', full_kd)
     ]
 
-    for p, perf, hatch in zip(pos, performances, hatchs):
-        plt.bar(p, perf, align='center', alpha = 0.5, hatch=hatch, color='grey')
+    for p, perf, hatch, c in zip(pos, performances, hatchs, colors):
+        plt.bar(p, perf, align='center', alpha = 0.5, hatch=hatch, color=c)
     plt.xticks(pos, algs)
     plt.ylabel('Total time (s)')
     plt.title('Total Time (8 columns)')
@@ -64,8 +70,8 @@ def cumulative_time(column, folders):
 
 def cumulative_time_8_cols():
     full_scan = xrange(1, 11)
-    db_cracking = xrange(11, 21)
-    b_tree = xrange(21, 31)
+    # db_cracking = xrange(11, 21)
+    # b_tree = xrange(21, 31)
     cracking_kd = xrange(31, 41)
     full_kd = xrange(41, 51)
 
@@ -74,8 +80,8 @@ def cumulative_time_8_cols():
 
     times = [
         cumulative_time('total_time', full_scan),
-        cumulative_time('total_time', db_cracking),
-        cumulative_time('total_time', b_tree),
+        # cumulative_time('total_time', db_cracking),
+        # cumulative_time('total_time', b_tree),
         cumulative_time('total_time', cracking_kd),
         cumulative_time('total_time', full_kd)
     ]
@@ -88,12 +94,12 @@ def cumulative_time_8_cols():
         (128/255.0,128/255.0,128/255.0)
     ]
 
-    algs = ('Full Scan', 'Database Cracking', 'B+ Tree', 'Cracking KD-Tree', 'KD-Tree')
+    # algs = ('Full Scan', 'Database Cracking', 'B+ Tree', 'Cracking KD-Tree', 'KD-Tree')
+    algs = ('Full Scan', 'Cracking KD-Tree', 'KD-Tree')
 
     for t, m, m_e, alg, c in zip(times, markers, markers_every, algs, colors):
         plt.plot(t, marker=m, markevery=m_e, label=alg, color=c)
-        plt.legend(loc=2)
-
+    plt.legend(loc=2, prop={'size': 17})
     plt.ylabel('Cumulative time (s)')
     plt.xlabel('Query (#)')
     plt.title('Accumulated Response Time 8 columns')
@@ -128,7 +134,7 @@ def time_breakdown_8_cols():
 
     ind = np.arange(len(algs))
     width = 0.35
-    i_c_p = plt.bar(ind, i_c, width= width, hatch='//', color=(105/255.0,105/255.0,105/255.0))
+    i_c_p = plt.bar(ind, i_c, width= width, hatch='', color=(105/255.0,105/255.0,105/255.0))
     i_l_p = plt.bar(ind, i_l, width= width, bottom=i_c, hatch='||', color=(128/255.0,128/255.0,128/255.0))
     s_t_p = plt.bar(ind, s_t, width= width, bottom=i_c + i_l, hatch='--', color=(128/255.0,128/255.0,128/255.0))
     j_t_p = plt.bar(ind, j_t, width= width, bottom=i_c + i_l + s_t, hatch='\\\\', color=(169/255.0,169/255.0,169/255.0))
@@ -136,20 +142,22 @@ def time_breakdown_8_cols():
     plt.ylabel('Total Time (s)')
     plt.title('Breakdown of Response Time (8 columns)') 
     plt.xticks([x + width/2. for x in ind], algs, rotation=-10)
-    plt.legend((i_c_p, i_l_p, s_t_p, j_t_p), ('Index Creation', 'Index Lookup', 'Scan Time', 'Join Time'))
+    plt.legend((i_c_p, i_l_p, s_t_p, j_t_p), ('Index Creation', 'Index Lookup', 'Scan Time', 'Intersection Time'))
 
     plt.savefig('time_break_down_8.pdf')
     reset_plot()
 
 def response_time_all_columns():
     full_scan = [xrange(51, 61), xrange(101, 111), xrange(1, 11), xrange(151, 161)]
-    db_cracking = [xrange(61, 71), xrange(111, 121), xrange(11, 21), xrange(161, 171)]
-    b_tree = [xrange(71, 81), xrange(121, 131), xrange(21, 31), xrange(171, 181)]
+    # db_cracking = [xrange(61, 71), xrange(111, 121), xrange(11, 21), xrange(161, 171)]
+    # b_tree = [xrange(71, 81), xrange(121, 131), xrange(21, 31), xrange(171, 181)]
     cracking_kd = [xrange(81, 91), xrange(131, 141), xrange(31, 41), xrange(181, 191)]
     full_kd = [xrange(91, 101), xrange(141, 151), xrange(41, 51), xrange(191, 201)]
 
-    algs = [full_scan, db_cracking, b_tree, cracking_kd, full_kd]
-    alg_names = ('Full Scan', 'Database Cracking', 'B+ Tree', 'Cracking KD-Tree', 'KD-Tree')
+    # algs = [full_scan, db_cracking, b_tree, cracking_kd, full_kd]
+    algs = [full_scan, cracking_kd, full_kd]
+    # alg_names = ('Full Scan', 'Database Cracking', 'B+ Tree', 'Cracking KD-Tree', 'KD-Tree')
+    alg_names = ('Full Scan', 'Cracking KD-Tree', 'KD-Tree')
     cols = ('2', '4', '8', '16')
     markers=['.', 's', '*', 'D', 'X']
     colors = [
