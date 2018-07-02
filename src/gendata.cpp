@@ -298,7 +298,7 @@ vector<predicate> generateQuery(int64_t NUM_QUERIES,
     chrono::time_point<chrono::system_clock> start, end;
     chrono::duration<double> elapsed_seconds;
 
-    FILE* f = fopen(QUERIES_FILE_PATH.c_str(), "a+");
+    // FILE* f = fopen(QUERIES_FILE_PATH.c_str(), "a+");
     vector<int64_t> leftQuery;
     vector<int64_t> rightQuery;
     int64_t maxLeftQueryVal = COLUMN_SIZE*SELECTIVITY_PERCENTAGE;
