@@ -13,20 +13,19 @@ SKEWED = "3"
 # Setting Values For Algorithms
 FULL_SCAN = "0"
 STANDARD_CRACKING = "1"
-FULL_INDEX = "2"
-KD_TREE = "3"
-FULL_KD_TREE = "4"
+CRACKING_KD_TREE = "2"
+FULL_KD_TREE = "3"
 
 PATH = ""
 
 # Select Experiments to run
-experiments = [FULL_SCAN,STANDARD_CRACKING,FULL_INDEX,KD_TREE,FULL_KD_TREE]
+experiments = [FULL_SCAN,STANDARD_CRACKING,CRACKING_KD_TREE,FULL_KD_TREE]
 # Main Configurations
 NUM_QUERIES = "10"
 NUMBER_OF_REPETITIONS = 1
 COLUMN_SIZE = '10000000'
 NUMBER_OF_COLUMNS = '8'
-KDTREE_THRESHOLD = '1000'  # Only used for KDTree
+KDTREE_THRESHOLD = '2000'  # Only used for KDTree
 
 SELECTIVITY_PERCENTAGE = "0.2"
 QUERIES_PATTERN =  RANDOM 
@@ -56,10 +55,8 @@ def translate_alg(alg):
     if alg == '1':
         return 'stdavl'
     if alg == '2':
-        return 'fibpt'
-    if alg == '3':
         return 'stdkd'
-    if alg == '4':
+    if alg == '3':
         return 'fikd'
     return alg
 

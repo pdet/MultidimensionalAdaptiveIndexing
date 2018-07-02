@@ -1,11 +1,8 @@
-//
-// Created by PHolanda on 17/12/17.
-//
-//
-// Adapted from Saarland University Uncracked Pieces Simulator
-//
 #include "standard_cracking.h"
 
+using namespace std;
+
+extern int64_t COLUMN_SIZE, NUMBER_OF_COLUMNS;
 void exchange(IndexEntry *&c, int64_t x1, int64_t x2)
 {
     IndexEntry tmp = *(c + x1);
@@ -18,11 +15,11 @@ int crackInTwoItemWise(IndexEntry *&c, int64_t posL, int64_t posH, int64_t med)
     int x1 = posL, x2 = posH;
     while (x1 <= x2)
     {
-        if (c[x1] < med)
+        if (c[x1].m_key  < med)
             x1++;
         else
         {
-            while (x2 >= x1 && (c[x2] >= med))
+            while (x2 >= x1 && (c[x2].m_key >= med))
                 x2--;
             if (x1 < x2)
             {
@@ -43,12 +40,12 @@ int crackInTwoItemWise(IndexEntry *&c, int64_t posL, int64_t posH, int64_t med)
 IntPair crackInThreeItemWise(IndexEntry *c, int64_t posL, int64_t posH, int64_t low, int64_t high)
 {
     int x1 = posL, x2 = posH;
-    while (x2 > x1 && c[x2] >= high)
+    while (x2 > x1 && c[x2].m_key  >= high)
         x2--;
     int x3 = x2;
-    while (x3 > x1 && c[x3] >= low)
+    while (x3 > x1 && c[x3].m_key  >= low)
     {
-        if (c[x3] >= high)
+        if (c[x3].m_key >= high)
         {
             exchange(c, x2, x3);
             x2--;
@@ -57,14 +54,14 @@ IntPair crackInThreeItemWise(IndexEntry *c, int64_t posL, int64_t posH, int64_t 
     }
     while (x1 < x3)
     {
-        if (c[x1] < low)
+        if (c[x1].m_key  < low)
             x1++;
         else
         {
             exchange(c, x1, x3);
-            while (x3 > x1 && c[x3] >= low)
+            while (x3 > x1 && c[x3].m_key  >= low)
             {
-                if (c[x3] >= high)
+                if (c[x3].m_key  >= high)
                 {
                     exchange(c, x2, x3);
                     x2--;
@@ -79,7 +76,7 @@ IntPair crackInThreeItemWise(IndexEntry *c, int64_t posL, int64_t posH, int64_t 
     return p;
 }
 
-AvlTree standardCracking(IndexEntry *&c, int dataSize, AvlTree T, int lowKey, int highKey)
+Tree standardCracking(IndexEntry *&c, int dataSize, Tree T, int lowKey, int highKey)
 {
     IntPair p1, p2;
 
@@ -112,4 +109,43 @@ AvlTree standardCracking(IndexEntry *&c, int dataSize, AvlTree T, int lowKey, in
     }
 
     return T;
+}
+
+
+void cracking_pre_processing(Table *table, Tree * T){
+     for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
+    {
+        table->crackercolumns[j] = (IndexEntry *)malloc(COLUMN_SIZE * sizeof(IndexEntry));
+        for (size_t i = 0; i < COLUMN_SIZE; ++i)
+        {
+            table->crackercolumns[j][i].m_key = table->columns[j][i];
+            table->crackercolumns[j][i].m_rowId = table->ids[i];
+        }
+    }
+    for (size_t k = 0; k < NUMBER_OF_COLUMNS; ++k)
+    {
+        T[k] = NULL;
+    }
+}
+
+void cracking_partial_built(Table *table, Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries){
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; i ++)
+        T[i] = standardCracking(table->crackercolumns[i],COLUMN_SIZE,T[i],rangequeries->at(i).first,rangequeries->at(i).second);
+}
+
+void cracking_index_lookup(Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets){
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; i ++){
+        IntPair p1 = FindNeighborsGTE(rangequeries->at(i).first, T[i], COLUMN_SIZE - 1);
+        IntPair p2 = FindNeighborsLT(rangequeries->at(i).second, T[i], COLUMN_SIZE - 1);
+        offsets->push_back(make_pair(p1->first, p2->second));
+    }
+    
+}
+
+void cracking_intersection(Table *table,vector<pair<int,int>>  *offsets, vector<boost::dynamic_bitset<>> *bitmaps, int64_t * result){
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS; i ++){
+        bitmaps->at(i) = boost::dynamic_bitset<>(COLUMN_SIZE); 
+        create_bitmap(table->crackercolumns[i], offsets->at(i).first, offsets->at(i).second, bitmaps->at(i));
+    }
+    *result = join_bitmaps(bitmaps);
 }

@@ -1,17 +1,15 @@
-//
-// Created by PHolanda on 17/12/17.
-//
-
 #include "file_manager.h"
 #include "structs.h"
 #include <vector>
 
-void loadQueries(RangeQuery *rangequeries, std::string QUERIES_FILE_PATH, int64_t NUM_QUERIES, int64_t NUMBER_OF_COLUMNS)
+using namespace std;
+
+void loadQueries(RangeQuery *rangequeries, string QUERIES_FILE_PATH, int64_t NUM_QUERIES, int64_t NUMBER_OF_COLUMNS)
 {
     FILE *f = fopen(QUERIES_FILE_PATH.c_str(), "r");
     if (!f)
     {
-        printf("Cannot open file.\n");
+        fprintf(stderr, "Cannot open file. \n");
         return;
     }
     for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i)
@@ -25,12 +23,12 @@ void loadQueries(RangeQuery *rangequeries, std::string QUERIES_FILE_PATH, int64_
     fclose(f);
 }
 
-void loadcolumn(Column *c, std::string COLUMN_FILE_PATH, int64_t COLUMN_SIZE, int64_t NUMBER_OF_COLUMNS)
+void loadcolumn(Column *c, string COLUMN_FILE_PATH, int64_t COLUMN_SIZE, int64_t NUMBER_OF_COLUMNS)
 {
     FILE *f = fopen(COLUMN_FILE_PATH.c_str(), "r");
     if (!f)
     {
-        printf("Cannot open file.\n");
+        fprintf(stderr, "Cannot open file. \n");
         return;
     }
 
