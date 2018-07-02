@@ -35,12 +35,12 @@ def total_time_8_cols():
     full_kd = xrange(41, 51)
 
     algs = ('Full Scan', 'Database Cracking', 'KD-Tree')
-    # hatchs = ['//', '\\\\', '|']
+    # hatchs = ['//', '\\\\', '']
     hatchs = ['', '', '']
     colors = [
-        (105/255.0,105/255.0,105/255.0),
-        (128/255.0,128/255.0,128/255.0),
-        (169/255.0,169/255.0,169/255.0)
+        'gray',
+        'lightgray',
+        'white'
     ]
     pos = [0, 1, 2]
 
@@ -51,7 +51,7 @@ def total_time_8_cols():
     ]
 
     for p, perf, hatch, c in zip(pos, performances, hatchs, colors):
-        plt.bar(p, perf, align='center', alpha = 0.5, hatch=hatch, color=c)
+        plt.bar(p, perf, align='center', hatch=hatch, color=c, edgecolor='black', linewidth=1)
     plt.xticks(pos, algs)
     plt.ylabel('Total time (s)')
     plt.title('Total Time (8 columns)')
@@ -99,7 +99,7 @@ def cumulative_time_8_cols():
 
     for t, m, m_e, alg, c in zip(times, markers, markers_every, algs, colors):
         plt.plot(t, marker=m, markevery=m_e, label=alg, color=c)
-    plt.legend(loc=2, prop={'size': 17})
+    plt.legend(loc=2)
     plt.ylabel('Cumulative time (s)')
     plt.xlabel('Query (#)')
     plt.title('Accumulated Response Time 8 columns')
@@ -134,10 +134,10 @@ def time_breakdown_8_cols():
 
     ind = np.arange(len(algs))
     width = 0.35
-    i_c_p = plt.bar(ind, i_c, width= width, hatch='', color=(105/255.0,105/255.0,105/255.0))
-    i_l_p = plt.bar(ind, i_l, width= width, bottom=i_c, hatch='||', color=(128/255.0,128/255.0,128/255.0))
-    s_t_p = plt.bar(ind, s_t, width= width, bottom=i_c + i_l, hatch='--', color=(128/255.0,128/255.0,128/255.0))
-    j_t_p = plt.bar(ind, j_t, width= width, bottom=i_c + i_l + s_t, hatch='\\\\', color=(169/255.0,169/255.0,169/255.0))
+    i_c_p = plt.bar(ind, i_c, width= width, hatch='', color='black', edgecolor='black', linewidth=1)
+    i_l_p = plt.bar(ind, i_l, width= width, bottom=i_c, hatch='', color='gray', edgecolor='black', linewidth=1)
+    s_t_p = plt.bar(ind, s_t, width= width, bottom=i_c + i_l, hatch='', color='lightgray', edgecolor='black', linewidth=1)
+    j_t_p = plt.bar(ind, j_t, width= width, bottom=i_c + i_l + s_t, hatch='', color='white', edgecolor='black', linewidth=1)
 
     plt.ylabel('Total Time (s)')
     plt.title('Breakdown of Response Time (8 columns)') 
