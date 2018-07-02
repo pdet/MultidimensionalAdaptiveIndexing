@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <cassert>
 #include <map>
@@ -13,6 +14,12 @@
 #include <algorithm>
 
 using namespace std;
+
+typedef struct predicate {
+  int64_t column;
+  int64_t low;
+  int64_t high;
+} predicate;
 
 int64_t applySelectivity(int64_t leftQuery,double SELECTIVITY_PERCENTAGE, vector<int64_t> *c){
     int64_t selec = 0;
@@ -244,7 +251,7 @@ void skewedColumn(vector<int64_t> *column,int64_t COLUMN_SIZE, int64_t UPPERBOUN
 
 
 vector<int64_t> generateColumn(int64_t COLUMN_SIZE, int64_t UPPERBOUND,
-                                    int64_t DATA_COLUMN_PATTERN,double ZIPF_ALPHA, string COLUMN_FILE_PATH) {
+                                    int64_t DATA_COLUMN_PATTERN,double ZIPF_ALPHA) {
     chrono::time_point<chrono::system_clock> start, end;
     chrono::duration<double> elapsed_seconds;
 
@@ -256,9 +263,9 @@ vector<int64_t> generateColumn(int64_t COLUMN_SIZE, int64_t UPPERBOUND,
         skewedColumn(&data, COLUMN_SIZE,  UPPERBOUND,ZIPF_ALPHA);
     end = chrono::system_clock::now();
     elapsed_seconds = end-start;
-    FILE* f = fopen(COLUMN_FILE_PATH.c_str(), "a+");
-    fwrite(&data[0], sizeof(int64_t), COLUMN_SIZE, f);
-    fclose(f);
+    // FILE* f = fopen(COLUMN_FILE_PATH.c_str(), "a+");
+    // fwrite(&data[0], sizeof(int64_t), COLUMN_SIZE, f);
+    // fclose(f);
     cout << "Creating column data: " << elapsed_seconds.count() << "s\n";
     return data;
 }
@@ -280,14 +287,14 @@ void verifySelectivity(vector<int64_t> *c,vector<int64_t> *l,vector<int64_t> *r,
 
 
 }
-void generateQuery(int64_t NUM_QUERIES,
+vector<predicate> generateQuery(int64_t NUM_QUERIES,
                    int64_t UPPERBOUND,
                    int64_t QUERY_PATTERN,
                    double SELECTIVITY_PERCENTAGE,
                    double ONE_SIDED_PERCENTAGE,
                    double ZIPF_ALPHA,
                    int64_t COLUMN_SIZE,
-                   string QUERIES_FILE_PATH) {
+                   int64_t column) {
     chrono::time_point<chrono::system_clock> start, end;
     chrono::duration<double> elapsed_seconds;
 
@@ -306,12 +313,23 @@ void generateQuery(int64_t NUM_QUERIES,
     //     skewedDataQuery(&leftQuery, &rightQuery, UPPERBOUND, NUM_QUERIES, SELECTIVITY_PERCENTAGE, ONE_SIDED_PERCENTAGE,ZIPF_ALPHA, orderedColumn, maxLeftQueryVal);
     end = chrono::system_clock::now();
     // verifySelectivity(orderedColumn,&leftQuery,&rightQuery, SELECTIVITY_PERCENTAGE);
-    fwrite(&leftQuery[0], sizeof(int64_t), NUM_QUERIES, f);
-    fwrite(&rightQuery[0], sizeof(int64_t), NUM_QUERIES, f);
-    fclose(f);
+    // fwrite(&leftQuery[0], sizeof(int64_t), NUM_QUERIES, f);
+    // fwrite(&rightQuery[0], sizeof(int64_t), NUM_QUERIES, f);
+    // fclose(f);
+
+    std::vector<predicate> column_queries (NUM_QUERIES);
+    
+    for(size_t i = 0; i < NUM_QUERIES; i++)
+    {
+        column_queries[i].column = column;
+        column_queries[i].low = leftQuery[i];
+        column_queries[i].high = rightQuery[i];
+    }
     elapsed_seconds = end-start;
 
     cout << "Creating Query Attr: " << elapsed_seconds.count() << "s\n";
+
+    return column_queries;
 }
 
 
@@ -340,6 +358,49 @@ std::pair<string,string> split_once(string delimited, char delimiter) {
     auto pos = delimited.find_first_of(delimiter);
     return { delimited.substr(0, pos), delimited.substr(pos+1) };
 }
+
+void write_columns_to_file(
+    std::vector<std::vector<int64_t>> columns, int64_t COLUMN_SIZE,
+    int64_t NUMBER_OF_COLUMNS, std::string COLUMN_FILE_PATH){
+    
+    std::ofstream os(COLUMN_FILE_PATH.c_str());
+
+    for(size_t i = 0; i < COLUMN_SIZE; i++)
+    {
+        std::string helper = std::to_string(columns[0][i]);
+        for(size_t j = 1; j < NUMBER_OF_COLUMNS; j++)
+        {
+            helper += '|' + std::to_string(columns[j][i]);
+        }
+        helper += '\n';
+        os << helper;
+    }
+}
+
+void write_queries_to_file(
+    std::vector<std::vector<predicate>> queries, int64_t NUM_QUERIES,
+    int64_t NUMBER_OF_COLUMNS, std::string QUERY_FILE_PATH){
+    
+    std::ofstream os(QUERY_FILE_PATH.c_str());
+
+    for(size_t i = 0; i < NUM_QUERIES; i++)
+    {
+        std::string helper = "";
+        helper += std::to_string(queries[0][i].low) + ';';
+        helper += std::to_string(queries[0][i].column) + ';';
+        helper += std::to_string(queries[0][i].high);
+        for(size_t j = 1; j < NUMBER_OF_COLUMNS; j++)
+        {
+            helper += '|';
+            helper += std::to_string(queries[j][i].low) + ';';
+            helper += std::to_string(queries[j][i].column) + ';';
+            helper += std::to_string(queries[j][i].high);
+        }
+        helper += '\n';
+        os << helper;
+    }
+}
+
 int main(int argc, char** argv) {
     //Default Values
     string COLUMN_FILE_PATH =  "column";
@@ -395,9 +456,14 @@ int main(int argc, char** argv) {
     truncate(COLUMN_FILE_PATH);
     truncate(QUERIES_FILE_PATH);
 
-    vector<int64_t> orderedColumn;
+    vector<vector<int64_t>> columns(NUMBER_OF_COLUMNS);
+    vector<vector<predicate>> queries (NUMBER_OF_COLUMNS);
     for (int i = 0; i < NUMBER_OF_COLUMNS; ++i) {
-        generateColumn(COLUMN_SIZE,UPPERBOUND,COLUMN_PATTERN,ZIPF_ALPHA, COLUMN_FILE_PATH);
-        generateQuery(NUM_QUERIES,UPPERBOUND,QUERIES_PATTERN,SELECTIVITY_PERCENTAGE,ONE_SIDED_PERCENTAGE,ZIPF_ALPHA,COLUMN_SIZE , QUERIES_FILE_PATH);
+        columns[i] = generateColumn(COLUMN_SIZE, UPPERBOUND, COLUMN_PATTERN, ZIPF_ALPHA);
+        queries[i] = generateQuery(NUM_QUERIES, UPPERBOUND, QUERIES_PATTERN,
+                                   SELECTIVITY_PERCENTAGE, ONE_SIDED_PERCENTAGE, ZIPF_ALPHA,
+                                   COLUMN_SIZE , i);
     }
+    write_columns_to_file(columns, COLUMN_SIZE, NUMBER_OF_COLUMNS, COLUMN_FILE_PATH);
+    write_queries_to_file(queries, NUM_QUERIES, NUMBER_OF_COLUMNS, QUERIES_FILE_PATH);
 }
