@@ -19,7 +19,7 @@ FULL_KD_TREE = "3"
 PATH = ""
 
 # Select Experiments to run
-experiments = [FULL_SCAN,STANDARD_CRACKING,CRACKING_KD_TREE,FULL_KD_TREE]
+experiments = [FULL_SCAN]
 # Main Configurations
 NUM_QUERIES = "10"
 NUMBER_OF_REPETITIONS = 1
@@ -84,11 +84,11 @@ if os.system('make') != 0:
     print("Make Failed")
     exit()
 
-print("Generating Data")
-if os.system("./gendata --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  NUMBER_OF_COLUMNS
- + " --selectivity=" +SELECTIVITY_PERCENTAGE + " --queries-pattern=" +  QUERIES_PATTERN + " --column-pattern="+ COLUMN_PATTERN) != 0:
-    print("Generating Data Failed")
-    exit()
+# print("Generating Data")
+# if os.system("./gendata --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  NUMBER_OF_COLUMNS
+#  + " --selectivity=" +SELECTIVITY_PERCENTAGE + " --queries-pattern=" +  QUERIES_PATTERN + " --column-pattern="+ COLUMN_PATTERN) != 0:
+#     print("Generating Data Failed")
+#     exit()
 
 for experiment in experiments:
     for repetition in range(NUMBER_OF_REPETITIONS):

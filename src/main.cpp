@@ -16,7 +16,9 @@
 #include "util/file_manager.h"
 #include "util/structs.h"
 #include "util/util.h"
+#include "test/test.h"
 
+#define test
 using namespace std;
 
 typedef void (*pre_processing_function)(Table *table, Tree * t);
@@ -32,8 +34,7 @@ const int CRACKING_KDTREE = 2;
 const int KDTREE = 3;
 
 string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
-int64_t COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
-int64_t NUM_QUERIES, NUMBER_OF_COLUMNS, KDTREE_THRESHOLD, INDEXING_TYPE;
+int64_t COLUMN_SIZE,NUM_QUERIES, NUMBER_OF_COLUMNS, KDTREE_THRESHOLD, INDEXING_TYPE;
 
 void benchmarkFunction(Table *table, vector<vector<pair<int64_t,int64_t>>> rangeQueries, 
 	pre_processing_function pre_processing, partial_index_built_function partial_index_built,
@@ -160,7 +161,7 @@ int main(int argc, char **argv)
 
     RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
     loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
-	vector< vector<pair<int64_t, int64_t>> > query(NUM_QUERIES, vector<pair<int64_t, int64_t>> (NUMBER_OF_COLUMNS));  
+	vector<vector<pair<int64_t, int64_t>>> query(NUM_QUERIES, vector<pair<int64_t, int64_t>> (NUMBER_OF_COLUMNS));  
 	for (size_t q = 0; q < NUM_QUERIES; q ++ ){
 		for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i){
 			query.at(q).at(i).first = rangequeries[i].leftpredicate[q];
@@ -169,18 +170,23 @@ int main(int argc, char **argv)
 	}
 	free(c);
 	free(rangequeries);
-	switch(INDEXING_TYPE){
-		case FULL_SCAN:
-			benchmarkFunction(&table,query,NULL,NULL,NULL,full_scan,NULL);
-			break;
-		case UNIDIMENSIONAL_CRACKING:
-			benchmarkFunction(&table,query,cracking_pre_processing,cracking_partial_built,cracking_index_lookup,NULL,cracking_intersection);
-			break;
-		case CRACKING_KDTREE:
-			benchmarkFunction(&table,query,cracking_kdtree_pre_processing,cracking_kdtree_partial_built,kdtree_index_lookup,kdtree_scan,NULL);
-			break;
-		case KDTREE:
-			benchmarkFunction(&table,query,full_kdtree_pre_processing,NULL,kdtree_index_lookup,kdtree_scan,NULL);
-			break;
-	}
+    
+    #ifdef test
+        verifyAlgorithms(&table,query);
+    #elif
+    	switch(INDEXING_TYPE){
+    		case FULL_SCAN:
+    			benchmarkFunction(&table,query,NULL,NULL,NULL,full_scan,NULL);
+    			break;
+    		case UNIDIMENSIONAL_CRACKING:
+    			benchmarkFunction(&table,query,cracking_pre_processing,cracking_partial_built,cracking_index_lookup,NULL,cracking_intersection);
+    			break;
+    		case CRACKING_KDTREE:
+    			benchmarkFunction(&table,query,cracking_kdtree_pre_processing,cracking_kdtree_partial_built,kdtree_index_lookup,kdtree_scan,NULL);
+    			break;
+    		case KDTREE:
+    			benchmarkFunction(&table,query,full_kdtree_pre_processing,NULL,kdtree_index_lookup,kdtree_scan,NULL);
+    			break;
+    	}
+    #endif
 }

@@ -1,0 +1,9 @@
+#ifndef MULTIDEMIONSIONALINDEXING_TEST_H
+#define MULTIDEMIONSIONALINDEXING_TEST_H
+#include "../util/structs.h"
+#include <unordered_map>
+#include <vector>
+#include "../util/util.h"
+using namespace std;
+void verifyAlgorithms(Table *table, vector<vector<pair<int64_t,int64_t>>> rangeQueries);
+#endif //MULTIDEMIONSIONALINDEXING_TEST_H
