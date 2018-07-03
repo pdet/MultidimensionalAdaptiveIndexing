@@ -93,7 +93,6 @@ void sideways_cracking_pre_processing(Table *table, Tree * T){
 
 
 void sideways_cracking_partial_built(Table *table, Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries){
-    *T = sideways_cracking(&table->crackermaps.at(0),*T,rangequeries->at(0).first,rangequeries->at(0).second);
     for (size_t i = 1; i < table->crackermaps.size(); i ++){
         IntPair p1, p2;
         IntPair pivot_pair = NULL;
@@ -104,6 +103,8 @@ void sideways_cracking_partial_built(Table *table, Tree * T,vector<pair<int64_t,
         pivot_pair->first = crack_map(&table->crackermaps.at(i), p1->first, p1->second, rangequeries->at(0).first);
         pivot_pair->second = crack_map(&table->crackermaps.at(i), pivot_pair->first, p2->second, rangequeries->at(0).second);
     }
+        *T = sideways_cracking(&table->crackermaps.at(0),*T,rangequeries->at(0).first,rangequeries->at(0).second);
+
 }
 
 void sideways_cracking_index_lookup(Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets){
@@ -115,7 +116,7 @@ void sideways_cracking_index_lookup(Tree * T,vector<pair<int64_t,int64_t>>  *ran
 void scan_maps(CrackerMaps *map, boost::dynamic_bitset<> &bitmap, int lowOffset, int highOffset, int lowKey, int highKey){
     for(boost::dynamic_bitset<>::size_type i = 0; i < highOffset - lowOffset; ++i)
         if(bitmap[i])
-            if(lowKey >= map->columns.at(1).at(lowOffset+i) || map->columns.at(1).at(lowOffset+i) > highKey)
+            if(map->columns.at(1).at(lowOffset+i) < lowKey || map->columns.at(1).at(lowOffset+i) >= highKey)
                 bitmap[i] = 0;
 }
 
