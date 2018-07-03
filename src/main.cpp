@@ -16,14 +16,17 @@
 #include "util/file_manager.h"
 #include "util/structs.h"
 #include "util/util.h"
+#include "test/test.h"
+#include "util/define.h"
+
 
 using namespace std;
 
 typedef void (*pre_processing_function)(Table *table, Tree * t);
 typedef void (*partial_index_built_function)(Table *table, Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries);
 typedef void (*index_lookup_function)(Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets);
-typedef void (*scan_data_function)(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets, int64_t * result);
-typedef void (*intersect_data_function)(Table *table,vector<pair<int,int>>  *offsets, vector<boost::dynamic_bitset<>> *bitmaps, int64_t * result);
+typedef void (*scan_data_function)(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets, vector<int64_t> * result);
+typedef void (*intersect_data_function)(Table *table,vector<pair<int,int>>  *offsets, vector<boost::dynamic_bitset<>> *bitmaps, vector<int64_t> * result);
 
 //Settings for Indexes
 const int FULL_SCAN = 0;
@@ -32,8 +35,7 @@ const int CRACKING_KDTREE = 2;
 const int KDTREE = 3;
 
 string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
-int64_t COLUMN_SIZE, BPTREE_ELEMENTSPERNODE;
-int64_t NUM_QUERIES, NUMBER_OF_COLUMNS, KDTREE_THRESHOLD, INDEXING_TYPE;
+int64_t COLUMN_SIZE,NUM_QUERIES, NUMBER_OF_COLUMNS, KDTREE_THRESHOLD, INDEXING_TYPE;
 
 void benchmarkFunction(Table *table, vector<vector<pair<int64_t,int64_t>>> rangeQueries, 
 	pre_processing_function pre_processing, partial_index_built_function partial_index_built,
@@ -65,7 +67,7 @@ void benchmarkFunction(Table *table, vector<vector<pair<int64_t,int64_t>>> range
 
     for(int i = 0; i < NUM_QUERIES; i++) {
 		vector<pair<int, int>> offsets;  
-    	int64_t result = 0;
+    	vector<int64_t> result;
     	// If we are running cracking algorithms we do a partial index creation step
     	start = chrono::system_clock::now();
 
@@ -94,7 +96,7 @@ void benchmarkFunction(Table *table, vector<vector<pair<int64_t,int64_t>>> range
         joinTime.at(i)  = chrono::duration<double>(end - start).count();
 
         totalTime.at(i)  = indexCreation.at(i) + indexLookup.at(i) + scanTime.at(i) + joinTime.at(i);
-        fprintf(stderr, "Result : %lu\n",result);
+        fprintf(stderr, "Result : %lu\n",result.at(0));
     }
 	for (int i = 0; i < NUM_QUERIES; i++){
 		cout << indexCreation.at(i) << ";" << indexLookup.at(i) << ";" << scanTime.at(i) << ";" << joinTime.at(i) << ";" << totalTime.at(i) << "\n";
@@ -160,7 +162,7 @@ int main(int argc, char **argv)
 
     RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
     loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
-	vector< vector<pair<int64_t, int64_t>> > query(NUM_QUERIES, vector<pair<int64_t, int64_t>> (NUMBER_OF_COLUMNS));  
+	vector<vector<pair<int64_t, int64_t>>> query(NUM_QUERIES, vector<pair<int64_t, int64_t>> (NUMBER_OF_COLUMNS));  
 	for (size_t q = 0; q < NUM_QUERIES; q ++ ){
 		for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i){
 			query.at(q).at(i).first = rangequeries[i].leftpredicate[q];
@@ -169,18 +171,23 @@ int main(int argc, char **argv)
 	}
 	free(c);
 	free(rangequeries);
-	switch(INDEXING_TYPE){
-		case FULL_SCAN:
-			benchmarkFunction(&table,query,NULL,NULL,NULL,full_scan,NULL);
-			break;
-		case UNIDIMENSIONAL_CRACKING:
-			benchmarkFunction(&table,query,cracking_pre_processing,cracking_partial_built,cracking_index_lookup,NULL,cracking_intersection);
-			break;
-		case CRACKING_KDTREE:
-			benchmarkFunction(&table,query,cracking_kdtree_pre_processing,cracking_kdtree_partial_built,kdtree_index_lookup,kdtree_scan,NULL);
-			break;
-		case KDTREE:
-			benchmarkFunction(&table,query,full_kdtree_pre_processing,NULL,kdtree_index_lookup,kdtree_scan,NULL);
-			break;
-	}
+
+    #ifdef test
+        verifyAlgorithms(&table,query);
+    #else
+    	switch(INDEXING_TYPE){
+    		case FULL_SCAN:
+    			benchmarkFunction(&table,query,NULL,NULL,NULL,full_scan,NULL);
+    			break;
+    		case UNIDIMENSIONAL_CRACKING:
+    			benchmarkFunction(&table,query,cracking_pre_processing,cracking_partial_built,cracking_index_lookup,NULL,cracking_intersection);
+    			break;
+    		case CRACKING_KDTREE:
+    			benchmarkFunction(&table,query,cracking_kdtree_pre_processing,cracking_kdtree_partial_built,kdtree_index_lookup,kdtree_scan,NULL);
+    			break;
+    		case KDTREE:
+    			benchmarkFunction(&table,query,full_kdtree_pre_processing,NULL,kdtree_index_lookup,kdtree_scan,NULL);
+    			break;
+    	}
+    #endif
 }
