@@ -18,6 +18,16 @@ struct IndexEntry
 };
 
 
+struct CrackerMaps
+{
+    int leading_column;
+    int aux_column;
+    vector<int64_t> ids;
+    vector<vector<int64_t>> columns;
+
+};
+
+
 struct CrackerTable
 {
     vector<int64_t> ids;
@@ -28,6 +38,7 @@ struct Table
 {
     vector<int64_t> ids;
     vector<vector<int64_t>> columns;
+    vector<CrackerMaps> crackermaps;
     IndexEntry **crackercolumns;
     CrackerTable crackertable;
 };
