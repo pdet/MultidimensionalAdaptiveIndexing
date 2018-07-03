@@ -14,19 +14,30 @@ void create_bitmap(IndexEntry *c, int64_t from, int64_t to, boost::dynamic_bitse
 	}
 }
 
-int64_t sum_bitmap(boost::dynamic_bitset<> bitmap){
-	int64_t result = 0;
-	size_t j = 0;
-	for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i, ++j){
+int64_t count_bitmap(boost::dynamic_bitset<> bitmap){
+	int64_t count =0;
+	for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
 		if(bitmap[i]){
-			result += 1;
+			count += 1;
+		}
+	}
+	
+	return count;
+}
+
+vector<int64_t>  result_bitmap(boost::dynamic_bitset<> bitmap){
+	vector<int64_t>  result;
+	for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
+		if(bitmap[i]){
+			result.push_back(i);
 		}
 	}
 	
 	return result;
 }
 
-int64_t join_bitmaps(vector<boost::dynamic_bitset<>> *bitmaps){
+vector<int64_t> join_bitmaps(vector<boost::dynamic_bitset<>> *bitmaps){
+	vector<int64_t> result;
 	if(bitmaps->size() > 1){
 		boost::dynamic_bitset<> final_bitmap(COLUMN_SIZE);
 
@@ -37,10 +48,19 @@ int64_t join_bitmaps(vector<boost::dynamic_bitset<>> *bitmaps){
 		for(boost::dynamic_bitset<>::size_type i = 1; i < bitmaps->size(); ++i){
 			final_bitmap = (final_bitmap & bitmaps->at(i));
 		}
-
-		return sum_bitmap(final_bitmap);
+		#ifdef test
+			result = result_bitmap(final_bitmap);
+		#else
+			result.push_back(count_bitmap(final_bitmap));
+		#endif
+		return result;
 	}else{
-		return sum_bitmap(bitmaps->at(0));
+		#ifdef test
+			result = result_bitmap(bitmaps->at(0));
+		#else
+			result.push_back(count_bitmap(bitmaps->at(0)));
+		#endif
+		return result;
 	}
 
 }
@@ -68,17 +88,26 @@ int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t 
     return j;
 }
 
-void full_scan(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries, vector<pair<int,int>> *offsets, int64_t * result)
+void full_scan(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries, vector<pair<int,int>> *offsets, vector<int64_t> * result)
 {
 	size_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
 	size_t sel_size;
 	int sel_vector [vector_size];
+	int64_t count = 0;
 	for (size_t i = 0; i < COLUMN_SIZE/vector_size; ++ i){
 		sel_size = select_rq_scan_new (sel_vector, &table->columns[0][vector_size*i],rangequeries->at(0).first,rangequeries->at(0).second,vector_size);
 		for (size_t column_num = 1; column_num < NUMBER_OF_COLUMNS; column_num++)
-			sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[column_num][vector_size*i],rangequeries->at(column_num).first,rangequeries->at(column_num).second,sel_size);
-		*result += sel_size;
+			sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[column_num][vector_size*i],rangequeries->at(column_num).first,rangequeries->at(column_num).second,sel_size);	
+		#ifdef test
+			for(size_t j = 0; j < sel_size; ++ j)
+				result->push_back(vector_size*i+sel_vector[j]);
+		#else
+			count += sel_size;
+		#endif
 	}
+	#ifndef test
+		result->push_back(count);
+	#endif
 }
 
 void print_help(int argc, char** argv) {

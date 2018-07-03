@@ -13,3 +13,4 @@ ScriptExperiments/
 *.dSYM/
 *.csv
 MonetDB/generatecsv
+src/util/define.h

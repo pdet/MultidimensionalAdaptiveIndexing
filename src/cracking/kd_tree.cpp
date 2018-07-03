@@ -227,19 +227,6 @@ void Insert(Tree *tree, int64_t column, int64_t element, Table *table)
     }
 }
 
-
-int64_t collect_results(CrackerTable *table, int64_t lower_limit, int64_t upper_limit, vector<pair<int64_t, int64_t>> *query)
-{
-    int sel_size;
-    int sel_vector[upper_limit - lower_limit];
-    sel_size = select_rq_scan_new (sel_vector, &table->columns[0][lower_limit],query->at(0).first,query->at(0).second,upper_limit - lower_limit);
-        for (int column_num = 1; column_num < table->columns.size(); column_num++){
-            sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[column_num][lower_limit],query->at(column_num).first,query->at(column_num).second,sel_size);
-        }
-    return sel_size;
-}
-
-
 // This method only works if we use the last element as the pivot
 int pivot_table(CrackerTable *table, int64_t column, int64_t low, int64_t high, int64_t pivot)
 {
@@ -553,10 +540,23 @@ void kdtree_index_lookup(Tree * tree,vector<pair<int64_t,int64_t>>  *query,vecto
 }
 
 
-void kdtree_scan(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries, vector<pair<int,int>>  *offsets, int64_t * result)
+void kdtree_scan(Table *table, vector<pair<int64_t,int64_t>>  *query, vector<pair<int,int>>  *offsets, vector<int64_t> * result)
 {
-    for(size_t i = 0; i < offsets->size(); ++i)
-        *result += collect_results(&table->crackertable, offsets->at(i).first, offsets->at(i).second, rangequeries);
+    #ifndef test
+    result->push_back(0);
+    #endif
+    for(size_t i = 0; i < offsets->size(); ++i){
+        int sel_size;
+        int sel_vector[offsets->at(i).second - offsets->at(i).first];
+        sel_size = select_rq_scan_new (sel_vector, &table->crackertable.columns[0][offsets->at(i).first],query->at(0).first,query->at(0).second,offsets->at(i).second - offsets->at(i).first);
+            for (int column_num = 1; column_num < table->columns.size(); column_num++)
+                sel_size = select_rq_scan_sel_vec(sel_vector, &table->crackertable.columns[column_num][offsets->at(i).first],query->at(column_num).first,query->at(column_num).second,sel_size);
+            #ifdef test
+                for (size_t j = 0; j < sel_size; ++j)
+                    result->push_back(table->crackertable.ids[sel_vector[j] + offsets->at(i).first]);
+            #else
+                result->at(0)+=sel_size;
+            #endif          
+    }
 }
-
 

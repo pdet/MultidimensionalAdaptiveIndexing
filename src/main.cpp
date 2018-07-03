@@ -17,15 +17,16 @@
 #include "util/structs.h"
 #include "util/util.h"
 #include "test/test.h"
+#include "util/define.h"
 
-#define test
+
 using namespace std;
 
 typedef void (*pre_processing_function)(Table *table, Tree * t);
 typedef void (*partial_index_built_function)(Table *table, Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries);
 typedef void (*index_lookup_function)(Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets);
-typedef void (*scan_data_function)(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets, int64_t * result);
-typedef void (*intersect_data_function)(Table *table,vector<pair<int,int>>  *offsets, vector<boost::dynamic_bitset<>> *bitmaps, int64_t * result);
+typedef void (*scan_data_function)(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets, vector<int64_t> * result);
+typedef void (*intersect_data_function)(Table *table,vector<pair<int,int>>  *offsets, vector<boost::dynamic_bitset<>> *bitmaps, vector<int64_t> * result);
 
 //Settings for Indexes
 const int FULL_SCAN = 0;
@@ -66,7 +67,7 @@ void benchmarkFunction(Table *table, vector<vector<pair<int64_t,int64_t>>> range
 
     for(int i = 0; i < NUM_QUERIES; i++) {
 		vector<pair<int, int>> offsets;  
-    	int64_t result = 0;
+    	vector<int64_t> result;
     	// If we are running cracking algorithms we do a partial index creation step
     	start = chrono::system_clock::now();
 
@@ -95,7 +96,7 @@ void benchmarkFunction(Table *table, vector<vector<pair<int64_t,int64_t>>> range
         joinTime.at(i)  = chrono::duration<double>(end - start).count();
 
         totalTime.at(i)  = indexCreation.at(i) + indexLookup.at(i) + scanTime.at(i) + joinTime.at(i);
-        fprintf(stderr, "Result : %lu\n",result);
+        fprintf(stderr, "Result : %lu\n",result.at(0));
     }
 	for (int i = 0; i < NUM_QUERIES; i++){
 		cout << indexCreation.at(i) << ";" << indexLookup.at(i) << ";" << scanTime.at(i) << ";" << joinTime.at(i) << ";" << totalTime.at(i) << "\n";
@@ -170,10 +171,10 @@ int main(int argc, char **argv)
 	}
 	free(c);
 	free(rangequeries);
-    
+
     #ifdef test
         verifyAlgorithms(&table,query);
-    #elif
+    #else
     	switch(INDEXING_TYPE){
     		case FULL_SCAN:
     			benchmarkFunction(&table,query,NULL,NULL,NULL,full_scan,NULL);
