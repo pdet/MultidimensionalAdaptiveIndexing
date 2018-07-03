@@ -3,6 +3,7 @@
 #include <queue>
 #include <climits>
 #include <algorithm>
+#include <string>
 
 using namespace std;
 
@@ -21,13 +22,15 @@ struct IndexEntry
 struct CrackerTable
 {
     vector<int64_t> ids;
-    vector<vector<int64_t>> columns;
+    vector<vector<int64_t> > columns;
+    vector<vector<string> > s_columns;
 };
 
 struct Table
 {
     vector<int64_t> ids;
-    vector<vector<int64_t>> columns;
+    vector<vector<int64_t> > columns;
+    vector<vector<string> > s_columns;
     IndexEntry **crackercolumns;
     CrackerTable crackertable;
 };
