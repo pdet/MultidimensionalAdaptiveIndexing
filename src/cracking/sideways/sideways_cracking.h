@@ -1,12 +1,12 @@
 #ifndef MULTIDEMIONSIONALINDEXING_SIDEWAYSCRACKING_H
 #define MULTIDEMIONSIONALINDEXING_SIDEWAYSCRACKING_H
 
-#include "avl_tree.h"
+#include "../avl_tree.h"
 #include "stdio.h"
 #include <cstdlib>
-#include "../util/structs.h"
-#include "../util/util.h"
-#include "../util/define.h"
+#include "../../util/structs.h"
+#include "../../util/util.h"
+#include "../../util/define.h"
 using namespace std;
 
 void sideways_cracking_pre_processing(Table *table, Tree * T);

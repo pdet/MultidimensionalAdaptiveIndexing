@@ -40,13 +40,6 @@ vector<vector<int64_t>> vectorized_branchless_full_scan(Table *table, vector< ve
     return queryResult;
 }
 
-    // table->crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
-    // Tree *T;
-    // if(INDEXING_TYPE == 1)
-    //     T = (Tree *)malloc(sizeof(Tree) * NUMBER_OF_COLUMNS);
-    // else 
-    //     T = (Tree *)malloc(sizeof(Tree));
-
 vector<vector<int64_t>> unidimensional_cracking(Table *table, vector< vector<pair<int64_t, int64_t>>> *queries)
 {
     table->crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));

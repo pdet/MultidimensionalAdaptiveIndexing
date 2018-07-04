@@ -18,7 +18,9 @@
 #include "util/util.h"
 #include "test/test.h"
 #include "util/define.h"
-#include "cracking/sideways_cracking.h"
+#include "cracking/sideways/sideways_cracking.h"
+#include "cracking/sideways/partial_sideways_cracking.h"
+
 
 
 using namespace std;
@@ -35,6 +37,8 @@ const int UNIDIMENSIONAL_CRACKING = 1;
 const int CRACKING_KDTREE = 2;
 const int KDTREE = 3;
 const int SIDEWAYS_CRACKING = 4;
+const int PARTIAL_SIDEWAYS_CRACKING = 5;
+const int COVERED_CRACKING = 6;
 
 
 string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
@@ -192,6 +196,12 @@ int main(int argc, char **argv)
     			benchmarkFunction(&table,query,full_kdtree_pre_processing,NULL,kdtree_index_lookup,kdtree_scan,NULL);
     			break;
             case SIDEWAYS_CRACKING:
+                benchmarkFunction(&table,query,sideways_cracking_pre_processing,sideways_cracking_partial_built,sideways_cracking_index_lookup,sideways_cracking_scan,NULL);
+                break;
+            case PARTIAL_SIDEWAYS_CRACKING:
+                benchmarkFunction(&table,query,partial_sideways_cracking_pre_processing,partial_sideways_cracking_partial_built,NULL,partial_sideways_cracking_scan,NULL);
+                break;
+            case COVERED_CRACKING:
                 benchmarkFunction(&table,query,sideways_cracking_pre_processing,sideways_cracking_partial_built,sideways_cracking_index_lookup,sideways_cracking_scan,NULL);
                 break;
     	}
