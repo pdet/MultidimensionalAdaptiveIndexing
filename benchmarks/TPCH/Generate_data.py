@@ -10,6 +10,24 @@ os.chdir(SCRIPT_PATH) # setting current dir as script path
 SCALE_FACTOR = 1
 NUMBER_OF_QUERIES = 1000
 
+# COLUMNS IN LINEITEM
+# 0 = ORDERKEY
+# 1 = PARTKEY
+# 2 = SUPPKEY
+# 3 = LINENUMBER
+# 4 = QUANTITY
+# 5 = EXTENDED-PRICE
+# 6 = DISCOUNT
+# 7 = TAX
+# 8 = RETURN-FLAG
+# 9 = LINESTATUS
+# 10 = SHIP-DATE
+# 11 = COMMIT-DATE
+# 12 = RECEIPT-DATE
+# 13 = SHIP-INSTRUCTIONS
+# 14 = SHIP-MODE
+# 15 = COMMENT
+
 def dateparse(dates):
     return [pd.datetime.strptime(d, '%Y-%m-%d') for d in dates]
 
