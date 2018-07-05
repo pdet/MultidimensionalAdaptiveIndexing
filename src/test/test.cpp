@@ -96,6 +96,25 @@ vector<vector<int64_t>> full_kdtree(Table *table, vector< vector<pair<int64_t, i
     return queryResult;
 }
 
+
+vector<vector<int64_t>> sideways_cracking(Table *table, vector< vector<pair<int64_t, int64_t>>> *queries)
+{
+    Tree *T = (Tree *)malloc(sizeof(Tree));
+    sideways_cracking_pre_processing(table, T);
+    vector<vector<int64_t>> queryResult;
+
+    for (size_t i = 0; i < NUM_QUERIES; ++ i){
+        vector<pair<int, int>> offsets; 
+        vector<int64_t> rowId;
+        sideways_cracking_partial_built(table, T,&queries->at(i));
+        sideways_cracking_index_lookup(T,&queries->at(i),&offsets);
+        sideways_cracking_scan(table,&queries->at(i), &offsets, &rowId);
+
+        sort(rowId.begin(),rowId.end());
+        queryResult.push_back(rowId);
+    }
+    return queryResult;
+}
 void verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<vector<int64_t>> queryResultToBeTested)
 {
     for (size_t i = 0; i < queryResultBaseline.size(); ++i)
@@ -105,7 +124,7 @@ void verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<vecto
         		fprintf(stderr, "Incorrect Results!\n");
         		fprintf(stderr, "Query: %ld\n", i);
         		fprintf(stderr, "Expected: %ld Got: %ld\n", queryResultBaseline.at(i).at(j), queryResultToBeTested.at(i).at(j));
-        		assert(0);
+        		// assert(0);
         	}
 }
 
@@ -116,20 +135,24 @@ void verifyAlgorithms(Table *table, vector<vector<pair<int64_t,int64_t>>> rangeQ
     fprintf(stderr, "Running Baseline.\n");
     vector<vector<int64_t>> queryResultBaseline = range_query_baseline(table,&rangeQueries);
 
-    fprintf(stderr, "Running Vectorized Branchless Scan.\n");
-    queryResultToBeTested = vectorized_branchless_full_scan(table,&rangeQueries);
-    verify_range_query(queryResultBaseline,queryResultToBeTested);
+    // fprintf(stderr, "Running Vectorized Branchless Scan.\n");
+    // queryResultToBeTested = vectorized_branchless_full_scan(table,&rangeQueries);
+    // verify_range_query(queryResultBaseline,queryResultToBeTested);
    
-    fprintf(stderr, "Running Unidimensional Cracking.\n");
-    queryResultToBeTested = unidimensional_cracking(table,&rangeQueries);
-    verify_range_query(queryResultBaseline,queryResultToBeTested);
+    // fprintf(stderr, "Running Unidimensional Cracking.\n");
+    // queryResultToBeTested = unidimensional_cracking(table,&rangeQueries);
+    // verify_range_query(queryResultBaseline,queryResultToBeTested);
 
-    fprintf(stderr, "Running Cracking KD-Tree.\n");
-    queryResultToBeTested = cracking_kdtree(table,&rangeQueries);
-    verify_range_query(queryResultBaseline,queryResultToBeTested);
+    // fprintf(stderr, "Running Cracking KD-Tree.\n");
+    // queryResultToBeTested = cracking_kdtree(table,&rangeQueries);
+    // verify_range_query(queryResultBaseline,queryResultToBeTested);
     
-    fprintf(stderr, "Running Full Kd-Tree.\n");
-    queryResultToBeTested = full_kdtree(table,&rangeQueries);
+    // fprintf(stderr, "Running Full Kd-Tree.\n");
+    // queryResultToBeTested = full_kdtree(table,&rangeQueries);
+    // verify_range_query(queryResultBaseline,queryResultToBeTested);
+
+    fprintf(stderr, "Running Sideways Cracking.\n");
+    queryResultToBeTested = sideways_cracking(table,&rangeQueries);
     verify_range_query(queryResultBaseline,queryResultToBeTested);
 
     fprintf(stderr, "Everything works!\n");

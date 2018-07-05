@@ -127,10 +127,17 @@ void sideways_cracking_scan(Table *table, vector<pair<int64_t,int64_t>>  *rangeq
     for (size_t i = 0; i < table->crackermaps.size(); i ++){
         scan_maps(&table->crackermaps.at(i),bitmap,offsets->at(0).first,offsets->at(0).second,rangequeries->at(1+i).first,rangequeries->at(1+i).second);
     }
-    int64_t count = 0;
-    for(boost::dynamic_bitset<>::size_type i = 0; i < offsets->at(0).second - offsets->at(0).first; ++i)
-        if(bitmap[i])
-            count++;
-    result->push_back(count);
-
+    
+    #ifndef test
+    result->push_back(0);
+    #endif
+     #ifdef test
+         for(boost::dynamic_bitset<>::size_type i = 0; i < offsets->at(0).second - offsets->at(0).first; ++i)
+            if(bitmap[i])
+                result->push_back(table->crackermaps.at(0).ids.at(i+ offsets->at(0).first));
+            #else
+            for(boost::dynamic_bitset<>::size_type i = 0; i < offsets->at(0).second - offsets->at(0).first; ++i)
+                if(bitmap[i])
+                    results->at(0)+=1;
+            #endif   
 }
