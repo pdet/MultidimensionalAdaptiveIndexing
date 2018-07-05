@@ -2,7 +2,7 @@
 
 #include "util/file_manager.h"
 #include "util/structs.h"
-#include <tuple>
+#include <array>
 
 using namespace std;
 
@@ -13,6 +13,6 @@ int main(int argc, char **argv){
     Table t;
     tpch_loadData(t, DATA_FILE_PATH);
 
-    vector<vector<tuple<int64_t, int64_t, int>>> queries;
+    vector<vector<array<int64_t, 3>>> queries;
     tpch_loadQueries(queries, QUERY_FILE_PATH);
 }

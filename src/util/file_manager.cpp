@@ -4,7 +4,7 @@
 #include <fstream>
 #include <stdlib.h>
 #include <sstream>
-#include <tuple>
+#include <array>
 
 using namespace std;
 
@@ -64,7 +64,7 @@ void tpch_loadData(Table &t, string DATA_FILE_PATH){
     }
 }
 
-void tpch_loadQueries(vector<vector<tuple<int64_t, int64_t, int>>> &queries, string QUERIES_FILE_PATH){
+void tpch_loadQueries(vector<vector<array<int64_t, 3>>> &queries, string QUERIES_FILE_PATH){
     ifstream infile(QUERIES_FILE_PATH.c_str());
     if (!infile)
     {
@@ -75,13 +75,13 @@ void tpch_loadQueries(vector<vector<tuple<int64_t, int64_t, int>>> &queries, str
     string line;
     while (getline(infile, line)){
         vector<string> predicates = split_string(line, ';');
-        vector<tuple<int64_t, int64_t, int>> query;
+        vector<array<int64_t, 3>> query;
 
-        query.push_back(make_tuple(to_int64_t(predicates.at(0)), to_int64_t(predicates.at(1)), 10));
+        query.push_back(array<int64_t, 3> {to_int64_t(predicates.at(0)), to_int64_t(predicates.at(1)), 10});
 
-        query.push_back(make_tuple(to_int64_t(predicates.at(2)), to_int64_t(predicates.at(3)), 6));
+        query.push_back(array<int64_t, 3> {to_int64_t(predicates.at(2)), to_int64_t(predicates.at(3)), 6});
 
-        query.push_back(make_tuple(to_int64_t(predicates.at(4)), to_int64_t(predicates.at(5)), 4));
+        query.push_back(array<int64_t, 3> {to_int64_t(predicates.at(4)), to_int64_t(predicates.at(5)), 4});
 
         queries.push_back(query);
     }
