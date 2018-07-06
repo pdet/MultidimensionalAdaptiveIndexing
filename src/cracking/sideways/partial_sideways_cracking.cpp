@@ -49,9 +49,9 @@ int64_t crack_map(vector<int64_t> * leading_column,vector<int64_t>*  aux_column,
 Tree partial_sideways_cracking(vector<int64_t> * leading_column,vector<int64_t>*  aux_column, Tree T, int lowKey, int highKey)
 {
     IntPair p1, p2;
-
     p1 = FindNeighborsLT(lowKey, T, COLUMN_SIZE - 1);
     p2 = FindNeighborsLT(highKey, T, COLUMN_SIZE - 1);
+
 
     IntPair pivot_pair = NULL;
   
@@ -96,8 +96,7 @@ void partial_sideways_cracking_partial_built(Table *table, Tree * T,vector<pair<
         IntPair p1 = FindNeighborsGTE(rangequeries->at(0).first, *T, COLUMN_SIZE - 1);
         IntPair p2 = FindNeighborsLT(rangequeries->at(0).second, *T, COLUMN_SIZE - 1);
         for (size_t i = 0; i < table->mapset.partialMaps.size(); ++i){
-            fprintf(stderr, "%ld     %ld\n",p1->first,p2->second );
-            for (size_t j = p1->first-1; j < p2->second; ++j){
+            for (size_t j = p1->first; j < p2->second; ++j){
                 table->mapset.partialMaps.at(i).leading_column.at(j) = table->mapset.chunkmap.leading_column.at(j);
                 int64_t id = table->mapset.chunkmap.ids.at(j);
                 table->mapset.partialMaps.at(i).aux_column.at(j) = table->columns.at(i+1).at(id);
@@ -111,7 +110,6 @@ void partial_sideways_cracking_partial_built(Table *table, Tree * T,vector<pair<
         IntPair p2 = FindNeighborsLT(rangequeries->at(0).second, *T, COLUMN_SIZE - 1);
 
         if (p1->first == 0 && p2 ->second == COLUMN_SIZE-1){
-            fprintf(stderr, "Here 1" );
             *T = partial_sideways_cracking(&table->mapset.chunkmap.leading_column,&table->mapset.chunkmap.ids,*T,rangequeries->at(0).first,rangequeries->at(0).second);
             IntPair lq = FindNeighborsGTE(rangequeries->at(0).first, *T, COLUMN_SIZE - 1);
             IntPair hq = FindNeighborsGTE(rangequeries->at(0).first, *T, COLUMN_SIZE - 1);
@@ -130,16 +128,8 @@ void partial_sideways_cracking_partial_built(Table *table, Tree * T,vector<pair<
                 }
             }
         }
-        else if (p1->first == 0 && p1->second == COLUMN_SIZE-1){
-            fprintf(stderr, "Here 5" );
 
-        }
-        else if (p2->first == 0 && p2->second == COLUMN_SIZE-1){
-                        fprintf(stderr, "Here 6" );
-
-        }
         else if (p1->first == 0){
-            fprintf(stderr, "Here 2" );
             int64_t pos = crack_map(&table->mapset.chunkmap.leading_column,&table->mapset.chunkmap.ids, p1->first, p1->second, rangequeries->at(0).first);
             *T = Insert(pos, rangequeries->at(0).first, *T);
             IntPair lq = FindNeighborsGTE(rangequeries->at(0).first, *T, COLUMN_SIZE - 1);
@@ -150,10 +140,8 @@ void partial_sideways_cracking_partial_built(Table *table, Tree * T,vector<pair<
                     table->mapset.partialMaps.at(i).aux_column.at(j) = table->columns.at(i+1).at(id);
                 }
                 table->mapset.partialMaps.at(i).T = Insert(pos, rangequeries->at(0).first, table->mapset.partialMaps.at(i).T );
-                pos = crack_map(&table->mapset.chunkmap.leading_column,&table->mapset.chunkmap.ids, p2->first, p2->second, rangequeries->at(0).second);
+                pos = crack_map(&table->mapset.partialMaps.at(i).leading_column,&table->mapset.partialMaps.at(i).aux_column, p2->first, p2->second, rangequeries->at(0).second);
                 table->mapset.partialMaps.at(i).T = Insert(pos, rangequeries->at(0).second, table->mapset.partialMaps.at(i).T );
-
-                
             }
 
         }
@@ -163,12 +151,9 @@ void partial_sideways_cracking_partial_built(Table *table, Tree * T,vector<pair<
 
             *T = Insert(pos, rangequeries->at(0).second, *T);
             IntPair hq = FindNeighborsLT(rangequeries->at(0).second, *T, COLUMN_SIZE - 1);
-            // fprintf(stderr, "\n%d \n", rangequeries->at(0).second );
-            // fprintf(stderr, "\n%d \n", hq->first );
-            // fprintf(stderr, "\n%d \n", hq->second );
-            // fprintf(stderr, "\n%d \n", table->mapset.partialMaps.at(0).aux_column.at(hq->first-2) );
+
             for (size_t i = 0; i < table->mapset.partialMaps.size(); ++i){
-                for (size_t j = hq->first-1; j < hq->second; ++j){
+                for (size_t j = hq->first; j < hq->second; ++j){
                     table->mapset.partialMaps.at(i).leading_column.at(j) = table->mapset.chunkmap.leading_column.at(j);
                     int64_t id = table->mapset.chunkmap.ids.at(j);
                     table->mapset.partialMaps.at(i).aux_column.at(j) = table->columns.at(i+1).at(id);
@@ -178,50 +163,34 @@ void partial_sideways_cracking_partial_built(Table *table, Tree * T,vector<pair<
                 table->mapset.partialMaps.at(i).T = Insert(pos, rangequeries->at(0).second, table->mapset.partialMaps.at(i).T );
                 pos = crack_map(&table->mapset.partialMaps.at(i).leading_column,&table->mapset.partialMaps.at(i).aux_column, p1->first,p1->second, rangequeries->at(0).first);
                 table->mapset.partialMaps.at(i).T = Insert(pos, rangequeries->at(0).first, table->mapset.partialMaps.at(i).T);
-     
-
             }
-             // for (size_t i = 806067; i <=3158687; ++i)
-             //    if (table->mapset.partialMaps.at(0).aux_column.at(i) == 0)
-             //        fprintf(stderr, " falha : %d\n", i);
         }
 
         else{
-            fprintf(stderr, "Here 4" );
+
+                p1 = FindNeighborsLT(rangequeries->at(0).first, table->mapset.partialMaps.at(0).T, COLUMN_SIZE - 1);
+                p2 = FindNeighborsLT(rangequeries->at(0).second, table->mapset.partialMaps.at(0).T, COLUMN_SIZE - 1);
             for (size_t i = 0; i < table->mapset.partialMaps.size(); ++i){
-                table->mapset.partialMaps.at(i).T = partial_sideways_cracking(&table->mapset.partialMaps.at(i).leading_column,&table->mapset.partialMaps.at(i).aux_column
-                    , table->mapset.partialMaps.at(i).T,rangequeries->at(0).first,rangequeries->at(0).second);             
+
+
+                IntPair pivot_pair = NULL;
+              
+                // crack in two
+                pivot_pair = (IntPair)malloc(sizeof(struct int_pair));
+                pivot_pair->first = crack_map(&table->mapset.partialMaps.at(i).leading_column,&table->mapset.partialMaps.at(i).aux_column, p1->first, p1->second, rangequeries->at(0).first);
+                pivot_pair->second = crack_map(&table->mapset.partialMaps.at(i).leading_column,&table->mapset.partialMaps.at(i).aux_column, pivot_pair->first, p2->second, rangequeries->at(0).second);
+
+                table->mapset.partialMaps.at(i).T = Insert(pivot_pair->first, rangequeries->at(0).first, table->mapset.partialMaps.at(i).T);
+                table->mapset.partialMaps.at(i).T = Insert(pivot_pair->second, rangequeries->at(0).second, table->mapset.partialMaps.at(i).T);
             }
-            for (size_t i = 806067; i <=3158687; ++i)
-                for (size_t j = 0; j < table->mapset.partialMaps.size(); ++j)
-                if (table->mapset.partialMaps.at(j).aux_column.at(i) == 0)
-                    fprintf(stderr, " falha : %d       %d\n", j,i);
 
         }
     }
 
 }
 
-// Result : 27
-// Result : 32
-// Result : 19
-// Result : 31
-// Result : 29
-// Result : 26
-// Result : 26
-// Result : 31
-// Result : 18
-// Result : 24
-
-// void sideways_cracking_index_lookup(Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets){
-//     IntPair p1 = FindNeighborsGTE(rangequeries->at(0).first, *T, COLUMN_SIZE - 1);
-//     IntPair p2 = FindNeighborsLT(rangequeries->at(0).second, *T, COLUMN_SIZE - 1);
-//     offsets->push_back(make_pair(p1->first, p2->second));
-// }
 
 void scan_maps(vector<int64_t>*  aux_column, boost::dynamic_bitset<> &bitmap, int lowOffset, int highOffset, int lowKey, int highKey){
-                fprintf(stderr, "%ld     %ld\n",lowOffset,highOffset);
-
     for(boost::dynamic_bitset<>::size_type i = 0; i < highOffset - lowOffset; ++i)
         if(bitmap[i])
             if(aux_column->at(lowOffset+i) < lowKey || aux_column->at(lowOffset+i) >= highKey)
@@ -239,10 +208,20 @@ void partial_sideways_cracking_scan(Table *table, vector<pair<int64_t,int64_t>> 
     for (size_t i = 0; i < table->mapset.partialMaps.size(); i ++){
         scan_maps(&table->mapset.partialMaps.at(i).aux_column,bitmap,offsets->at(0).first,offsets->at(0).second,rangequeries->at(1+i).first,rangequeries->at(1+i).second);
     }
-    int64_t count = 0;
-    for(boost::dynamic_bitset<>::size_type i = 0; i < offsets->at(0).second - offsets->at(0).first; ++i)
-        if(bitmap[i])
-            count++;
-    result->push_back(count);
+
+    #ifndef test
+    result->push_back(0);
+    #endif
+     #ifdef test
+         for(boost::dynamic_bitset<>::size_type i = 0; i < offsets->at(0).second - offsets->at(0).first; ++i)
+            if(bitmap[i])
+                result->push_back(table->mapset.partialMaps.at(0).leading_column.at(i+ offsets->at(0).first));
+            #else
+            for(boost::dynamic_bitset<>::size_type i = 0; i < offsets->at(0).second - offsets->at(0).first; ++i)
+                if(bitmap[i])
+                    result->at(0)+=1;
+            #endif  
 
 }
+
+

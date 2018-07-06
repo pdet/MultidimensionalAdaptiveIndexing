@@ -19,7 +19,7 @@ vector<vector<int64_t>> range_query_baseline(Table *table, vector< vector<pair<i
                 }
             }
         if(match)
-            rowId.push_back(table->ids[i]);
+            rowId.push_back(table->columns[0][i]);
         }
         sort(rowId.begin(),rowId.end());
         queryResult.push_back(rowId);
@@ -97,6 +97,24 @@ vector<vector<int64_t>> full_kdtree(Table *table, vector< vector<pair<int64_t, i
 }
 
 
+vector<vector<int64_t>> partial_sideways_cracking(Table *table, vector< vector<pair<int64_t, int64_t>>> *queries)
+{
+    Tree *T = (Tree *)malloc(sizeof(Tree));
+    partial_sideways_cracking_pre_processing(table, T);
+    vector<vector<int64_t>> queryResult;
+
+    for (size_t i = 0; i < NUM_QUERIES; ++ i){
+        vector<pair<int, int>> offsets; 
+        vector<int64_t> rowId;
+        partial_sideways_cracking_partial_built(table, T,&queries->at(i));
+        partial_sideways_cracking_scan(table,&queries->at(i), &offsets, &rowId);
+
+        sort(rowId.begin(),rowId.end());
+        queryResult.push_back(rowId);
+    }
+    return queryResult;
+}
+
 vector<vector<int64_t>> sideways_cracking(Table *table, vector< vector<pair<int64_t, int64_t>>> *queries)
 {
     Tree *T = (Tree *)malloc(sizeof(Tree));
@@ -115,6 +133,8 @@ vector<vector<int64_t>> sideways_cracking(Table *table, vector< vector<pair<int6
     }
     return queryResult;
 }
+
+
 void verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<vector<int64_t>> queryResultToBeTested)
 {
     for (size_t i = 0; i < queryResultBaseline.size(); ++i)
@@ -151,8 +171,12 @@ void verifyAlgorithms(Table *table, vector<vector<pair<int64_t,int64_t>>> rangeQ
     // queryResultToBeTested = full_kdtree(table,&rangeQueries);
     // verify_range_query(queryResultBaseline,queryResultToBeTested);
 
-    fprintf(stderr, "Running Sideways Cracking.\n");
-    queryResultToBeTested = sideways_cracking(table,&rangeQueries);
+    // fprintf(stderr, "Running Sideways Cracking.\n");
+    // queryResultToBeTested = sideways_cracking(table,&rangeQueries);
+    // verify_range_query(queryResultBaseline,queryResultToBeTested);
+
+    fprintf(stderr, "Running Partial Sideways Cracking.\n");
+    queryResultToBeTested = partial_sideways_cracking(table,&rangeQueries);
     verify_range_query(queryResultBaseline,queryResultToBeTested);
 
     fprintf(stderr, "Everything works!\n");

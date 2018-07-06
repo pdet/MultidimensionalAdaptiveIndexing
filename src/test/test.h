@@ -7,6 +7,7 @@
 #include "../cracking/standard_cracking.h"
 #include "../cracking/kd_tree.h"
 #include "../cracking/sideways/sideways_cracking.h"
+#include "../cracking/sideways/partial_sideways_cracking.h"
 
 using namespace std;
 void verifyAlgorithms(Table *table, vector<vector<pair<int64_t,int64_t>>> rangeQueries);

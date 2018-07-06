@@ -6,7 +6,7 @@
 
 using namespace std;
 
-// ########### Binary Tree Structures #############
+// ########### BST Structures #############
 
 struct int_pair
 {
@@ -32,6 +32,8 @@ struct Node
     int64_t left_position;
     int64_t right_position;
 };
+
+// ########### File Structures #############
 
 struct Column // Input/Output for UniformRandom Benchmark
 { 
@@ -72,7 +74,7 @@ struct ChunkMap // Partial Sideways Cracking
 {
     vector<int64_t> ids;
     vector<int64_t> leading_column;
-    vector<IntPair> fetched;
+    // vector<IntPair> fetched;
     // vector<IntPair> log;
     Tree T;
 

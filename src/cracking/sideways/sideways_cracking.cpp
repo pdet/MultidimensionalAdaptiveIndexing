@@ -138,6 +138,6 @@ void sideways_cracking_scan(Table *table, vector<pair<int64_t,int64_t>>  *rangeq
             #else
             for(boost::dynamic_bitset<>::size_type i = 0; i < offsets->at(0).second - offsets->at(0).first; ++i)
                 if(bitmap[i])
-                    results->at(0)+=1;
+                    result->at(0)+=1;
             #endif   
 }
