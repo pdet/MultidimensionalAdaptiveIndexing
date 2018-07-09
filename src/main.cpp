@@ -20,7 +20,7 @@
 #include "test/test.h"
 #include "util/define.h"
 
-#define test
+// #define test
 
 using namespace std;
 
