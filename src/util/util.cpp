@@ -1,6 +1,7 @@
 #include "util.h"
 #include <unordered_map>
 #include <vector>
+#include <array>
 
 using namespace std;
 extern int64_t COLUMN_SIZE, NUMBER_OF_COLUMNS;
@@ -88,22 +89,30 @@ int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t 
     return j;
 }
 
-void full_scan(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries, vector<pair<int,int>> *offsets, vector<int64_t> * result)
+void full_scan(Table *table, vector<array<int64_t, 3>>  *rangequeries, vector<pair<int,int>> *offsets, vector<int64_t> * result)
 {
 	size_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
 	size_t sel_size;
 	int sel_vector [vector_size];
 	int64_t count = 0;
 	for (size_t i = 0; i < COLUMN_SIZE/vector_size; ++ i){
-		sel_size = select_rq_scan_new (sel_vector, &table->columns[0][vector_size*i],rangequeries->at(0).first,rangequeries->at(0).second,vector_size);
-		for (size_t column_num = 1; column_num < NUMBER_OF_COLUMNS; column_num++)
-			sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[column_num][vector_size*i],rangequeries->at(column_num).first,rangequeries->at(column_num).second,sel_size);	
+		int64_t low = rangequeries->at(0).at(0);
+		int64_t high = rangequeries->at(0).at(1);
+		int64_t col = rangequeries->at(0).at(2);
+		sel_size = select_rq_scan_new (sel_vector, &table->columns[col][vector_size*i], low, high, vector_size);
+		for (size_t query_num = 1; query_num < rangequeries->size(); query_num++)
+		{
+			int64_t low = rangequeries->at(query_num).at(0);
+			int64_t high = rangequeries->at(query_num).at(1);
+			int64_t col = rangequeries->at(query_num).at(2);
+			sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[col][vector_size*i], low, high, sel_size);
 		#ifdef test
 			for(size_t j = 0; j < sel_size; ++ j)
 				result->push_back(vector_size*i+sel_vector[j]);
 		#else
 			count += sel_size;
 		#endif
+		}
 	}
 	#ifndef test
 		result->push_back(count);

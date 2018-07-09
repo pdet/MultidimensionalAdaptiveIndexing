@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <array>
 
 #include "cracking/avl_tree.h"
 
@@ -19,13 +20,14 @@
 #include "test/test.h"
 #include "util/define.h"
 
+#define test
 
 using namespace std;
 
 typedef void (*pre_processing_function)(Table *table, Tree * t);
-typedef void (*partial_index_built_function)(Table *table, Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries);
-typedef void (*index_lookup_function)(Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets);
-typedef void (*scan_data_function)(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets, vector<int64_t> * result);
+typedef void (*partial_index_built_function)(Table *table, Tree * T,vector<array<int64_t, 3>>  *rangequeries);
+typedef void (*index_lookup_function)(Tree * T,vector<array<int64_t, 3>>  *rangequeries,vector<pair<int,int>>  *offsets);
+typedef void (*scan_data_function)(Table *table, vector<array<int64_t, 3>>  *rangequeries,vector<pair<int,int>>  *offsets, vector<int64_t> * result);
 typedef void (*intersect_data_function)(Table *table,vector<pair<int,int>>  *offsets, vector<boost::dynamic_bitset<>> *bitmaps, vector<int64_t> * result);
 
 //Settings for Indexes
@@ -37,7 +39,7 @@ const int KDTREE = 3;
 string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
 int64_t COLUMN_SIZE,NUM_QUERIES, NUMBER_OF_COLUMNS, KDTREE_THRESHOLD, INDEXING_TYPE;
 
-void benchmarkFunction(Table *table, vector<vector<pair<int64_t,int64_t>>> rangeQueries, 
+void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQueries, 
 	pre_processing_function pre_processing, partial_index_built_function partial_index_built,
 	index_lookup_function index_lookup, scan_data_function scan_data, intersect_data_function intersect_data){
 
@@ -162,11 +164,13 @@ int main(int argc, char **argv)
 
     RangeQuery *rangequeries = (RangeQuery *)malloc(sizeof(RangeQuery) * NUMBER_OF_COLUMNS);
     loadQueries(rangequeries, QUERIES_FILE_PATH, NUM_QUERIES, NUMBER_OF_COLUMNS);
-	vector<vector<pair<int64_t, int64_t>>> query(NUM_QUERIES, vector<pair<int64_t, int64_t>> (NUMBER_OF_COLUMNS));  
+	vector<vector<array<int64_t, 3>>> query(NUM_QUERIES, vector<array<int64_t, 3>> (NUMBER_OF_COLUMNS));
+	// TODO: fix the data generators to send the column instead of artificially insert it here
 	for (size_t q = 0; q < NUM_QUERIES; q ++ ){
 		for (size_t i = 0; i < NUMBER_OF_COLUMNS; ++i){
-			query.at(q).at(i).first = rangequeries[i].leftpredicate[q];
-			query.at(q).at(i).second = rangequeries[i].rightpredicate[q];
+			query.at(q).at(i).at(0) = rangequeries[i].leftpredicate[q];
+			query.at(q).at(i).at(1) = rangequeries[i].rightpredicate[q];
+			query.at(q).at(i).at(2) = i;
 		}
 	}
 	free(c);

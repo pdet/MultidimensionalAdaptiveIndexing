@@ -1,5 +1,6 @@
 #include "kd_tree.h"
 #include <algorithm>
+#include <array>
 
 extern int64_t KDTREE_THRESHOLD, COLUMN_SIZE, NUMBER_OF_COLUMNS;
 using namespace std;
@@ -448,15 +449,47 @@ void full_kdtree_pre_processing(Table *table, Tree * T){
     *T = FullTree(&table->crackertable);
 }
 
-void cracking_kdtree_partial_built(Table *table,Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries){
-    for (size_t i = 0; i < rangequeries->size(); ++i){
-        Insert(T, i, rangequeries->at(i).first, table);
-        Insert(T, i, rangequeries->at(i).second, table);
+void cracking_kdtree_partial_built(Table *table,Tree * T, vector<array<int64_t, 3>>  *rangequeries){
+    for (size_t query_num = 0; query_num < rangequeries->size(); query_num++){
+        int64_t low = rangequeries->at(query_num).at(0);
+        int64_t high = rangequeries->at(query_num).at(1);
+        int64_t col = rangequeries->at(query_num).at(2);
+        Insert(T, col, low, table);
+        Insert(T, col, high, table);
     }
 }
 
+bool node_in_query(Tree current, vector<array<int64_t, 3>> *query){
+    bool inside = false;
+    for(size_t i = 0; i < query->size(); i++)
+    {
+        if(current->column == query->at(i).at(2))
+            inside = true;
+    }
+    return inside;
+}
 
-void kdtree_index_lookup(Tree * tree,vector<pair<int64_t,int64_t>>  *query,vector<pair<int,int>>  *offsets)
+bool node_greater_equal_query(Tree node, vector<array<int64_t, 3>> *query){
+    for(size_t i = 0; i < query->size(); i++)
+    {
+        if(node->column == query->at(i).at(2)){
+            return query->at(i).at(1) <= node->Element;
+        }
+    }
+    return false;
+}
+
+bool node_less_equal_query(Tree node, vector<array<int64_t, 3>> *query){
+    for(size_t i = 0; i < query->size(); i++)
+    {
+        if(node->column == query->at(i).at(2)){
+            return node->Element <= query->at(i).at(0);
+        }
+    }
+    return false;
+}
+
+void kdtree_index_lookup(Tree * tree, vector<array<int64_t, 3>> *query,vector<pair<int,int>>  *offsets)
 {
     vector<Tree> nodes_to_check;
     vector<int64_t> lower_limits, upper_limits;
@@ -475,7 +508,36 @@ void kdtree_index_lookup(Tree * tree,vector<pair<int64_t,int64_t>>  *query,vecto
         int64_t upper_limit = upper_limits.back();
         upper_limits.pop_back();
 
-        if (query->at(current->column).second <= current->Element)
+        // Check if current column is not in the query
+        if(!node_in_query(current, query)){
+            if (current->left_position != -1)
+            {
+                if (current->Left == NULL)
+                {
+                    offsets->push_back(make_pair(lower_limit, current->left_position));
+                }
+                else
+                {
+                    nodes_to_check.push_back(current->Left);
+                    lower_limits.push_back(lower_limit);
+                    upper_limits.push_back(current->left_position);
+                }
+            }
+            if (current->right_position != -1)
+            {
+                if (current->Right == NULL)
+                {
+                    offsets->push_back(make_pair(current->right_position, upper_limit));
+                }
+                else
+                {
+                    nodes_to_check.push_back(current->Right);
+                    lower_limits.push_back(current->right_position);
+                    upper_limits.push_back(upper_limit);
+                }
+            }
+        }
+        else if (node_greater_equal_query(current, query))
         {
             if (current->left_position != -1)
             {
@@ -491,7 +553,7 @@ void kdtree_index_lookup(Tree * tree,vector<pair<int64_t,int64_t>>  *query,vecto
                 }
             }
         }
-        else if (query->at(current->column).first >= current->Element)
+        else if (node_less_equal_query(current, query))
         {
             if (current->right_position != -1)
             {
@@ -540,7 +602,7 @@ void kdtree_index_lookup(Tree * tree,vector<pair<int64_t,int64_t>>  *query,vecto
 }
 
 
-void kdtree_scan(Table *table, vector<pair<int64_t,int64_t>>  *query, vector<pair<int,int>>  *offsets, vector<int64_t> * result)
+void kdtree_scan(Table *table, vector<array<int64_t, 3>> *query, vector<pair<int,int>>  *offsets, vector<int64_t> * result)
 {
     #ifndef test
     result->push_back(0);
@@ -548,15 +610,23 @@ void kdtree_scan(Table *table, vector<pair<int64_t,int64_t>>  *query, vector<pai
     for(size_t i = 0; i < offsets->size(); ++i){
         int sel_size;
         int sel_vector[offsets->at(i).second - offsets->at(i).first];
-        sel_size = select_rq_scan_new (sel_vector, &table->crackertable.columns[0][offsets->at(i).first],query->at(0).first,query->at(0).second,offsets->at(i).second - offsets->at(i).first);
-            for (int column_num = 1; column_num < table->columns.size(); column_num++)
-                sel_size = select_rq_scan_sel_vec(sel_vector, &table->crackertable.columns[column_num][offsets->at(i).first],query->at(column_num).first,query->at(column_num).second,sel_size);
-            #ifdef test
-                for (size_t j = 0; j < sel_size; ++j)
-                    result->push_back(table->crackertable.ids[sel_vector[j] + offsets->at(i).first]);
-            #else
-                result->at(0)+=sel_size;
-            #endif          
+        int64_t low = query->at(0).at(0);
+		int64_t high = query->at(0).at(1);
+		int64_t col = query->at(0).at(2);
+        sel_size = select_rq_scan_new (sel_vector, &table->crackertable.columns[col][offsets->at(i).first],low,high,offsets->at(i).second - offsets->at(i).first);
+        for (size_t query_num = 1; query_num < query->size(); query_num++)
+        {
+            int64_t low = query->at(query_num).at(0);
+			int64_t high = query->at(query_num).at(1);
+			int64_t col = query->at(query_num).at(2);
+            sel_size = select_rq_scan_sel_vec(sel_vector, &table->crackertable.columns[col][offsets->at(i).first],low,high,sel_size);
+        #ifdef test
+            for (size_t j = 0; j < sel_size; ++j)
+                result->push_back(table->crackertable.ids[sel_vector[j] + offsets->at(i).first]);
+        #else
+            result->at(0)+=sel_size;
+        #endif
+        }
     }
 }
 

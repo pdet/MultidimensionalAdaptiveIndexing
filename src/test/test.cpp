@@ -5,15 +5,18 @@ extern int64_t COLUMN_SIZE,NUM_QUERIES, NUMBER_OF_COLUMNS, KDTREE_THRESHOLD, IND
 using namespace std;
 
 
-vector<vector<int64_t>> range_query_baseline(Table *table, vector< vector<pair<int64_t, int64_t>>> *queries)
+vector<vector<int64_t>> range_query_baseline(Table *table, vector<vector<array<int64_t, 3>>> *queries)
 {
     vector<vector<int64_t>> queryResult;
     for (size_t q = 0; q < NUM_QUERIES; ++ q){
         vector<int64_t> rowId;
         for (size_t i = 0; i < COLUMN_SIZE; ++i){
             bool match = true;
-            for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j){
-                if(table->columns[j][i] < queries->at(q).at(j).first|| table->columns[j][i] >= queries->at(q).at(j).second){
+            for (size_t query_num = 0; query_num < queries->at(q).size(); query_num++){
+                int64_t low = queries->at(q).at(query_num).at(0);
+                int64_t high = queries->at(q).at(query_num).at(1);
+                int64_t col = queries->at(q).at(query_num).at(2);
+                if(table->columns[col][i] < low || table->columns[col][i] >= high){
                     match = false;
                     break;
                 }
@@ -28,7 +31,7 @@ vector<vector<int64_t>> range_query_baseline(Table *table, vector< vector<pair<i
 	return queryResult;
 }
 
-vector<vector<int64_t>> vectorized_branchless_full_scan(Table *table, vector< vector<pair<int64_t, int64_t>>> *queries)
+vector<vector<int64_t>> vectorized_branchless_full_scan(Table *table, vector<vector<array<int64_t, 3>>> *queries)
 {
     vector<vector<int64_t>> queryResult;
     for (size_t i = 0; i < NUM_QUERIES; ++ i){
@@ -47,7 +50,7 @@ vector<vector<int64_t>> vectorized_branchless_full_scan(Table *table, vector< ve
     // else 
     //     T = (Tree *)malloc(sizeof(Tree));
 
-vector<vector<int64_t>> unidimensional_cracking(Table *table, vector< vector<pair<int64_t, int64_t>>> *queries)
+vector<vector<int64_t>> unidimensional_cracking(Table *table, vector<vector<array<int64_t, 3>>> *queries)
 {
     table->crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
     Tree *T = (Tree *)malloc(sizeof(Tree) * NUMBER_OF_COLUMNS);
@@ -66,7 +69,7 @@ vector<vector<int64_t>> unidimensional_cracking(Table *table, vector< vector<pai
     return queryResult;
 }
 
-vector<vector<int64_t>> cracking_kdtree(Table *table, vector< vector<pair<int64_t, int64_t>>> *queries)
+vector<vector<int64_t>> cracking_kdtree(Table *table, vector< vector<array<int64_t, 3>>> *queries)
 {
     Tree *T = (Tree *)malloc(sizeof(Tree));
     cracking_kdtree_pre_processing(table, T);
@@ -85,7 +88,7 @@ vector<vector<int64_t>> cracking_kdtree(Table *table, vector< vector<pair<int64_
     return queryResult;
 }
 
-vector<vector<int64_t>> full_kdtree(Table *table, vector< vector<pair<int64_t, int64_t>>> *queries)
+vector<vector<int64_t>> full_kdtree(Table *table, vector< vector<array<int64_t, 3>>> *queries)
 {
     Tree *T = (Tree *)malloc(sizeof(Tree));
     full_kdtree_pre_processing(table, T);
@@ -118,7 +121,7 @@ void verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<vecto
 
 
 
-void verifyAlgorithms(Table *table, vector<vector<pair<int64_t,int64_t>>> rangeQueries){
+void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueries){
     vector<vector<int64_t>> queryResultToBeTested;
     fprintf(stderr, "Running Baseline.\n");
     vector<vector<int64_t>> queryResultBaseline = range_query_baseline(table,&rangeQueries);
