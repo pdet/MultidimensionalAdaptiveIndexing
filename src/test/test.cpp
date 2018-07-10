@@ -16,7 +16,12 @@ vector<vector<int64_t>> range_query_baseline(Table *table, vector<vector<array<i
                 int64_t low = queries->at(q).at(query_num).at(0);
                 int64_t high = queries->at(q).at(query_num).at(1);
                 int64_t col = queries->at(q).at(query_num).at(2);
-                if(table->columns[col][i] < low || table->columns[col][i] >= high){
+                // if(table->columns[col][i] < low || table->columns[col][i] >= high)
+                if(!(
+                        ((low <= table->columns[col][i]) || (low == -1)) &&
+                        ((table->columns[col][i] < high) || (high == -1))
+                    ))
+                {
                     match = false;
                     break;
                 }
