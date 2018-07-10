@@ -69,7 +69,7 @@ vector<int64_t> join_bitmaps(vector<boost::dynamic_bitset<>> *bitmaps){
 int select_rq_scan_sel_vec (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n){
     int j;
     for (int i = j = 0; i < n; i++){
-        int matching =  keyL <= col[sel[i]] &&  col[sel[i]] < keyH;
+        int matching =  ((keyL <= col[sel[i]]) || (keyL == -1)) &&  ((col[sel[i]] < keyH) || (keyH == -1));
         sel[j] = sel[i];
         j += matching;
     }
@@ -80,7 +80,7 @@ int select_rq_scan_sel_vec (int*__restrict__ sel, int64_t*__restrict__ col, int6
 int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n){
     int j;
     for (int i = j = 0 ; i < n; i++){
-        int matching =  keyL <= col[i] &&  col[i] < keyH;
+        int matching =  ((keyL <= col[i]) || (keyL == -1)) &&  ((col[i] < keyH) || (keyH == -1));
 
         sel[j] = i;
         j += matching;
