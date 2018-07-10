@@ -11,6 +11,7 @@
 #include <map>
 #include <chrono>
 #include <algorithm>
+#include <numeric>
 
 using namespace std;
 
@@ -38,18 +39,18 @@ void randomDataQuery(vector<int64_t> *leftQuery, vector<int64_t> *rightQuery, in
                      int64_t NUM_QUERIES, double SELECTIVITY_PERCENTAGE, double ONE_SIDED_PERCENTAGE,
                      int64_t COLUMN_SIZE, int64_t maxLeftQueryVal) {
     for (int i = 0; i < NUM_QUERIES; i++) {
-        if (rand() % 100 < ONE_SIDED_PERCENTAGE) {
-            leftQuery->push_back(rand() % UPPERBOUND);
-            rightQuery->push_back(-1);
-        }
-            // Two sided range queries
-        else {
-            int64_t q1 = rand() % maxLeftQueryVal;
-            // int64_t q2 = applySelectivity(q1,SELECTIVITY_PERCENTAGE,orderedColumn);
-            int64_t q2 = q1 + COLUMN_SIZE*SELECTIVITY_PERCENTAGE;
-            leftQuery->push_back(q1);
-            rightQuery->push_back(q2);
-        }
+        // if (rand() % 100 < ONE_SIDED_PERCENTAGE) {
+        //     leftQuery->push_back(rand() % UPPERBOUND);
+        //     rightQuery->push_back(-1);
+        // }
+        //     // Two sided range queries
+        // else {
+        int64_t q1 = rand() % maxLeftQueryVal;
+        // int64_t q2 = applySelectivity(q1,SELECTIVITY_PERCENTAGE,orderedColumn);
+        int64_t q2 = q1 + COLUMN_SIZE*SELECTIVITY_PERCENTAGE;
+        leftQuery->push_back(q1);
+        rightQuery->push_back(q2);
+        // }
     }
 }
 
@@ -306,6 +307,23 @@ void generateQuery(int64_t NUM_QUERIES,
     //     skewedDataQuery(&leftQuery, &rightQuery, UPPERBOUND, NUM_QUERIES, SELECTIVITY_PERCENTAGE, ONE_SIDED_PERCENTAGE,ZIPF_ALPHA, orderedColumn, maxLeftQueryVal);
     end = chrono::system_clock::now();
     // verifySelectivity(orderedColumn,&leftQuery,&rightQuery, SELECTIVITY_PERCENTAGE);
+
+    //Transform parts of it into one-sided
+    vector<int64_t> indices (NUM_QUERIES);
+    iota(indices.begin(), indices.end(), 0);
+    random_shuffle (indices.begin(), indices.end());
+
+    indices.resize((int64_t) NUM_QUERIES * ONE_SIDED_PERCENTAGE);
+
+    for(size_t i = 0; i < indices.size(); i++)
+    {
+        if((rand() % 2) == 1){
+            leftQuery[indices.at(i)] = -1;
+        } else {
+            rightQuery[indices.at(i)] = -1;
+        }
+    }
+    
     fwrite(&leftQuery[0], sizeof(int64_t), NUM_QUERIES, f);
     fwrite(&rightQuery[0], sizeof(int64_t), NUM_QUERIES, f);
     fclose(f);
@@ -385,7 +403,7 @@ int main(int argc, char** argv) {
                 COLUMN_PATTERN = atoi(arg_value.c_str());
             } else if (arg_name == "column-number") {
                 NUMBER_OF_COLUMNS = atoi(arg_value.c_str());
-            }  else {
+            } else {
                 print_help(argc, argv);
                 exit(EXIT_FAILURE);
             }
