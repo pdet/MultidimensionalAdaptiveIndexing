@@ -86,7 +86,7 @@ Tree standardCracking(IndexEntry *&c, int dataSize, Tree T, int lowKey, int high
 
     IntPair pivot_pair = NULL;
 
-    if (p1->first == p2->first && p1->second == p2->second)
+    if (p1->first == p2->first && p1->second == p2->second && lowKey != -1 && highKey != -1)
     {
         pivot_pair = crackInThreeItemWise(c, p1->first, p1->second, lowKey, highKey);
     }
@@ -94,12 +94,16 @@ Tree standardCracking(IndexEntry *&c, int dataSize, Tree T, int lowKey, int high
     {
         // crack in two
         pivot_pair = (IntPair)malloc(sizeof(struct int_pair));
-        pivot_pair->first = crackInTwoItemWise(c, p1->first, p1->second, lowKey);
-        pivot_pair->second = crackInTwoItemWise(c, pivot_pair->first, p2->second, highKey);
+        if(lowKey != -1)
+            pivot_pair->first = crackInTwoItemWise(c, p1->first, p1->second, lowKey);
+        if(highKey != -1)
+            pivot_pair->second = crackInTwoItemWise(c, pivot_pair->first, p2->second, highKey);
     }
 
-    T = Insert(pivot_pair->first, lowKey, T);
-    T = Insert(pivot_pair->second, highKey, T);
+    if(lowKey != -1)
+        T = Insert(pivot_pair->first, lowKey, T);
+    if(highKey != -1)
+        T = Insert(pivot_pair->second, highKey, T);
 
     free(p1);
     free(p2);
@@ -143,8 +147,16 @@ void cracking_index_lookup(Tree * T, vector<array<int64_t, 3>> *rangequeries,vec
         int64_t low = rangequeries->at(query_num).at(0);
         int64_t high = rangequeries->at(query_num).at(1);
         int64_t col = rangequeries->at(query_num).at(2);
-        IntPair p1 = FindNeighborsGTE(low, T[col], COLUMN_SIZE - 1);
-        IntPair p2 = FindNeighborsLT(high, T[col], COLUMN_SIZE - 1);
+        IntPair p1, p2;
+        if(low == -1)
+            p1->first = 0;
+        else
+            p1 = FindNeighborsGTE(low, T[col], COLUMN_SIZE - 1);
+        
+        if(high == -1)
+            p2->second = COLUMN_SIZE - 1;
+        else
+            p2 = FindNeighborsLT(high, T[col], COLUMN_SIZE - 1);
         offsets->push_back(make_pair(p1->first, p2->second));
     }
     
