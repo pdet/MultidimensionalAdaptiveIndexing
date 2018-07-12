@@ -148,15 +148,20 @@ void cracking_index_lookup(Tree * T, vector<array<int64_t, 3>> *rangequeries,vec
         int64_t high = rangequeries->at(query_num).at(1);
         int64_t col = rangequeries->at(query_num).at(2);
         IntPair p1, p2;
-        if(low == -1)
+        if(low == -1){
+            p1 = (IntPair) malloc(sizeof(struct int_pair));
             p1->first = 0;
-        else
+        }
+        else{
             p1 = FindNeighborsGTE(low, T[col], COLUMN_SIZE - 1);
-        
-        if(high == -1)
+        }
+        if(high == -1){
+            p2 = (IntPair) malloc(sizeof(struct int_pair));
             p2->second = COLUMN_SIZE - 1;
-        else
+        }
+        else{
             p2 = FindNeighborsLT(high, T[col], COLUMN_SIZE - 1);
+        }
         offsets->push_back(make_pair(p1->first, p2->second));
     }
     
