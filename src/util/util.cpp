@@ -3,6 +3,8 @@
 #include <vector>
 #include <array>
 
+// #define test
+
 using namespace std;
 extern int64_t COLUMN_SIZE, NUMBER_OF_COLUMNS;
 
@@ -95,24 +97,25 @@ void full_scan(Table *table, vector<array<int64_t, 3>>  *rangequeries, vector<pa
 	size_t sel_size;
 	int sel_vector [vector_size];
 	int64_t count = 0;
+	int64_t low, high, col;
 	for (size_t i = 0; i < COLUMN_SIZE/vector_size; ++ i){
-		int64_t low = rangequeries->at(0).at(0);
-		int64_t high = rangequeries->at(0).at(1);
-		int64_t col = rangequeries->at(0).at(2);
+		low = rangequeries->at(0).at(0);
+		high = rangequeries->at(0).at(1);
+		col = rangequeries->at(0).at(2);
 		sel_size = select_rq_scan_new (sel_vector, &table->columns[col][vector_size*i], low, high, vector_size);
 		for (size_t query_num = 1; query_num < rangequeries->size(); query_num++)
 		{
-			int64_t low = rangequeries->at(query_num).at(0);
-			int64_t high = rangequeries->at(query_num).at(1);
-			int64_t col = rangequeries->at(query_num).at(2);
+			low = rangequeries->at(query_num).at(0);
+			high = rangequeries->at(query_num).at(1);
+			col = rangequeries->at(query_num).at(2);
 			sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[col][vector_size*i], low, high, sel_size);
+		}
 		#ifdef test
 			for(size_t j = 0; j < sel_size; ++ j)
 				result->push_back(vector_size*i+sel_vector[j]);
 		#else
 			count += sel_size;
 		#endif
-		}
 	}
 	#ifndef test
 		result->push_back(count);
