@@ -2,9 +2,10 @@
 #include <algorithm>
 #include <array>
 
+#define test
+
 extern int64_t KDTREE_THRESHOLD, COLUMN_SIZE, NUMBER_OF_COLUMNS;
 using namespace std;
-
 
 void exchange(CrackerTable *t, int64_t x1, int64_t x2)
 {
@@ -20,6 +21,13 @@ void exchange(CrackerTable *t, int64_t x1, int64_t x2)
         tmp = t->columns.at(i).at(x1);
         t->columns.at(i).at(x1) = t->columns.at(i).at(x2);
         t->columns.at(i).at(x2) = tmp;
+    }
+
+    for (size_t i = 0; i < t->s_columns.size(); i++)
+    {
+        string tmp = t->s_columns.at(i).at(x1);
+        t->s_columns.at(i).at(x1) = t->s_columns.at(i).at(x2);
+        t->s_columns.at(i).at(x2) = tmp;
     }
 }
 
@@ -454,8 +462,10 @@ void cracking_kdtree_partial_built(Table *table,Tree * T, vector<array<int64_t, 
         int64_t low = rangequeries->at(query_num).at(0);
         int64_t high = rangequeries->at(query_num).at(1);
         int64_t col = rangequeries->at(query_num).at(2);
-        Insert(T, col, low, table);
-        Insert(T, col, high, table);
+        if(low != -1)
+            Insert(T, col, low, table);
+        if(high != -1)
+            Insert(T, col, high, table);
     }
 }
 
@@ -473,7 +483,11 @@ bool node_greater_equal_query(Tree node, vector<array<int64_t, 3>> *query){
     for(size_t i = 0; i < query->size(); i++)
     {
         if(node->column == query->at(i).at(2)){
-            return query->at(i).at(1) <= node->Element;
+            int64_t high = query->at(i).at(1);
+            if(high == -1)
+                return false;
+            else
+                return high <= node->Element;
         }
     }
     return false;
@@ -483,7 +497,11 @@ bool node_less_equal_query(Tree node, vector<array<int64_t, 3>> *query){
     for(size_t i = 0; i < query->size(); i++)
     {
         if(node->column == query->at(i).at(2)){
-            return node->Element <= query->at(i).at(0);
+            int64_t low = query->at(i).at(0);
+            if(low == -1)
+                return false;
+            else
+                return node->Element <= low;
         }
     }
     return false;
@@ -620,13 +638,13 @@ void kdtree_scan(Table *table, vector<array<int64_t, 3>> *query, vector<pair<int
 			int64_t high = query->at(query_num).at(1);
 			int64_t col = query->at(query_num).at(2);
             sel_size = select_rq_scan_sel_vec(sel_vector, &table->crackertable.columns[col][offsets->at(i).first],low,high,sel_size);
+        }
         #ifdef test
             for (size_t j = 0; j < sel_size; ++j)
                 result->push_back(table->crackertable.ids[sel_vector[j] + offsets->at(i).first]);
         #else
             result->at(0)+=sel_size;
         #endif
-        }
     }
 }
 
