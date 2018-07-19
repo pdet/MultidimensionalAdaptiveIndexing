@@ -128,7 +128,8 @@ int64_t verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<ve
     int64_t n_w = 0;
     for (size_t i = 0; i < queryResultBaseline.size(); ++i){
         for(size_t j = 0; j < lesser_vector(queryResultBaseline.at(i), queryResultToBeTested.at(i)); ++ j){
-        	if (queryResultBaseline.at(i).at(j) != queryResultToBeTested.at(i).at(j))
+        	if (queryResultBaseline.at(i).size() != queryResultToBeTested.at(i).size() ||
+                queryResultBaseline.at(i).at(j) != queryResultToBeTested.at(i).at(j))
         	{
         		// fprintf(stderr, "Incorrect Results!\n");
         		// fprintf(stderr, "Query: %ld\n", i);
@@ -136,12 +137,12 @@ int64_t verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<ve
                 // fprintf(stderr, "Expected size: %ld, Got size: %ld\n", queryResultBaseline.at(i).size(), queryResultToBeTested.at(i).size());
         		// assert(0);
                 n_w++;
-                // break;
+                break;
         	}
         }
-        n_w += size_diff(queryResultBaseline.at(i), queryResultToBeTested.at(i));
+        // n_w += size_diff(queryResultBaseline.at(i), queryResultToBeTested.at(i));
     }
-    fprintf(stderr, "N wrongs: %d\n", n_w);
+    fprintf(stderr, "N wrongs: %ld\n", n_w);
     return n_w;
 }
 
