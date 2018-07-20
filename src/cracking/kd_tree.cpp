@@ -638,11 +638,11 @@ void kdtree_scan(Table *table, vector<array<int64_t, 3>> *query, vector<pair<int
     #endif
     for(size_t i = 0; i < offsets->size(); ++i){
         int sel_size;
-        int sel_vector[offsets->at(i).second - offsets->at(i).first];
+        int sel_vector[offsets->at(i).second - offsets->at(i).first + 1];
         int64_t low = query->at(0).at(0);
 		int64_t high = query->at(0).at(1);
 		int64_t col = query->at(0).at(2);
-        sel_size = select_rq_scan_new (sel_vector, &table->crackertable.columns[col][offsets->at(i).first],low,high,offsets->at(i).second - offsets->at(i).first);
+        sel_size = select_rq_scan_new (sel_vector, &table->crackertable.columns[col][offsets->at(i).first],low,high,offsets->at(i).second - offsets->at(i).first + 1);
         for (size_t query_num = 1; query_num < query->size(); query_num++)
         {
             int64_t low = query->at(query_num).at(0);
