@@ -8,18 +8,18 @@
 using namespace std;
 extern int64_t COLUMN_SIZE, NUMBER_OF_COLUMNS;
 
-void create_bitmap(IndexEntry *c, int64_t from, int64_t to, boost::dynamic_bitset<> &bitmap)
+void create_bitmap(IndexEntry *c, int64_t from, int64_t to, vector<bool> &bitmap)
 {
 	for (size_t i = from; i <= to; i++)
 	{
-		boost::dynamic_bitset<>::size_type id = (boost::dynamic_bitset<>::size_type) c[i].m_rowId;
+		size_t id = (size_t) c[i].m_rowId;
 		bitmap[id] = 1;
 	}
 }
 
-int64_t count_bitmap(boost::dynamic_bitset<> bitmap){
+int64_t count_bitmap(vector<bool> bitmap){
 	int64_t count =0;
-	for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
+	for(size_t i = 0; i < COLUMN_SIZE; ++i){
 		if(bitmap[i]){
 			count += 1;
 		}
@@ -28,9 +28,9 @@ int64_t count_bitmap(boost::dynamic_bitset<> bitmap){
 	return count;
 }
 
-vector<int64_t>  result_bitmap(boost::dynamic_bitset<> bitmap){
+vector<int64_t>  result_bitmap(vector<bool> bitmap){
 	vector<int64_t>  result;
-	for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
+	for(size_t i = 0; i < COLUMN_SIZE; ++i){
 		if(bitmap[i]){
 			result.push_back(i);
 		}
@@ -39,17 +39,20 @@ vector<int64_t>  result_bitmap(boost::dynamic_bitset<> bitmap){
 	return result;
 }
 
-vector<int64_t> join_bitmaps(vector<boost::dynamic_bitset<>> *bitmaps){
+vector<int64_t> join_bitmaps(vector<vector<bool> > *bitmaps){
 	vector<int64_t> result;
 	if(bitmaps->size() > 1){
-		boost::dynamic_bitset<> final_bitmap(COLUMN_SIZE);
+		vector<bool> final_bitmap(COLUMN_SIZE);
 
-		for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
+		for(size_t i = 0; i < COLUMN_SIZE; ++i){
 			final_bitmap[i] = bitmaps->at(0)[i];
 		}
 
-		for(boost::dynamic_bitset<>::size_type i = 1; i < bitmaps->size(); ++i){
-			final_bitmap = (final_bitmap & bitmaps->at(i));
+		for(size_t i = 1; i < bitmaps->size(); ++i){
+			for(size_t j = 0; j < COLUMN_SIZE; j++)
+			{
+				final_bitmap.at(j) = (final_bitmap.at(j) & bitmaps->at(i).at(j));
+			}
 		}
 		#ifdef test
 			result = result_bitmap(final_bitmap);

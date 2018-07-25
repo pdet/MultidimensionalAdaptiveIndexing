@@ -167,9 +167,9 @@ void cracking_index_lookup(Tree * T, vector<array<int64_t, 3>> *rangequeries,vec
     
 }
 
-void cracking_intersection(Table *table,vector<pair<int,int>>  *offsets, vector<boost::dynamic_bitset<>> *bitmaps, vector<int64_t> * result){
-    for (size_t i = 0; i < NUMBER_OF_COLUMNS; i ++){
-        bitmaps->at(i) = boost::dynamic_bitset<>(COLUMN_SIZE); 
+void cracking_intersection(Table *table,vector<pair<int,int>>  *offsets, vector<vector<bool>> *bitmaps, vector<int64_t> * result){
+    for (size_t i = 0; i < offsets->size(); i ++){
+        bitmaps->at(i) = vector<bool>(COLUMN_SIZE); 
         create_bitmap(table->crackercolumns[i], offsets->at(i).first, offsets->at(i).second, bitmaps->at(i));
     }
     *result = join_bitmaps(bitmaps);

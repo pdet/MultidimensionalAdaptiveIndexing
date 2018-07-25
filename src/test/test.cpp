@@ -63,10 +63,10 @@ vector<vector<int64_t>> unidimensional_cracking(Table *table, vector<vector<arra
     vector<vector<int64_t>> queryResult;
     for (size_t i = 0; i < NUM_QUERIES; ++ i){
         vector<pair<int, int>> offsets; 
-        vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
         vector<int64_t> rowId;
         cracking_partial_built(table, T,&queries->at(i));
         cracking_index_lookup(T,&queries->at(i),&offsets);
+        vector<vector<bool>> bitmaps(offsets.size());
         cracking_intersection(table, &offsets, &bitmaps, &rowId);
         sort(rowId.begin(),rowId.end());
         queryResult.push_back(rowId);
