@@ -4,6 +4,7 @@ cmake-build-debug/
 gendata
 readme.txt
 crackingmain
+crackingtpch
 progressive
 experiments/generatedscripts
 ScriptExperiments/
