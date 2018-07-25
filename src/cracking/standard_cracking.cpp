@@ -143,6 +143,7 @@ void cracking_partial_built(Table *table, Tree * T, vector<array<int64_t, 3>>  *
 }
 
 void cracking_index_lookup(Tree * T, vector<array<int64_t, 3>> *rangequeries,vector<pair<int,int>>  *offsets){
+    offsets->resize(NUMBER_OF_COLUMNS, make_pair(0 ,-1));
     for (size_t query_num = 0; query_num < rangequeries->size(); query_num++){
         int64_t low = rangequeries->at(query_num).at(0);
         int64_t high = rangequeries->at(query_num).at(1);
@@ -162,7 +163,7 @@ void cracking_index_lookup(Tree * T, vector<array<int64_t, 3>> *rangequeries,vec
         else{
             p2 = FindNeighborsLT(high, T[col], COLUMN_SIZE - 1);
         }
-        offsets->push_back(make_pair(p1->first, p2->second));
+        offsets->at(col) = make_pair(p1->first, p2->second);
     }
     
 }

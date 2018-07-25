@@ -64,9 +64,9 @@ vector<vector<int64_t>> unidimensional_cracking(Table *table, vector<vector<arra
     for (size_t i = 0; i < NUM_QUERIES; ++ i){
         vector<pair<int, int>> offsets; 
         vector<int64_t> rowId;
+        vector<vector<bool>> bitmaps(NUMBER_OF_COLUMNS);
         cracking_partial_built(table, T,&queries->at(i));
         cracking_index_lookup(T,&queries->at(i),&offsets);
-        vector<vector<bool>> bitmaps(offsets.size());
         cracking_intersection(table, &offsets, &bitmaps, &rowId);
         sort(rowId.begin(),rowId.end());
         queryResult.push_back(rowId);
@@ -154,9 +154,9 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     fprintf(stderr, "Running Baseline.\n");
     vector<vector<int64_t>> queryResultBaseline = range_query_baseline(table,&rangeQueries);
 
-    fprintf(stderr, "Running Vectorized Branchless Scan.\n");
-    queryResultToBeTested = vectorized_branchless_full_scan(table,&rangeQueries);
-    int64_t fs = verify_range_query(queryResultBaseline,queryResultToBeTested);
+    // fprintf(stderr, "Running Vectorized Branchless Scan.\n");
+    // queryResultToBeTested = vectorized_branchless_full_scan(table,&rangeQueries);
+    // int64_t fs = verify_range_query(queryResultBaseline,queryResultToBeTested);
    
     fprintf(stderr, "Running Unidimensional Cracking.\n");
     queryResultToBeTested = unidimensional_cracking(table,&rangeQueries);
@@ -171,7 +171,7 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     int64_t kd = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
     fprintf(stderr, "SUMMARY------------------------------------------------\n");
-    fprintf(stderr, "|Full Scan - Number of errors: %ld\n", fs);
+    // fprintf(stderr, "|Full Scan - Number of errors: %ld\n", fs);
     fprintf(stderr, "|Unidimensional Crackig - Number of errors: %ld\n", std);
     fprintf(stderr, "|Cracking KD - Number of errors: %ld\n", ckd);
     fprintf(stderr, "|Full KD - Number of errors: %ld\n", kd);

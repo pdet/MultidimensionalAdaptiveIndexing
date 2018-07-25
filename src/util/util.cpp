@@ -10,7 +10,7 @@ extern int64_t COLUMN_SIZE, NUMBER_OF_COLUMNS;
 
 void create_bitmap(IndexEntry *c, int64_t from, int64_t to, vector<bool> &bitmap)
 {
-	for (size_t i = from; i <= to; i++)
+	for (int64_t i = from; i <= to; i++)
 	{
 		size_t id = (size_t) c[i].m_rowId;
 		bitmap[id] = 1;
