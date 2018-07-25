@@ -428,7 +428,8 @@ void Print(Tree T)
 }
 
 void cracking_kdtree_pre_processing(Table *table, Tree * T){
-    table->crackertable.columns = vector<vector<int64_t>>(NUMBER_OF_COLUMNS);
+    table->crackertable.columns = vector<vector<int64_t> >(NUMBER_OF_COLUMNS);
+    table->crackertable.s_columns = vector<vector<string> >(table->s_columns.size());
     table->crackertable.ids = vector<int64_t>(COLUMN_SIZE);
     for (size_t col = 0; col < NUMBER_OF_COLUMNS; ++col)
     {
@@ -439,12 +440,21 @@ void cracking_kdtree_pre_processing(Table *table, Tree * T){
             table->crackertable.columns.at(col).at(line) = table->columns.at(col).at(line);
         }
     }
+
+    for (size_t col = 0; col < table->s_columns.size(); ++col)
+    {
+        table->crackertable.s_columns.at(col) = vector<string>(COLUMN_SIZE);
+        for (size_t line = 0; line < COLUMN_SIZE; ++line)
+        {
+            table->crackertable.s_columns.at(col).at(line) = table->s_columns.at(col).at(line);
+        }
+    }
     *T = NULL;
 }
 
 void full_kdtree_pre_processing(Table *table, Tree * T){
-    table->crackertable.columns = vector<vector<int64_t>>(NUMBER_OF_COLUMNS);
-    table->crackertable.s_columns = vector<vector<string>>(table->s_columns.size());
+    table->crackertable.columns = vector<vector<int64_t> >(NUMBER_OF_COLUMNS);
+    table->crackertable.s_columns = vector<vector<string> >(table->s_columns.size());
     table->crackertable.ids = vector<int64_t>(COLUMN_SIZE);
 
     for (size_t col = 0; col < NUMBER_OF_COLUMNS; ++col)
