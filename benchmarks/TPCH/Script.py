@@ -6,9 +6,21 @@ import inspect
 SCRIPT_PATH =  os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) # script directory
 os.chdir(SCRIPT_PATH) # setting current dir as script path
 
+PATH = ""
+
+# Setting Values For Algorithms
+FULL_SCAN = "0"
+STANDARD_CRACKING = "1"
+CRACKING_KD_TREE = "2"
+FULL_KD_TREE = "3"
+
 # CONFIGURATIONS
-SCALE_FACTOR = 1
-NUMBER_OF_QUERIES = 1000
+SCALE_FACTOR = 0.1
+NUM_QUERIES = 1000
+KDTREE_THRESHOLD = '2000'  # Only used for KDTree
+
+experiments = [FULL_SCAN]
+NUMBER_OF_REPETITIONS = 1
 
 # COLUMNS IN LINEITEM
 # 0 = ORDERKEY
@@ -52,7 +64,7 @@ def fix_table_and_save_to_csv():
 def generate_queries():
     print("#### Generating queries ####")
     os.chdir("tpch-dbgen")
-    for _ in xrange(NUMBER_OF_QUERIES):
+    for _ in xrange(NUM_QUERIES):
         os.system("./qgen 6 -s " + str(SCALE_FACTOR) + " -l queries.tbl")
     os.chdir(SCRIPT_PATH)
     os.system("mv tpch-dbgen/queries.tbl .")
@@ -87,12 +99,74 @@ def fix_queries():
     fixed_table.to_csv('queries.csv', sep=';', header=False, index=False, columns=c_order)
 
 
+# Saving Experiments
+if os.path.exists("ResultsTPCH/") != 1:
+    os.system('mkdir ResultsTPCH')
+
+def getFolderToSaveExperiments():
+    global PATH
+    experimentsList = os.listdir("ResultsTPCH/")
+    aux = 0
+    for experiment in experimentsList:
+        if aux < int(experiment):
+            aux = int(experiment)
+    currentexperiment = aux + 1
+    PATH = "ResultsTPCH/" + str(currentexperiment) + '/'
+    os.system('mkdir ' + PATH)
+
+def translate_alg(alg):
+    if alg == '0':
+        return 'fs'
+    if alg == '1':
+        return 'stdavl'
+    if alg == '2':
+        return 'stdkd'
+    if alg == '3':
+        return 'fikd'
+    return alg
+
+#Output is a csv file with:
+#"algorithm;repetition;column_size;column_pattern;number_of_columns;index_creation;index_lookup;scan_time;join_time;total_time"
+def generate_output(file,query_result,repetition,ALGORITHM):
+    query_result = query_result.split("\n")
+    for query in range(0, len(query_result)-1):
+        file.write(translate_alg(ALGORITHM) + ';' + str(repetition) + ";" + "0" +";"+ str(query)
+        + ';' + "0" + ';' + "0"  + ';' + "16" + ';' + query_result[query])
+        file.write('\n')
+    file.close()
+
+def create_output():
+    # Saving Experiments
+    header = "algorithm;repetition;query_selectivity;query_number;column_size;column_pattern;number_of_columns;index_creation;index_lookup;scan_time;join_time;total_time"
+    file = open(PATH + "results.csv", "w")
+    file.write(header)
+    file.write('\n')
+    return file
+
 # SCRIPT START
 
-# generate_lineitem()
-# fix_table_and_save_to_csv()
-print("#### Data generation complete ####")
+if os.path.exists("lineitem.csv") != 1:
+    generate_lineitem()
+    fix_table_and_save_to_csv()
+    print("#### Data generation complete ####")
 
 generate_queries()
 fix_queries()
 print("#### Queries generation complete ####")
+
+os.chdir("../../")
+
+print("Compiling")
+os.environ['OPT'] = 'false'
+if os.system('make') != 0:
+    print("Make Failed")
+    exit()
+
+for experiment in experiments:
+    for repetition in range(NUMBER_OF_REPETITIONS):
+        getFolderToSaveExperiments()
+        result = os.popen(
+            "./crackingtpch --num-queries=" + str(NUM_QUERIES) + " --indexing-type=" + str(experiment)
+            +" --kdtree-threshold=" + str(KDTREE_THRESHOLD)).read()
+        file = create_output()
+        generate_output(file,result,repetition,experiment)
