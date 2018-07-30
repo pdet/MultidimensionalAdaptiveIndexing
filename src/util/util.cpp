@@ -96,30 +96,50 @@ int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t 
 
 void full_scan(Table *table, vector<array<int64_t, 3>>  *rangequeries, vector<pair<int,int>> *offsets, vector<int64_t> * result)
 {
-	size_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
+	ino64_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
 	size_t sel_size;
 	int sel_vector [vector_size];
 	int64_t count = 0;
 	int64_t low, high, col;
-	for (size_t i = 0; i < COLUMN_SIZE/vector_size; ++ i){
+	int64_t i = 0;
+	for (i = 0; i < COLUMN_SIZE - vector_size; i+= vector_size){
 		low = rangequeries->at(0).at(0);
 		high = rangequeries->at(0).at(1);
 		col = rangequeries->at(0).at(2);
-		sel_size = select_rq_scan_new (sel_vector, &table->columns[col][vector_size*i], low, high, vector_size);
+		sel_size = select_rq_scan_new (sel_vector, &table->columns[col][i], low, high, vector_size);
 		for (size_t query_num = 1; query_num < rangequeries->size(); query_num++)
 		{
 			low = rangequeries->at(query_num).at(0);
 			high = rangequeries->at(query_num).at(1);
 			col = rangequeries->at(query_num).at(2);
-			sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[col][vector_size*i], low, high, sel_size);
+			sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[col][i], low, high, sel_size);
 		}
 		#ifdef test
 			for(size_t j = 0; j < sel_size; ++ j)
-				result->push_back(vector_size*i+sel_vector[j]);
+				result->push_back(i+sel_vector[j]);
 		#else
 			count += sel_size;
 		#endif
 	}
+
+	low = rangequeries->at(0).at(0);
+	high = rangequeries->at(0).at(1);
+	col = rangequeries->at(0).at(2);
+	sel_size = select_rq_scan_new (sel_vector, &table->columns[col][i], low, high, COLUMN_SIZE - i);
+	for (size_t query_num = 1; query_num < rangequeries->size(); query_num++)
+	{
+		low = rangequeries->at(query_num).at(0);
+		high = rangequeries->at(query_num).at(1);
+		col = rangequeries->at(query_num).at(2);
+		sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[col][i], low, high, sel_size);
+	}
+	#ifdef test
+		for(size_t j = 0; j < sel_size; ++ j)
+			result->push_back(i+sel_vector[j]);
+	#else
+		count += sel_size;
+	#endif
+
 	#ifndef test
 		result->push_back(count);
 	#endif
