@@ -96,8 +96,12 @@ Tree standardCracking(IndexEntry *&c, int dataSize, Tree T, int lowKey, int high
         pivot_pair = (IntPair)malloc(sizeof(struct int_pair));
         if(lowKey != -1)
             pivot_pair->first = crackInTwoItemWise(c, p1->first, p1->second, lowKey);
-        if(highKey != -1)
-            pivot_pair->second = crackInTwoItemWise(c, pivot_pair->first, p2->second, highKey);
+        if(highKey != -1){
+            if(lowKey != -1)
+                pivot_pair->second = crackInTwoItemWise(c, pivot_pair->first, p2->second, highKey);
+            else
+                pivot_pair->second = crackInTwoItemWise(c, p1->first, p2->second, highKey);
+        }
     }
 
     if(lowKey != -1)
