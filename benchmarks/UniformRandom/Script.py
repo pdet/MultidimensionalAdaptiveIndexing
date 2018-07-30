@@ -24,6 +24,7 @@ experiments = [FULL_SCAN,STANDARD_CRACKING,CRACKING_KD_TREE,FULL_KD_TREE]
 NUM_QUERIES = "1000"
 NUMBER_OF_REPETITIONS = 10
 COLUMN_SIZE = '10000000'
+UPPERBOUND = COLUMN_SIZE
 NUMBER_OF_COLUMNS = '8'
 KDTREE_THRESHOLD = '2000'  # Only used for KDTree
 
@@ -86,7 +87,7 @@ def generateExperimentDefine():
 generateExperimentDefine()
 
 print("Compiling")
-os.environ['OPT'] = 'true'
+os.environ['OPT'] = 'false'
 if os.system('make') != 0:
     print("Make Failed")
     exit()
@@ -94,7 +95,7 @@ if os.system('make') != 0:
 print("Generating Data")
 if os.system("./gendata --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  NUMBER_OF_COLUMNS
  + " --selectivity=" +SELECTIVITY_PERCENTAGE + " --queries-pattern=" +  QUERIES_PATTERN + " --column-pattern="+ COLUMN_PATTERN
- + " --one-side-ranges=" +ONE_SIDED_PERCENTAGE) != 0:
+ + " --one-side-ranges=" +ONE_SIDED_PERCENTAGE + " --upperbound=" + UPPERBOUND) != 0:
     print("Generating Data Failed")
     exit()
 
