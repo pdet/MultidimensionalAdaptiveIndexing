@@ -3,6 +3,11 @@ import pandas as pd
 import numpy as np
 import inspect
 
+os.system('rm src/util/define.h')
+file = open('src/util/define.h',"w")
+file.write('#define test')
+file.close()
+
 SCRIPT_PATH =  os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) # script directory
 os.chdir(SCRIPT_PATH) # setting current dir as script path
 
@@ -18,9 +23,6 @@ FULL_KD_TREE = "3"
 SCALE_FACTOR = 0.1
 NUM_QUERIES = 1000
 KDTREE_THRESHOLD = '2000'  # Only used for KDTree
-
-experiments = [FULL_SCAN, STANDARD_CRACKING, CRACKING_KD_TREE, FULL_KD_TREE]
-NUMBER_OF_REPETITIONS = 10
 
 # COLUMNS IN LINEITEM
 # 0 = ORDERKEY
@@ -106,46 +108,6 @@ def fix_queries():
 if os.path.exists("ResultsTPCH/") != 1:
     os.system('mkdir ResultsTPCH')
 
-def getFolderToSaveExperiments():
-    global PATH
-    experimentsList = os.listdir("ResultsTPCH/")
-    aux = 0
-    for experiment in experimentsList:
-        if aux < int(experiment):
-            aux = int(experiment)
-    currentexperiment = aux + 1
-    PATH = "ResultsTPCH/" + str(currentexperiment) + '/'
-    os.system('mkdir ' + PATH)
-
-def translate_alg(alg):
-    if alg == '0':
-        return 'fs'
-    if alg == '1':
-        return 'stdavl'
-    if alg == '2':
-        return 'stdkd'
-    if alg == '3':
-        return 'fikd'
-    return alg
-
-#Output is a csv file with:
-#"algorithm;repetition;column_size;column_pattern;number_of_columns;index_creation;index_lookup;scan_time;join_time;total_time"
-def generate_output(file,query_result,repetition,ALGORITHM):
-    query_result = query_result.split("\n")
-    for query in range(0, len(query_result)-1):
-        file.write(translate_alg(ALGORITHM) + ';' + str(repetition) + ";" + "0" +";"+ str(query)
-        + ';' + "0" + ';' + "0"  + ';' + "16" + ';' + query_result[query])
-        file.write('\n')
-    file.close()
-
-def create_output():
-    # Saving Experiments
-    header = "algorithm;repetition;query_selectivity;query_number;column_size;column_pattern;number_of_columns;index_creation;index_lookup;scan_time;join_time;total_time"
-    file = open(PATH + "results.csv", "w")
-    file.write(header)
-    file.write('\n')
-    return file
-
 # SCRIPT START
 
 if os.path.exists("lineitem.csv") != 1:
@@ -165,11 +127,5 @@ if os.system('make') != 0:
     print("Make Failed")
     exit()
 
-for experiment in experiments:
-    for repetition in range(NUMBER_OF_REPETITIONS):
-        getFolderToSaveExperiments()
-        result = os.popen(
-            "./crackingtpch --num-queries=" + str(NUM_QUERIES) + " --indexing-type=" + str(experiment)
-            +" --kdtree-threshold=" + str(KDTREE_THRESHOLD)).read()
-        file = create_output()
-        generate_output(file,result,repetition,experiment)
+print('Testing Algorithms')
+os.system("./crackingtpch --num-queries=" + str(NUM_QUERIES) + " --indexing-type=0" +" --kdtree-threshold=" + str(KDTREE_THRESHOLD)).read()
