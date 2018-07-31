@@ -116,7 +116,7 @@ void full_scan(Table *table, vector<array<int64_t, 3>>  *rangequeries, vector<pa
 		}
 		#ifdef test
 			for(size_t j = 0; j < sel_size; ++ j)
-				result->push_back(i+sel_vector[j]);
+				result->push_back(table->ids[i+sel_vector[j]]);
 		#else
 			count += sel_size;
 		#endif
@@ -135,7 +135,7 @@ void full_scan(Table *table, vector<array<int64_t, 3>>  *rangequeries, vector<pa
 	}
 	#ifdef test
 		for(size_t j = 0; j < sel_size; ++ j)
-			result->push_back(i+sel_vector[j]);
+			result->push_back(table->ids[i+sel_vector[j]]);
 	#else
 		count += sel_size;
 	#endif
