@@ -63,8 +63,8 @@ vector<vector<int64_t>> unidimensional_cracking(Table *table, vector<vector<arra
     vector<vector<int64_t>> queryResult;
     for (size_t i = 0; i < NUM_QUERIES; ++ i){
         vector<pair<int, int>> offsets; 
-        vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
         vector<int64_t> rowId;
+        vector<vector<bool>> bitmaps(NUMBER_OF_COLUMNS);
         cracking_partial_built(table, T,&queries->at(i));
         cracking_index_lookup(T,&queries->at(i),&offsets);
         cracking_intersection(table, &offsets, &bitmaps, &rowId);
@@ -111,43 +111,63 @@ vector<vector<int64_t>> full_kdtree(Table *table, vector< vector<array<int64_t, 
     return queryResult;
 }
 
-void verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<vector<int64_t>> queryResultToBeTested)
+int64_t lesser_vector(vector<int64_t> v1, vector<int64_t> v2){
+    if(v1.size() > v2.size())
+        return v2.size();
+    return v1.size();
+}
+
+int64_t verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<vector<int64_t>> queryResultToBeTested)
 {
-    for (size_t i = 0; i < queryResultBaseline.size(); ++i)
-        for(size_t j = 0; j < queryResultBaseline.at(i).size(); ++ j)
-        	if (queryResultBaseline.at(i).at(j) != queryResultToBeTested.at(i).at(j))
+    int64_t n_w = 0;
+    for (size_t i = 0; i < queryResultBaseline.size(); ++i){
+        for(size_t j = 0; j < lesser_vector(queryResultBaseline.at(i), queryResultToBeTested.at(i)); ++ j){
+        	if (queryResultBaseline.at(i).size() != queryResultToBeTested.at(i).size() ||
+                queryResultBaseline.at(i).at(j) != queryResultToBeTested.at(i).at(j))
         	{
-        		fprintf(stderr, "Incorrect Results!\n");
-        		fprintf(stderr, "Query: %ld\n", i);
-        		fprintf(stderr, "Expected: %ld Got: %ld\n", queryResultBaseline.at(i).at(j), queryResultToBeTested.at(i).at(j));
-        		assert(0);
+        		// fprintf(stderr, "Incorrect Results!\n");
+        		// fprintf(stderr, "Query: %ld\n", i);
+        		// fprintf(stderr, "Expected: %ld Got: %ld\n", queryResultBaseline.at(i).at(j), queryResultToBeTested.at(i).at(j));
+                // fprintf(stderr, "Expected size: %ld, Got size: %ld\n", queryResultBaseline.at(i).size(), queryResultToBeTested.at(i).size());
+        		// assert(0);
+                n_w++;
+                break;
         	}
+        }
+    }
+    return n_w;
 }
 
 
 
 void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueries){
+
     vector<vector<int64_t>> queryResultToBeTested;
     fprintf(stderr, "Running Baseline.\n");
     vector<vector<int64_t>> queryResultBaseline = range_query_baseline(table,&rangeQueries);
 
     fprintf(stderr, "Running Vectorized Branchless Scan.\n");
     queryResultToBeTested = vectorized_branchless_full_scan(table,&rangeQueries);
-    verify_range_query(queryResultBaseline,queryResultToBeTested);
+    int64_t fs = verify_range_query(queryResultBaseline,queryResultToBeTested);
    
     fprintf(stderr, "Running Unidimensional Cracking.\n");
     queryResultToBeTested = unidimensional_cracking(table,&rangeQueries);
-    verify_range_query(queryResultBaseline,queryResultToBeTested);
+    int64_t std = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
     fprintf(stderr, "Running Cracking KD-Tree.\n");
     queryResultToBeTested = cracking_kdtree(table,&rangeQueries);
-    verify_range_query(queryResultBaseline,queryResultToBeTested);
+    int64_t ckd = verify_range_query(queryResultBaseline,queryResultToBeTested);
     
     fprintf(stderr, "Running Full Kd-Tree.\n");
     queryResultToBeTested = full_kdtree(table,&rangeQueries);
-    verify_range_query(queryResultBaseline,queryResultToBeTested);
+    int64_t kd = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
-    fprintf(stderr, "Everything works!\n");
+    fprintf(stderr, "SUMMARY------------------------------------------------\n");
+    fprintf(stderr, "|Full Scan - Number of errors: %ld\n", fs);
+    fprintf(stderr, "|Unidimensional Crackig - Number of errors: %ld\n", std);
+    fprintf(stderr, "|Cracking KD - Number of errors: %ld\n", ckd);
+    fprintf(stderr, "|Full KD - Number of errors: %ld\n", kd);
+    fprintf(stderr, "-------------------------------------------------------\n");
 
         
 }

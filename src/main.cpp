@@ -28,7 +28,7 @@ typedef void (*pre_processing_function)(Table *table, Tree * t);
 typedef void (*partial_index_built_function)(Table *table, Tree * T,vector<array<int64_t, 3>>  *rangequeries);
 typedef void (*index_lookup_function)(Tree * T,vector<array<int64_t, 3>>  *rangequeries,vector<pair<int,int>>  *offsets);
 typedef void (*scan_data_function)(Table *table, vector<array<int64_t, 3>>  *rangequeries,vector<pair<int,int>>  *offsets, vector<int64_t> * result);
-typedef void (*intersect_data_function)(Table *table,vector<pair<int,int>>  *offsets, vector<boost::dynamic_bitset<>> *bitmaps, vector<int64_t> * result);
+typedef void (*intersect_data_function)(Table *table,vector<pair<int,int>>  *offsets, vector<vector<bool> > *bitmaps, vector<int64_t> * result);
 
 //Settings for Indexes
 const int FULL_SCAN = 0;
@@ -57,7 +57,7 @@ void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQuer
 	else 
 		T = (Tree *)malloc(sizeof(Tree));
 
-	vector<boost::dynamic_bitset<>> bitmaps(NUMBER_OF_COLUMNS);
+	vector<vector<bool> > bitmaps(NUMBER_OF_COLUMNS);
 	// First we do pre-processing. In the case of full index we fully create the index.
 	// In the case of Partial Indexes we copy the elements to a cracker index structure.
     start = chrono::system_clock::now();

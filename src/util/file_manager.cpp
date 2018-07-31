@@ -40,7 +40,7 @@ void tpch_loadData(Table &t, string DATA_FILE_PATH){
         // for (int i = 0; i < predicates.size(); ++i)
         //     std::cout << predicates[i] << '\n';
         t.ids.push_back(line_index);
-        // int cols: 1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13
+        // int cols: 0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12
         t.columns.at(0).push_back(to_int64_t(predicates.at(0).c_str()));
         t.columns.at(1).push_back(to_int64_t(predicates.at(1).c_str()));
         t.columns.at(2).push_back(to_int64_t(predicates.at(2).c_str()));
@@ -54,7 +54,7 @@ void tpch_loadData(Table &t, string DATA_FILE_PATH){
         t.columns.at(6).push_back(atof(predicates.at(6).c_str()) * 100);
         t.columns.at(7).push_back(atof(predicates.at(7).c_str()) * 100);
 
-        // string cols: 9, 10, 14, 15, 16
+        // string cols: 8, 9, 13, 14, 15
         t.s_columns.at(0).push_back(predicates.at(8));
         t.s_columns.at(1).push_back(predicates.at(9));
         t.s_columns.at(2).push_back(predicates.at(13));
@@ -77,11 +77,11 @@ void tpch_loadQueries(vector<vector<array<int64_t, 3>>> &queries, string QUERIES
         vector<string> predicates = split_string(line, ';');
         vector<array<int64_t, 3>> query;
 
-        query.push_back(array<int64_t, 3> {to_int64_t(predicates.at(0)), to_int64_t(predicates.at(1)), 10});
+        query.push_back(array<int64_t, 3> {{to_int64_t(predicates.at(0)), to_int64_t(predicates.at(1)), 10}});
 
-        query.push_back(array<int64_t, 3> {to_int64_t(predicates.at(2)), to_int64_t(predicates.at(3)), 6});
+        query.push_back(array<int64_t, 3> {{to_int64_t(predicates.at(2)), to_int64_t(predicates.at(3)), 6}});
 
-        query.push_back(array<int64_t, 3> {to_int64_t(predicates.at(4)), to_int64_t(predicates.at(5)), 4});
+        query.push_back(array<int64_t, 3> {{to_int64_t(predicates.at(4)), to_int64_t(predicates.at(5)), 4}});
 
         queries.push_back(query);
     }
