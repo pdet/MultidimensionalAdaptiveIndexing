@@ -21,7 +21,7 @@ FULL_KD_TREE = "3"
 
 # CONFIGURATIONS
 SCALE_FACTOR = 0.1
-NUM_QUERIES = 1000
+NUM_QUERIES = 10
 KDTREE_THRESHOLD = '2000'  # Only used for KDTree
 
 # COLUMNS IN LINEITEM
@@ -128,4 +128,4 @@ if os.system('make') != 0:
     exit()
 
 print('Testing Algorithms')
-os.system("./crackingtpch --num-queries=" + str(NUM_QUERIES) + " --indexing-type=0" +" --kdtree-threshold=" + str(KDTREE_THRESHOLD)).read()
+os.system("./crackingtpch --num-queries=" + str(NUM_QUERIES) + " --indexing-type=0" +" --kdtree-threshold=" + str(KDTREE_THRESHOLD))
