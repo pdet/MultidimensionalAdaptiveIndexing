@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <array>
 
-#define test
+// #define test
 
 extern int64_t KDTREE_THRESHOLD, COLUMN_SIZE, NUMBER_OF_COLUMNS;
 using namespace std;

@@ -3,7 +3,7 @@
 #include <vector>
 #include <array>
 
-#define test
+// #define test
 
 using namespace std;
 extern int64_t COLUMN_SIZE, NUMBER_OF_COLUMNS;

@@ -117,12 +117,6 @@ int64_t lesser_vector(vector<int64_t> v1, vector<int64_t> v2){
     return v1.size();
 }
 
-int64_t size_diff(vector<int64_t> v1, vector<int64_t> v2){
-    if(v1.size() > v2.size())
-        return v1.size() - v2.size();
-    return v2.size() - v1.size();
-}
-
 int64_t verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<vector<int64_t>> queryResultToBeTested)
 {
     int64_t n_w = 0;
@@ -140,9 +134,7 @@ int64_t verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<ve
                 break;
         	}
         }
-        // n_w += size_diff(queryResultBaseline.at(i), queryResultToBeTested.at(i));
     }
-    fprintf(stderr, "N wrongs: %ld\n", n_w);
     return n_w;
 }
 
