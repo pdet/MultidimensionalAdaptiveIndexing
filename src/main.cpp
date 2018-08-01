@@ -47,6 +47,7 @@ void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQuer
 	vector<double> indexLookup = vector<double>(NUM_QUERIES, 0);
 	vector<double> scanTime = vector<double>(NUM_QUERIES, 0);
 	vector<double> joinTime = vector<double>(NUM_QUERIES, 0);
+	vector<double> projectionTime = vector<double>(NUM_QUERIES, 0);
 	vector<double> totalTime = vector<double>(NUM_QUERIES);
 	chrono::time_point<chrono::system_clock> start, end;
 	
@@ -97,11 +98,15 @@ void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQuer
     	end = chrono::system_clock::now();
         joinTime.at(i)  = chrono::duration<double>(end - start).count();
 
-        totalTime.at(i)  = indexCreation.at(i) + indexLookup.at(i) + scanTime.at(i) + joinTime.at(i);
-        fprintf(stderr, "Result : %lu\n",result.at(0));
+		start = chrono::system_clock::now(); 
+    	int64_t final_result = uniformRandomProjection(&result);
+        projectionTime.at(i)  = chrono::duration<double>(end - start).count();
+
+        totalTime.at(i)  = indexCreation.at(i) + indexLookup.at(i) + scanTime.at(i) + joinTime.at(i) + projectionTime.at(i);
+        fprintf(stderr, "Result : %ld\n", final_result);
     }
 	for (int i = 0; i < NUM_QUERIES; i++){
-		cout << indexCreation.at(i) << ";" << indexLookup.at(i) << ";" << scanTime.at(i) << ";" << joinTime.at(i) << ";" << totalTime.at(i) << "\n";
+		cout << indexCreation.at(i) << ";" << indexLookup.at(i) << ";" << scanTime.at(i) << ";" << joinTime.at(i) << ";" << totalTime.at(i) << ";" << projectionTime.at(i) << "\n";
 		fprintf(stderr, "%f\n",totalTime.at(i));
 	}
 }
