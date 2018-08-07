@@ -643,9 +643,6 @@ void kdtree_index_lookup(Tree * tree, vector<array<int64_t, 3>> *query,vector<pa
 
 void kdtree_scan(Table *table, vector<array<int64_t, 3>> *query, vector<pair<int,int>>  *offsets, vector<int64_t> * result)
 {
-    #ifndef test
-    result->push_back(0);
-    #endif
     for(size_t i = 0; i < offsets->size(); ++i){
         int sel_size;
         int sel_vector[offsets->at(i).second - offsets->at(i).first + 1];
@@ -660,12 +657,8 @@ void kdtree_scan(Table *table, vector<array<int64_t, 3>> *query, vector<pair<int
 			int64_t col = query->at(query_num).at(2);
             sel_size = select_rq_scan_sel_vec(sel_vector, &table->crackertable.columns[col][offsets->at(i).first],low,high,sel_size);
         }
-        #ifdef test
-            for (size_t j = 0; j < sel_size; ++j)
-                result->push_back(table->crackertable.ids[sel_vector[j] + offsets->at(i).first]);
-        #else
-            result->at(0)+=sel_size;
-        #endif
+        for (size_t j = 0; j < sel_size; ++j)
+            result->push_back(table->crackertable.ids[sel_vector[j] + offsets->at(i).first]);
     }
 }
 

@@ -54,18 +54,10 @@ vector<int64_t> join_bitmaps(vector<vector<bool> > *bitmaps){
 				final_bitmap.at(j) = (final_bitmap.at(j) & bitmaps->at(i).at(j));
 			}
 		}
-		#ifdef test
-			result = result_bitmap(final_bitmap);
-		#else
-			result.push_back(count_bitmap(final_bitmap));
-		#endif
+		result = result_bitmap(final_bitmap);
 		return result;
 	}else{
-		#ifdef test
-			result = result_bitmap(bitmaps->at(0));
-		#else
-			result.push_back(count_bitmap(bitmaps->at(0)));
-		#endif
+		result = result_bitmap(bitmaps->at(0));
 		return result;
 	}
 
@@ -114,12 +106,8 @@ void full_scan(Table *table, vector<array<int64_t, 3>>  *rangequeries, vector<pa
 			col = rangequeries->at(query_num).at(2);
 			sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[col][i], low, high, sel_size);
 		}
-		#ifdef test
-			for(size_t j = 0; j < sel_size; ++ j)
-				result->push_back(table->ids[i+sel_vector[j]]);
-		#else
-			count += sel_size;
-		#endif
+		for(size_t j = 0; j < sel_size; ++ j)
+			result->push_back(table->ids[i+sel_vector[j]]);
 	}
 
 	low = rangequeries->at(0).at(0);
@@ -133,16 +121,22 @@ void full_scan(Table *table, vector<array<int64_t, 3>>  *rangequeries, vector<pa
 		col = rangequeries->at(query_num).at(2);
 		sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[col][i], low, high, sel_size);
 	}
-	#ifdef test
-		for(size_t j = 0; j < sel_size; ++ j)
-			result->push_back(table->ids[i+sel_vector[j]]);
-	#else
-		count += sel_size;
-	#endif
 
-	#ifndef test
-		result->push_back(count);
-	#endif
+	for(size_t j = 0; j < sel_size; ++ j)
+		result->push_back(table->ids[i+sel_vector[j]]);
+}
+
+int64_t uniformRandomProjection(vector<int64_t> * ids){
+	return ids->size();
+}
+
+int64_t tpchProjection(Table * T,vector<int64_t> * ids) {
+	int64_t result = 0;
+	for(size_t i = 0; i < ids->size(); ++i){
+		int64_t id = ids->at(i);
+		result += T->columns.at(5).at(id) * T->columns.at(6).at(id);
+	}
+	return result;
 }
 
 void print_help(int argc, char** argv) {
