@@ -21,7 +21,7 @@ FULL_KD_TREE = "3"
 
 # CONFIGURATIONS
 SCALE_FACTOR = 0.1
-NUM_QUERIES = 10
+NUM_QUERIES = 1000
 KDTREE_THRESHOLD = '2000'  # Only used for KDTree
 
 # COLUMNS IN LINEITEM
@@ -122,7 +122,7 @@ print("#### Queries generation complete ####")
 os.chdir("../../")
 
 print("Compiling")
-os.environ['OPT'] = 'false'
+os.environ['OPT'] = 'true'
 if os.system('make') != 0:
     print("Make Failed")
     exit()
