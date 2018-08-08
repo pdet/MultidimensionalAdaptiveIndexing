@@ -122,7 +122,7 @@ print("#### Queries generation complete ####")
 os.chdir("../../")
 
 print("Compiling")
-os.environ['OPT'] = 'true'
+os.environ['OPT'] = 'false'
 if os.system('make') != 0:
     print("Make Failed")
     exit()

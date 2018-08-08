@@ -4,7 +4,9 @@ In this stand-alone implementation, we present various MDAI approaches and compa
 ## Algorithms
 * [Vectorized Predicated Scans](https://pdfs.semanticscholar.org/2e84/4872e32a4a4e94e229a9a9e70ac47d710252.pdf)
 * [Unidimensional Standard Cracking](http://stratos.seas.harvard.edu/files/IKM_CIDR07.pdf)
-* [Sideways Cracking TBD](http://delivery.acm.org/10.1145/1560000/1559878/p297-idreos.pdf)
+* [Sideways Cracking](http://delivery.acm.org/10.1145/1560000/1559878/p297-idreos.pdf)
+* [Partial Sideways Cracking](http://delivery.acm.org/10.1145/1560000/1559878/p297-idreos.pdf)
+* [Covered Index](http://delivery.acm.org/10.1145/2740000/2732229/p97-schuhknecht.pdf)
 * [Quasii TBD](https://openproceedings.org/2018/conf/edbt/paper-153.pdf)
 * Cracking KD-Tree
 * [KD-Tree](http://delivery.acm.org/10.1145/370000/361007/p509-bentley.pdf)
@@ -54,5 +56,12 @@ The following script test if all implemented algorithms are returning the correc
 ```bash
 python benchmarks/test.py
 ```
+
+##Third Parties Code
+### Standard Cracking
+...
+### TPC-H DB-GEN
+...
+
 ## Papers
-Cracking KD-Tree: The First Multidimensional Adaptive Indexing (Position Paper). P. Holanda, M. Nerone, E. C. de Almeida and S. Manegold @ DATA 2018
+### Cracking KD-Tree: The First Multidimensional Adaptive Indexing (Position Paper). P. Holanda, M. Nerone, E. C. de Almeida and S. Manegold @ DATA 2018

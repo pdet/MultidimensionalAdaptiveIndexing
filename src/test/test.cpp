@@ -48,13 +48,6 @@ vector<vector<int64_t>> vectorized_branchless_full_scan(Table *table, vector<vec
     return queryResult;
 }
 
-    // table->crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
-    // Tree *T;
-    // if(INDEXING_TYPE == 1)
-    //     T = (Tree *)malloc(sizeof(Tree) * NUMBER_OF_COLUMNS);
-    // else 
-    //     T = (Tree *)malloc(sizeof(Tree));
-
 vector<vector<int64_t>> unidimensional_cracking(Table *table, vector<vector<array<int64_t, 3>>> *queries)
 {
     table->crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
@@ -111,6 +104,42 @@ vector<vector<int64_t>> full_kdtree(Table *table, vector< vector<array<int64_t, 
     return queryResult;
 }
 
+// vector<vector<int64_t>> partial_sideways_cracking(Table *table, vector< vector<array<int64_t, 3>>> *queries)
+// {
+//     Tree *T = (Tree *)malloc(sizeof(Tree));
+//     partial_sideways_cracking_pre_processing(table, T);
+//     vector<vector<int64_t>> queryResult;
+
+//     for (size_t i = 0; i < NUM_QUERIES; ++ i){
+//         vector<pair<int, int>> offsets; 
+//         vector<int64_t> rowId;
+//         partial_sideways_cracking_partial_built(table, T,&queries->at(i));
+//         partial_sideways_cracking_scan(table,&queries->at(i), &offsets, &rowId);
+
+//         sort(rowId.begin(),rowId.end());
+//         queryResult.push_back(rowId);
+//     }
+//     return queryResult;
+// }
+
+vector<vector<int64_t>> sideways_cracking(Table *table, vector< vector<array<int64_t, 3>>> *queries)
+{
+    Tree *T = (Tree *)malloc(sizeof(Tree) * NUMBER_OF_COLUMNS);
+    sideways_cracking_pre_processing(table, T);
+    vector<vector<int64_t>> queryResult;
+
+    for (size_t i = 0; i < NUM_QUERIES; ++ i){
+        vector<pair<int, int>> offsets; 
+        vector<int64_t> rowId;
+        sideways_cracking_partial_built(table, T,&queries->at(i));
+        sideways_cracking_index_lookup(T,&queries->at(i),&offsets);
+        sideways_cracking_scan(table,&queries->at(i), &offsets, &rowId);
+
+        sort(rowId.begin(),rowId.end());
+        queryResult.push_back(rowId);
+    }
+    return queryResult;
+}
 int64_t smaller_vector(vector<int64_t> v1, vector<int64_t> v2){
     if(v1.size() > v2.size())
         return v2.size();
@@ -162,11 +191,21 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     queryResultToBeTested = full_kdtree(table,&rangeQueries);
     int64_t kd = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
+    fprintf(stderr, "Running Sideways Cracking.\n");
+    queryResultToBeTested = sideways_cracking(table,&rangeQueries);
+    int64_t sw = verify_range_query(queryResultBaseline,queryResultToBeTested);
+
+    // fprintf(stderr, "Running Partial Sideways Cracking.\n");
+    // queryResultToBeTested = partial_sideways_cracking(table,&rangeQueries);
+    // int64_t psw = verify_range_query(queryResultBaseline,queryResultToBeTested);
+
     fprintf(stderr, "SUMMARY------------------------------------------------\n");
     fprintf(stderr, "|Full Scan - Number of errors: %ld\n", fs);
     fprintf(stderr, "|Unidimensional Crackig - Number of errors: %ld\n", std);
     fprintf(stderr, "|Cracking KD - Number of errors: %ld\n", ckd);
     fprintf(stderr, "|Full KD - Number of errors: %ld\n", kd);
+    fprintf(stderr, "|Sideways Cracking - Number of errors: %ld\n", sw);
+    // fprintf(stderr, "|Partial Sideways - Number of errors: %ld\n", psw);
     fprintf(stderr, "-------------------------------------------------------\n");
 
         
