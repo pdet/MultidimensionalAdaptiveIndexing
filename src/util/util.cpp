@@ -1,22 +1,25 @@
 #include "util.h"
 #include <unordered_map>
 #include <vector>
+#include <array>
+
+// #define test
 
 using namespace std;
 extern int64_t COLUMN_SIZE, NUMBER_OF_COLUMNS;
 
-void create_bitmap(IndexEntry *c, int64_t from, int64_t to, boost::dynamic_bitset<> &bitmap)
+void create_bitmap(IndexEntry *c, int64_t from, int64_t to, vector<bool> &bitmap)
 {
-	for (size_t i = from; i <= to; i++)
+	for (int64_t i = from; i <= to; i++)
 	{
-		boost::dynamic_bitset<>::size_type id = (boost::dynamic_bitset<>::size_type) c[i].m_rowId;
+		size_t id = (size_t) c[i].m_rowId;
 		bitmap[id] = 1;
 	}
 }
 
-int64_t count_bitmap(boost::dynamic_bitset<> bitmap){
+int64_t count_bitmap(vector<bool> bitmap){
 	int64_t count =0;
-	for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
+	for(size_t i = 0; i < COLUMN_SIZE; ++i){
 		if(bitmap[i]){
 			count += 1;
 		}
@@ -25,9 +28,9 @@ int64_t count_bitmap(boost::dynamic_bitset<> bitmap){
 	return count;
 }
 
-vector<int64_t>  result_bitmap(boost::dynamic_bitset<> bitmap){
+vector<int64_t>  result_bitmap(vector<bool> bitmap){
 	vector<int64_t>  result;
-	for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
+	for(size_t i = 0; i < COLUMN_SIZE; ++i){
 		if(bitmap[i]){
 			result.push_back(i);
 		}
@@ -36,30 +39,25 @@ vector<int64_t>  result_bitmap(boost::dynamic_bitset<> bitmap){
 	return result;
 }
 
-vector<int64_t> join_bitmaps(vector<boost::dynamic_bitset<>> *bitmaps){
+vector<int64_t> join_bitmaps(vector<vector<bool> > *bitmaps){
 	vector<int64_t> result;
 	if(bitmaps->size() > 1){
-		boost::dynamic_bitset<> final_bitmap(COLUMN_SIZE);
+		vector<bool> final_bitmap(COLUMN_SIZE);
 
-		for(boost::dynamic_bitset<>::size_type i = 0; i < COLUMN_SIZE; ++i){
+		for(size_t i = 0; i < COLUMN_SIZE; ++i){
 			final_bitmap[i] = bitmaps->at(0)[i];
 		}
 
-		for(boost::dynamic_bitset<>::size_type i = 1; i < bitmaps->size(); ++i){
-			final_bitmap = (final_bitmap & bitmaps->at(i));
+		for(size_t i = 1; i < bitmaps->size(); ++i){
+			for(size_t j = 0; j < COLUMN_SIZE; j++)
+			{
+				final_bitmap.at(j) = (final_bitmap.at(j) & bitmaps->at(i).at(j));
+			}
 		}
-		#ifdef test
-			result = result_bitmap(final_bitmap);
-		#else
-			result.push_back(count_bitmap(final_bitmap));
-		#endif
+		result = result_bitmap(final_bitmap);
 		return result;
 	}else{
-		#ifdef test
-			result = result_bitmap(bitmaps->at(0));
-		#else
-			result.push_back(count_bitmap(bitmaps->at(0)));
-		#endif
+		result = result_bitmap(bitmaps->at(0));
 		return result;
 	}
 
@@ -68,7 +66,7 @@ vector<int64_t> join_bitmaps(vector<boost::dynamic_bitset<>> *bitmaps){
 int select_rq_scan_sel_vec (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n){
     int j;
     for (int i = j = 0; i < n; i++){
-        int matching =  keyL <= col[sel[i]] &&  col[sel[i]] < keyH;
+        int matching =  ((keyL <= col[sel[i]]) || (keyL == -1)) &&  ((col[sel[i]] < keyH) || (keyH == -1));
         sel[j] = sel[i];
         j += matching;
     }
@@ -79,7 +77,7 @@ int select_rq_scan_sel_vec (int*__restrict__ sel, int64_t*__restrict__ col, int6
 int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t keyL, int64_t keyH, int n){
     int j;
     for (int i = j = 0 ; i < n; i++){
-        int matching =  keyL <= col[i] &&  col[i] < keyH;
+        int matching =  ((keyL <= col[i]) || (keyL == -1)) &&  ((col[i] < keyH) || (keyH == -1));
 
         sel[j] = i;
         j += matching;
@@ -88,26 +86,57 @@ int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t 
     return j;
 }
 
-void full_scan(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries, vector<pair<int,int>> *offsets, vector<int64_t> * result)
+void full_scan(Table *table, vector<array<int64_t, 3>>  *rangequeries, vector<pair<int,int>> *offsets, vector<int64_t> * result)
 {
-	size_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
+	ino64_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
 	size_t sel_size;
 	int sel_vector [vector_size];
 	int64_t count = 0;
-	for (size_t i = 0; i < COLUMN_SIZE/vector_size; ++ i){
-		sel_size = select_rq_scan_new (sel_vector, &table->columns[0][vector_size*i],rangequeries->at(0).first,rangequeries->at(0).second,vector_size);
-		for (size_t column_num = 1; column_num < NUMBER_OF_COLUMNS; column_num++)
-			sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[column_num][vector_size*i],rangequeries->at(column_num).first,rangequeries->at(column_num).second,sel_size);	
-		#ifdef test
-			for(size_t j = 0; j < sel_size; ++ j)
-				result->push_back(vector_size*i+sel_vector[j]);
-		#else
-			count += sel_size;
-		#endif
+	int64_t low, high, col;
+	int64_t i = 0;
+	for (i = 0; i < COLUMN_SIZE - vector_size; i+= vector_size){
+		low = rangequeries->at(0).at(0);
+		high = rangequeries->at(0).at(1);
+		col = rangequeries->at(0).at(2);
+		sel_size = select_rq_scan_new (sel_vector, &table->columns[col][i], low, high, vector_size);
+		for (size_t query_num = 1; query_num < rangequeries->size(); query_num++)
+		{
+			low = rangequeries->at(query_num).at(0);
+			high = rangequeries->at(query_num).at(1);
+			col = rangequeries->at(query_num).at(2);
+			sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[col][i], low, high, sel_size);
+		}
+		for(size_t j = 0; j < sel_size; ++ j)
+			result->push_back(table->ids[i+sel_vector[j]]);
 	}
-	#ifndef test
-		result->push_back(count);
-	#endif
+
+	low = rangequeries->at(0).at(0);
+	high = rangequeries->at(0).at(1);
+	col = rangequeries->at(0).at(2);
+	sel_size = select_rq_scan_new (sel_vector, &table->columns[col][i], low, high, COLUMN_SIZE - i);
+	for (size_t query_num = 1; query_num < rangequeries->size(); query_num++)
+	{
+		low = rangequeries->at(query_num).at(0);
+		high = rangequeries->at(query_num).at(1);
+		col = rangequeries->at(query_num).at(2);
+		sel_size = select_rq_scan_sel_vec(sel_vector, &table->columns[col][i], low, high, sel_size);
+	}
+
+	for(size_t j = 0; j < sel_size; ++ j)
+		result->push_back(table->ids[i+sel_vector[j]]);
+}
+
+int64_t uniformRandomProjection(vector<int64_t> * ids){
+	return ids->size();
+}
+
+int64_t tpchProjection(Table * T,vector<int64_t> * ids) {
+	int64_t result = 0;
+	for(size_t i = 0; i < ids->size(); ++i){
+		int64_t id = ids->at(i);
+		result += T->columns.at(5).at(id) * T->columns.at(6).at(id);
+	}
+	return result;
 }
 
 void print_help(int argc, char** argv) {

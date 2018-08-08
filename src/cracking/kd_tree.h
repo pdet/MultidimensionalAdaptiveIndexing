@@ -5,6 +5,7 @@
 #include "../util/util.h"
 #include <cstdlib>
 #include <stdlib.h>
+#include <array>
 using namespace std;
 
 Tree FullTree(Table &table);
@@ -15,7 +16,7 @@ void Print( Tree T );
 
 void full_kdtree_pre_processing(Table *table, Tree * T);
 void cracking_kdtree_pre_processing(Table *table, Tree * T);
-void cracking_kdtree_partial_built(Table *table, Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries);
-void kdtree_index_lookup(Tree * tree,vector<pair<int64_t,int64_t>>  *query, vector<pair<int,int>>  *offsets);
-void kdtree_scan(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries, vector<pair<int,int>>  *offsets, vector<int64_t> * result);
+void cracking_kdtree_partial_built(Table *table, Tree * T, vector<array<int64_t, 3>> *rangequeries);
+void kdtree_index_lookup(Tree * tree, vector<array<int64_t, 3>> *query,vector<pair<int,int>>  *offsets);
+void kdtree_scan(Table *table, vector<array<int64_t, 3>> *query, vector<pair<int,int>>  *offsets, vector<int64_t> * result);
 #endif //MULTIDEMIONSIONALINDEXING_KD_TREE_H

@@ -8,7 +8,8 @@
 #include "../cracking/kd_tree.h"
 #include "../cracking/sideways/sideways_cracking.h"
 #include "../cracking/sideways/partial_sideways_cracking.h"
+#include <array>
 
 using namespace std;
-void verifyAlgorithms(Table *table, vector<vector<pair<int64_t,int64_t>>> rangeQueries);
+void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueries);
 #endif //MULTIDEMIONSIONALINDEXING_TEST_H

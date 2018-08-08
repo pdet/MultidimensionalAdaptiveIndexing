@@ -4,6 +4,7 @@ cmake-build-debug/
 gendata
 readme.txt
 crackingmain
+crackingtpch
 progressive
 experiments/generatedscripts
 ScriptExperiments/
@@ -12,5 +13,6 @@ ScriptExperiments/
 *.pyc
 *.dSYM/
 *.csv
+*.tbl
 MonetDB/generatecsv
 src/util/define.h

@@ -77,67 +77,71 @@ Tree sideways_cracking(CrackerMaps *map, Tree T, int lowKey, int highKey)
 }
 
 void sideways_cracking_pre_processing(Table *table, Tree * T){
-     for (size_t j = 1; j < NUMBER_OF_COLUMNS ; ++j)
+    table->crackermaps.resize(NUMBER_OF_COLUMNS);
+    for (size_t i = 0; i < NUMBER_OF_COLUMNS ; ++i)
     {
-        CrackerMaps map;
-        map.leading_column = 0;
-        map.aux_column = j;
-        map.ids=table->ids;
-        map.columns.push_back(table->columns.at(0));  // Always get most selective columns as leading column
-        map.columns.push_back(table->columns.at(j));  
-        table->crackermaps.push_back(map);
+        table->crackermaps.at(i).resize(NUMBER_OF_COLUMNS);
+        for(size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
+        {
+            CrackerMaps map;
+            map.leading_column = i;
+            map.aux_column = j;
+            map.ids=table->ids;
+            map.columns.push_back(table->columns.at(i));  // Always get most selective columns as leading column
+            map.columns.push_back(table->columns.at(j));  
+            table->crackermaps.at(i).at(j) = map;
+        }
+        T[i] = NULL;
     }
-    *T = NULL;
 }
 
-
-
-void sideways_cracking_partial_built(Table *table, Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries){
-    for (size_t i = 1; i < table->crackermaps.size(); i ++){
+void sideways_cracking_partial_built(Table *table, Tree * T, vector<array<int64_t, 3>>  *rangequeries){
+    int64_t low = rangequeries->at(0).at(0);
+    int64_t high = rangequeries->at(0).at(1);
+    int64_t col = rangequeries->at(0).at(2);
+    for (size_t i = 1; i < table->crackermaps.at(col).size(); i ++){
         IntPair p1, p2;
         IntPair pivot_pair = NULL;
 
-        p1 = FindNeighborsLT(rangequeries->at(0).first, *T, COLUMN_SIZE - 1);
-        p2 = FindNeighborsLT(rangequeries->at(0).second, *T, COLUMN_SIZE - 1);
+        p1 = FindNeighborsLT(low, T[col], COLUMN_SIZE - 1);
+        p2 = FindNeighborsLT(high, T[col], COLUMN_SIZE - 1);
         pivot_pair = (IntPair)malloc(sizeof(struct int_pair));
-        pivot_pair->first = crack_map(&table->crackermaps.at(i), p1->first, p1->second, rangequeries->at(0).first);
-        pivot_pair->second = crack_map(&table->crackermaps.at(i), pivot_pair->first, p2->second, rangequeries->at(0).second);
+        pivot_pair->first = crack_map(&table->crackermaps.at(col).at(i), p1->first, p1->second, low);
+        pivot_pair->second = crack_map(&table->crackermaps.at(col).at(i), pivot_pair->first, p2->second, high);
     }
-        *T = sideways_cracking(&table->crackermaps.at(0),*T,rangequeries->at(0).first,rangequeries->at(0).second);
+
+    T[col] = sideways_cracking(&table->crackermaps.at(col).at(0), T[col], low, high);
 
 }
 
-void sideways_cracking_index_lookup(Tree * T,vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>>  *offsets){
-    IntPair p1 = FindNeighborsGTE(rangequeries->at(0).first, *T, COLUMN_SIZE - 1);
-    IntPair p2 = FindNeighborsLT(rangequeries->at(0).second, *T, COLUMN_SIZE - 1);
+void sideways_cracking_index_lookup(Tree * T, vector<array<int64_t, 3> >  *rangequeries,vector<pair<int,int>>  *offsets){
+    int64_t low = rangequeries->at(0).at(0);
+    int64_t high = rangequeries->at(0).at(1);
+    int64_t col = rangequeries->at(0).at(2);
+    IntPair p1 = FindNeighborsGTE(low, T[col], COLUMN_SIZE - 1);
+    IntPair p2 = FindNeighborsLT(high, T[col], COLUMN_SIZE - 1);
     offsets->push_back(make_pair(p1->first, p2->second));
 }
 
-void scan_maps(CrackerMaps *map, boost::dynamic_bitset<> &bitmap, int lowOffset, int highOffset, int lowKey, int highKey){
-    for(boost::dynamic_bitset<>::size_type i = 0; i < highOffset - lowOffset; ++i)
+void scan_maps(CrackerMaps *map, vector<bool> &bitmap, int lowOffset, int highOffset, int lowKey, int highKey){
+    for(size_t i = 0; i < highOffset - lowOffset; ++i)
         if(bitmap[i])
             if(map->columns.at(1).at(lowOffset+i) < lowKey || map->columns.at(1).at(lowOffset+i) >= highKey)
                 bitmap[i] = 0;
 }
 
-void sideways_cracking_scan(Table *table, vector<pair<int64_t,int64_t>>  *rangequeries,vector<pair<int,int>> *offsets, vector<int64_t> * result){
-    boost::dynamic_bitset<> bitmap(offsets->at(0).second - offsets->at(0).first); 
-    for(boost::dynamic_bitset<>::size_type i = 0; i < offsets->at(0).second - offsets->at(0).first; ++i)
+void sideways_cracking_scan(Table *table, vector<array<int64_t, 3> >  *rangequeries,vector<pair<int,int>> *offsets, vector<int64_t> * result){
+    int64_t leading_col = rangequeries->at(0).at(2);
+    vector<bool> bitmap(offsets->at(0).second - offsets->at(0).first); 
+    for(size_t i = 0; i < offsets->at(0).second - offsets->at(0).first; ++i)
         bitmap[i]=1;
-    for (size_t i = 0; i < table->crackermaps.size(); i ++){
-        scan_maps(&table->crackermaps.at(i),bitmap,offsets->at(0).first,offsets->at(0).second,rangequeries->at(1+i).first,rangequeries->at(1+i).second);
+    for (size_t query_num = 0; query_num < rangequeries->size(); query_num ++){
+        int64_t low = rangequeries->at(query_num).at(0);
+        int64_t high = rangequeries->at(query_num).at(1);
+        int64_t col = rangequeries->at(query_num).at(2);
+        scan_maps(&table->crackermaps.at(leading_col).at(col), bitmap, offsets->at(0).first,offsets->at(0).second, low, high);
     }
-    
-    #ifndef test
-    result->push_back(0);
-    #endif
-     #ifdef test
-         for(boost::dynamic_bitset<>::size_type i = 0; i < offsets->at(0).second - offsets->at(0).first; ++i)
-            if(bitmap[i])
-                result->push_back(table->crackermaps.at(0).ids.at(i+ offsets->at(0).first));
-            #else
-            for(boost::dynamic_bitset<>::size_type i = 0; i < offsets->at(0).second - offsets->at(0).first; ++i)
-                if(bitmap[i])
-                    result->at(0)+=1;
-            #endif   
+    for(size_t i = 0; i < offsets->at(0).second - offsets->at(0).first; ++i)
+        if(bitmap[i])
+            result->push_back(table->crackermaps.at(leading_col).at(0).ids.at(i+ offsets->at(0).first));
 }

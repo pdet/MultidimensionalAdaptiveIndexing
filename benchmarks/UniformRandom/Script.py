@@ -24,8 +24,11 @@ experiments = ["0","4"]
 NUM_QUERIES = "10"
 NUMBER_OF_REPETITIONS = 1
 COLUMN_SIZE = '10000000'
+UPPERBOUND = COLUMN_SIZE
 NUMBER_OF_COLUMNS = '8'
 KDTREE_THRESHOLD = '2000'  # Only used for KDTree
+
+ONE_SIDED_PERCENTAGE = '0'
 
 SELECTIVITY_PERCENTAGE = "0.2"
 QUERIES_PATTERN =  RANDOM 
@@ -84,14 +87,15 @@ def generateExperimentDefine():
 generateExperimentDefine()
 
 print("Compiling")
-os.environ['OPT'] = 'true'
+os.environ['OPT'] = 'false'
 if os.system('make') != 0:
     print("Make Failed")
     exit()
 
 print("Generating Data")
 if os.system("./gendata --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  NUMBER_OF_COLUMNS
- + " --selectivity=" +SELECTIVITY_PERCENTAGE + " --queries-pattern=" +  QUERIES_PATTERN + " --column-pattern="+ COLUMN_PATTERN) != 0:
+ + " --selectivity=" +SELECTIVITY_PERCENTAGE + " --queries-pattern=" +  QUERIES_PATTERN + " --column-pattern="+ COLUMN_PATTERN
+ + " --one-side-ranges=" +ONE_SIDED_PERCENTAGE + " --upperbound=" + UPPERBOUND) != 0:
     print("Generating Data Failed")
     exit()
 

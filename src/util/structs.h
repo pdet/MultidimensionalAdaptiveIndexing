@@ -3,6 +3,7 @@
 #include <queue>
 #include <climits>
 #include <algorithm>
+#include <string>
 
 using namespace std;
 
@@ -58,7 +59,7 @@ struct CrackerMaps // Sideways Cracking
     int leading_column;
     int aux_column;
     vector<int64_t> ids;
-    vector<vector<int64_t>> columns;
+    vector<vector<int64_t> > columns;
 
 };
 
@@ -90,14 +91,16 @@ struct MapSet // Partial Sideways Cracking
 struct CrackerTable // Cracking KD-Tree
 {
     vector<int64_t> ids;
-    vector<vector<int64_t>> columns;
+    vector<vector<int64_t> > columns;
+    vector<vector<string> > s_columns;
 };
 
 struct Table
 {
     vector<int64_t> ids;
-    vector<vector<int64_t>> columns;
-    vector<CrackerMaps> crackermaps;
+    vector<vector<int64_t> > columns;
+    vector<vector<string> > s_columns;
+    vector<vector<CrackerMaps> > crackermaps;
     MapSet mapset;
     IndexEntry **crackercolumns;
     CrackerTable crackertable;
