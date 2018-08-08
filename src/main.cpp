@@ -22,9 +22,6 @@
 #include "cracking/sideways/sideways_cracking.h"
 #include "cracking/sideways/partial_sideways_cracking.h"
 
-
-// #define test
-
 using namespace std;
 
 typedef void (*pre_processing_function)(Table *table, Tree * t);

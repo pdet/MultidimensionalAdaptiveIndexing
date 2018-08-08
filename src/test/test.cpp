@@ -27,7 +27,7 @@ vector<vector<int64_t>> range_query_baseline(Table *table, vector<vector<array<i
                 }
             }
         if(match)
-            rowId.push_back(table->columns[0][i]);
+            rowId.push_back(table->ids[i]);
         }
         sort(rowId.begin(),rowId.end());
         queryResult.push_back(rowId);
