@@ -80,6 +80,20 @@ struct ChunkMap // Partial Sideways Cracking
     Tree T;
 
 };
+
+struct Slice // Quasii
+{
+    int level;
+
+    int64_t data_offset_begin;
+    int64_t data_offset_end;
+    int64_t box_begin;
+    int64_t box_end;
+    vector<*Slice> refined_slices;
+    // vector<vector<int64_t>> box; // dimensions x (low,high)
+
+};
+
  
 struct MapSet // Partial Sideways Cracking
 {
