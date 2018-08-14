@@ -2,17 +2,20 @@
 
 using namespace std;
 
-extern int64_t NUMBER_OF_COLUMNS;
+extern int64_t NUMBER_OF_COLUMNS,COLUMN_SIZE;
 
 
-const int last_level_threshold = 60;
-vector<int> dimension_threshold;
+const int last_level_threshold = 60; // No clue how to set up this parameter for highly dimensional queries.
+vector<int64_t> dimension_threshold;
 
 // Caculate threshold of each level
 void calculate_level_thresholds(){
 	dimension_threshold.push_back(last_level_threshold);
-	int r = sqrt(COLUMN_SIZE/last_level_threshold);
-	int cur_thr = r * last_level_threshold;
+	double root_aux = 1/NUMBER_OF_COLUMNS;
+	int64_t r = ceil(pow(COLUMN_SIZE/last_level_threshold, (double) 1/NUMBER_OF_COLUMNS));
+	
+
+	int64_t cur_thr = r * last_level_threshold;
 	dimension_threshold.push_back(cur_thr);
 	for (int i = 2; i  < NUMBER_OF_COLUMNS; i ++){
 		cur_thr = r * cur_thr;
@@ -20,6 +23,8 @@ void calculate_level_thresholds(){
 	}
 	reverse(dimension_threshold.begin(),dimension_threshold.end());
 
+	for (int i = 0; i < NUMBER_OF_COLUMNS; i++)
+		fprintf(stderr, "%lld\n",dimension_threshold[i] );
 }
 struct less_than_offset
 {
@@ -49,14 +54,18 @@ int binarySearch(vector<Slice> *S, int64_t key){
 	return pos;
 }
 
+// Same as Cracking-in-Three
 vector<Slice> sliceThreeWay(Slice S, Table *table, vector<array<int64_t, 3>>  *rangequeries){
 	vector<Slice> result;
 	return result;
 }
+// Same as Cracking-in-Two
 vector<Slice> sliceTwoWay(Slice S, Table *table, vector<array<int64_t, 3>>  *rangequeries){
 	vector<Slice> result;
 	return result;
 }
+
+// Cracking in two on key X = (lowkey+highkey)/2
 vector<Slice> sliceArtificial(Slice S, Table *table, vector<array<int64_t, 3>>  *rangequeries){
 	vector<Slice> result;
 	return result;
@@ -120,6 +129,7 @@ void query(vector<array<int64_t, 3>>  *rangequeries, Table *table, vector<Slice>
 						}
 					}
 					else{
+						// I Guess this just initialize the pointers to the childs?
 //						if(refined_slice_aux[j].refined_slices->size() > 0){
 //							createDefaultChild(&refined_slice_aux[j]);
 //						}
@@ -137,6 +147,7 @@ void query(vector<array<int64_t, 3>>  *rangequeries, Table *table, vector<Slice>
 }
 
 void quasii_pre_processing(Table *table, vector<Slice> *S){
+	calculate_level_thresholds();
      for (size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
     {
         table->crackercolumns[j] = (IndexEntry *)malloc(COLUMN_SIZE * sizeof(IndexEntry));

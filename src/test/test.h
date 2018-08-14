@@ -8,6 +8,7 @@
 #include "../cracking/kd_tree.h"
 #include "../cracking/sideways/sideways_cracking.h"
 #include "../cracking/sideways/partial_sideways_cracking.h"
+#include "../quasii/quasii.h"
 #include <array>
 
 using namespace std;

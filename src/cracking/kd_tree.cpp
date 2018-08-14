@@ -421,7 +421,7 @@ void Print(Tree T)
 {
     if (T == NULL)
         return;
-    fprintf(stderr,"(%ld,%ld) ", T->Element, T->column);
+    fprintf(stderr,"(%lld,%lld) ", T->Element, T->column);
     fprintf(stderr,"\n");
     Print(T->Right);
     Print(T->Left);

@@ -88,7 +88,7 @@ int select_rq_scan_new (int*__restrict__ sel, int64_t*__restrict__ col, int64_t 
 
 void full_scan(Table *table, vector<array<int64_t, 3>>  *rangequeries, vector<pair<int,int>> *offsets, vector<int64_t> * result)
 {
-	ino64_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
+	int64_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
 	size_t sel_size;
 	int sel_vector [vector_size];
 	int64_t count = 0;

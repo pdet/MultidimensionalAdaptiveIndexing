@@ -148,9 +148,9 @@ int64_t smaller_vector(vector<int64_t> v1, vector<int64_t> v2){
 
 vector<vector<int64_t>> quasii(Table *table, vector< vector<array<int64_t, 3>>> *queries)
 {
-    Tree *T = (Tree *)malloc(sizeof(Tree) * NUMBER_OF_COLUMNS);
-    // sideways_cracking_pre_processing(table, T);
-     vector<vector<int64_t>> queryResult;
+    vector<Slice> S;
+    vector<vector<int64_t>> queryResult;
+    quasii_pre_processing(table, &S);
 
     // for (size_t i = 0; i < NUM_QUERIES; ++ i){
     //     vector<pair<int, int>> offsets; 
@@ -173,9 +173,9 @@ int64_t verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<ve
                 queryResultBaseline.at(i).at(j) != queryResultToBeTested.at(i).at(j))
         	{
         		// fprintf(stderr, "Incorrect Results!\n");
-        		// fprintf(stderr, "Query: %ld\n", i);
-        		// fprintf(stderr, "Expected: %ld Got: %ld\n", queryResultBaseline.at(i).at(j), queryResultToBeTested.at(i).at(j));
-                // fprintf(stderr, "Expected size: %ld, Got size: %ld\n", queryResultBaseline.at(i).size(), queryResultToBeTested.at(i).size());
+        		// fprintf(stderr, "Query: %ldd\n", i);
+        		// fprintf(stderr, "Expected: %ldd Got: %ldd\n", queryResultBaseline.at(i).at(j), queryResultToBeTested.at(i).at(j));
+                // fprintf(stderr, "Expected size: %ldd, Got size: %ldd\n", queryResultBaseline.at(i).size(), queryResultToBeTested.at(i).size());
         		// assert(0);
                 n_w++;
                 break;
@@ -222,12 +222,12 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     // int64_t psw = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
     fprintf(stderr, "SUMMARY------------------------------------------------\n");
-//    fprintf(stderr, "|Full Scan - Number of errors: %ld\n", fs);
-//    fprintf(stderr, "|Unidimensional Crackig - Number of errors: %ld\n", std);
-//    fprintf(stderr, "|Cracking KD - Number of errors: %ld\n", ckd);
-//    fprintf(stderr, "|Full KD - Number of errors: %ld\n", kd);
-//    fprintf(stderr, "|Sideways Cracking - Number of errors: %ld\n", sw);
-    fprintf(stderr, "|Quasii - Number of errors: %ld\n", qs);
+//    fprintf(stderr, "|Full Scan - Number of errors: %ldd\n", fs);
+//    fprintf(stderr, "|Unidimensional Crackig - Number of errors: %ldd\n", std);
+//    fprintf(stderr, "|Cracking KD - Number of errors: %ldd\n", ckd);
+//    fprintf(stderr, "|Full KD - Number of errors: %ldd\n", kd);
+//    fprintf(stderr, "|Sideways Cracking - Number of errors: %ldd\n", sw);
+    fprintf(stderr, "|Quasii - Number of errors: %ldd\n", qs);
     fprintf(stderr, "-------------------------------------------------------\n");
 
         
