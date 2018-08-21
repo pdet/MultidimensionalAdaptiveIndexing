@@ -105,14 +105,11 @@ vector<Slice> sliceThreeWay(Slice &S, Table *table, int64_t low, int64_t high){
         }
     }
 
-	// Slice *s1 = new Slice(S.level, S.data_offset_begin, x2, S.box_begin, low);
-	S.data_offset_end = x2;
-	S.box_end = low;
-
+	Slice *s1 = new Slice(S.level, S.data_offset_begin, x2, S.box_begin, low);
 	Slice *s2 = new Slice(S.level, x2 + 1, x3, low, high);
 	Slice *s3 = new Slice(S.level, x3 + 1, S.data_offset_end, high, S.box_end);
 
-	// result.push_back(*s1);
+	result.push_back(*s1);
 	result.push_back(*s2);
 	result.push_back(*s3);
 
@@ -146,12 +143,10 @@ vector<Slice> sliceTwoWay(Slice &S, Table *table, int64_t key){
         printf("Not all elements were inspected!");
     x1--;
 
-	// Slice *s1 = new Slice(S.level, S.data_offset_begin, x1, S.box_begin, key);
-	S.data_offset_end = x1;
-	S.box_end = key;
+	Slice *s1 = new Slice(S.level, S.data_offset_begin, x1, S.box_begin, key);
 	Slice *s2 = new Slice(S.level, x1 + 1, S.data_offset_end, key, S.box_end);
 
-	// result.push_back(*s1);
+	result.push_back(*s1);
 	result.push_back(*s2);
 
 	return result;
@@ -159,6 +154,28 @@ vector<Slice> sliceTwoWay(Slice &S, Table *table, int64_t key){
 
 vector<Slice> sliceArtificial(Slice &S, Table *table){
 	vector<Slice> result;
+	stack<Slice> slices_to_be_refined;
+	int64_t t = dimension_threshold[S.level];
+
+	slices_to_be_refined.push(S);
+
+	do{
+		Slice slice = slices_to_be_refined.top();
+		slices_to_be_refined.pop();
+		vector<Slice> slices_refined;
+
+		if(slice.bigger_than_threshold(t)){
+			slices_refined = sliceTwoWay(slice, table, (slice.box_end - slice.box_begin)/2);
+			for(size_t i = 0; slices_refined.size(); ++i){
+				slices_to_be_refined.push(slices_refined.at(i));
+			}
+		}
+		else
+			result.push_back(slice);
+	} while(!slices_to_be_refined.empty());
+
+	reverse(result.begin(), result.end());
+
 	return result;
 }
 
@@ -180,6 +197,10 @@ vector<Slice> refine(Slice &S, Table *table, vector<array<int64_t, 3>>  *rangequ
  		refined_slice = sliceTwoWay(S, table, high);
  	else
  		refined_slice = sliceArtificial(S, table);
+	
+	// The first element is always S, so we modify it in place instead of deleting and re-inserting it
+	S.copy_slice(refined_slice.at(0));
+	refined_slice.erase(refined_slice.begin());
  	for (size_t i = 0; i < refined_slice.size(); i ++){
 	    low = rangequeries->at(S.level).at(0);
     	high = rangequeries->at(S.level).at(1);

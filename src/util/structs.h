@@ -123,6 +123,15 @@ struct Slice // Quasii
     bool bigger_than_threshold(int64_t t){
         return (data_offset_end - data_offset_begin) > t;
     }
+
+    void copy_slice(const Slice s){
+        level = s.level;
+        data_offset_begin = s.data_offset_begin;
+        data_offset_end = s.data_offset_end;
+        box_begin = s.box_begin;
+        box_end = s.box_end;
+        children = s.children;
+    }
 };
 
  
