@@ -96,7 +96,7 @@ struct Slice // Quasii
     int64_t box_end;
     vector<Slice> children;
     // box_end shouldn't be COLUMN_SIZE, it should be the biggest possible value?
-    Slice() : level(0), data_offset_begin(0), data_offset_end(COLUMN_SIZE), box_begin(0), box_end(COLUMN_SIZE){
+    Slice() : level(0), data_offset_begin(0), data_offset_end(COLUMN_SIZE - 1), box_begin(0), box_end(COLUMN_SIZE){
     }
 
     Slice(int l, int64_t offset_begin, int64_t offset_end, int64_t b_begin, int64_t b_end){
@@ -131,6 +131,16 @@ struct Slice // Quasii
         box_begin = s.box_begin;
         box_end = s.box_end;
         children = s.children;
+    }
+
+    bool equal(const Slice s){
+        return (
+            level == s.level &&
+            data_offset_begin == s.data_offset_begin &&
+            data_offset_end == s.data_offset_end &&
+            box_begin == s.box_begin &&
+            box_end == s.box_end
+        );
     }
 };
 

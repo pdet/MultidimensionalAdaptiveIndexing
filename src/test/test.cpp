@@ -148,20 +148,19 @@ int64_t smaller_vector(vector<int64_t> v1, vector<int64_t> v2){
 
 vector<vector<int64_t>> quasii(Table *table, vector< vector<array<int64_t, 3>>> *queries)
 {
-    vector<Slice> S;
     vector<vector<int64_t>> queryResult;
-    quasii_pre_processing(table, &S);
+    quasii_pre_processing(table, NULL);
 
-    // for (size_t i = 0; i < NUM_QUERIES; ++ i){
-    //     vector<pair<int, int>> offsets; 
-    //     vector<int64_t> rowId;
-    //     sideways_cracking_partial_built(table, T,&queries->at(i));
-    //     sideways_cracking_index_lookup(T,&queries->at(i),&offsets);
-    //     sideways_cracking_scan(table,&queries->at(i), &offsets, &rowId);
+    for (size_t i = 0; i < NUM_QUERIES; ++ i){
+        vector<pair<int, int>> offsets; 
+        vector<int64_t> rowId;
+        quasii_partial_built(table, NULL,&queries->at(i));
+        quasii_index_lookup(NULL,&queries->at(i),&offsets);
+        quasii_scan(table,&queries->at(i), &offsets, &rowId);
 
-    //     sort(rowId.begin(),rowId.end());
-    //     queryResult.push_back(rowId);
-    // }
+        sort(rowId.begin(),rowId.end());
+        queryResult.push_back(rowId);
+    }
      return queryResult;
 }
 int64_t verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<vector<int64_t>> queryResultToBeTested)
@@ -227,7 +226,7 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
 //    fprintf(stderr, "|Cracking KD - Number of errors: %ldd\n", ckd);
 //    fprintf(stderr, "|Full KD - Number of errors: %ldd\n", kd);
 //    fprintf(stderr, "|Sideways Cracking - Number of errors: %ldd\n", sw);
-    fprintf(stderr, "|Quasii - Number of errors: %ldd\n", qs);
+    fprintf(stderr, "|Quasii - Number of errors: %ld\n", qs);
     fprintf(stderr, "-------------------------------------------------------\n");
 
         
