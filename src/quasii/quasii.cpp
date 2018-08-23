@@ -24,9 +24,6 @@ void calculate_level_thresholds(){
 		dimension_threshold.push_back(cur_thr);
 	}
 	reverse(dimension_threshold.begin(),dimension_threshold.end());
-
-	for (int i = 0; i < NUMBER_OF_COLUMNS; i++)
-		fprintf(stderr, "%ld\n", dimension_threshold[i] );
 }
 struct less_than_offset
 {
@@ -194,7 +191,7 @@ vector<Slice> sliceArtificial(Slice &S, CrackerTable *table){
 void createDefaultChild(Slice *s){
 	vector<Slice> children;
 	Slice *slice = new Slice(
-		s->level + 1, s->data_offset_begin, s->data_offset_end, s->box_begin, s->box_end
+		s->level + 1, s->data_offset_begin, s->data_offset_end, 0, COLUMN_SIZE
 	);
 	children.push_back(*slice);
 	s->children = children;
@@ -218,11 +215,6 @@ vector<Slice> refine(Slice &slice, CrackerTable *table, vector<array<int64_t, 3>
  		refined_slice = sliceTwoWay(slice, table, high);
  	else
  		refined_slice = sliceArtificial(slice, table);
-	
-	// The first element is always slice, so we modify it in place instead of deleting and re-inserting it
-	slice.copy_slice(refined_slice.at(0));
-	createDefaultChild(&slice);
-	refined_slice.erase(refined_slice.begin());
  	for (size_t i = 0; i < refined_slice.size(); i ++){
 	    low = rangequeries->at(slice.level).at(0);
     	high = rangequeries->at(slice.level).at(1);
@@ -275,11 +267,8 @@ void partial_build(CrackerTable *table, vector<Slice> &Slices, vector<array<int6
     int64_t low = rangequeries->at(dim).at(0);
     int64_t high = rangequeries->at(dim).at(1);
 	int64_t i = binarySearch (&Slices, low);
+	int64_t index_start = i;
 	while (i < Slices.size() && Slices.at(i).box_begin <= high){
-		if(!Slices.at(i).bigger_than_threshold(dimension_threshold[Slices.at(i).level])){
-			i++;
-			continue;
-		}
 		vector<Slice> refined_slices = refine(Slices.at(i), table,rangequeries);
 		for (size_t j = 0; j < refined_slices.size(); j++ ){
 			if(refined_slices[j].intersects(low, high)){
@@ -292,10 +281,13 @@ void partial_build(CrackerTable *table, vector<Slice> &Slices, vector<array<int6
 					partial_build(table, refined_slices[j].children, rangequeries);
 				}
 			}
-		}	
+		}
 		refined_slice_aux.insert(refined_slice_aux.end(), refined_slices.begin(), refined_slices.end());
 		i++;
 	}
+
+	Slices.erase(Slices.begin() + index_start, Slices.begin() + i);
+
 	Slices.insert(Slices.end(), refined_slice_aux.begin(), refined_slice_aux.end());
 	sort(Slices.begin(), Slices.end(), less_than_offset());
 }

@@ -20,10 +20,10 @@ CRACKING_KD_TREE = "2"
 FULL_KD_TREE = "3"
 
 # Main Configurations
-NUM_QUERIES = "10"
-COLUMN_SIZE = '1000'
+NUM_QUERIES = "10000"
+COLUMN_SIZE = '100000'
 UPPERBOUND = COLUMN_SIZE
-NUMBER_OF_COLUMNS = '2'
+NUMBER_OF_COLUMNS = '8'
 KDTREE_THRESHOLD = '2000'  # Only used for KDTree
 
 ONE_SIDED_PERCENTAGE = '0'
@@ -33,7 +33,7 @@ QUERIES_PATTERN =  RANDOM
 COLUMN_PATTERN = RANDOM  
 
 print("Compiling")
-os.environ['OPT'] = 'false'
+os.environ['OPT'] = 'true'
 if os.system('make') != 0:
     print("Make Failed")
     exit()
