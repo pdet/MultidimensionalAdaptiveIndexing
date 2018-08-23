@@ -38,6 +38,7 @@ const int KDTREE = 3;
 const int SIDEWAYS_CRACKING = 4;
 const int PARTIAL_SIDEWAYS_CRACKING = 5;
 const int COVERED_CRACKING = 6;
+const int QUASII = 7;
 
 
 string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
@@ -209,6 +210,9 @@ int main(int argc, char **argv)
                 break;
             case COVERED_CRACKING:
                 benchmarkFunction(&table,query,sideways_cracking_pre_processing,sideways_cracking_partial_built,sideways_cracking_index_lookup,sideways_cracking_scan,NULL);
+                break;
+            case QUASII:
+                benchmarkFunction(&table, query, quasii_pre_processing, quasii_partial_built, quasii_index_lookup, quasii_scan, NULL)
                 break;
     	}
     #endif

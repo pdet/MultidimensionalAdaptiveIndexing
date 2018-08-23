@@ -192,25 +192,25 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     fprintf(stderr, "Running Baseline.\n");
     vector<vector<int64_t>> queryResultBaseline = range_query_baseline(table,&rangeQueries);
 
-    // fprintf(stderr, "Running Vectorized Branchless Scan.\n");
-    // queryResultToBeTested = vectorized_branchless_full_scan(table,&rangeQueries);
-    // int64_t fs = verify_range_query(queryResultBaseline,queryResultToBeTested);
+    fprintf(stderr, "Running Vectorized Branchless Scan.\n");
+    queryResultToBeTested = vectorized_branchless_full_scan(table,&rangeQueries);
+    int64_t fs = verify_range_query(queryResultBaseline,queryResultToBeTested);
    
-    // fprintf(stderr, "Running Unidimensional Cracking.\n");
-    // queryResultToBeTested = unidimensional_cracking(table,&rangeQueries);
-    // int64_t std = verify_range_query(queryResultBaseline,queryResultToBeTested);
+    fprintf(stderr, "Running Unidimensional Cracking.\n");
+    queryResultToBeTested = unidimensional_cracking(table,&rangeQueries);
+    int64_t std = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
-    // fprintf(stderr, "Running Cracking KD-Tree.\n");
-    // queryResultToBeTested = cracking_kdtree(table,&rangeQueries);
-    // int64_t ckd = verify_range_query(queryResultBaseline,queryResultToBeTested);
+    fprintf(stderr, "Running Cracking KD-Tree.\n");
+    queryResultToBeTested = cracking_kdtree(table,&rangeQueries);
+    int64_t ckd = verify_range_query(queryResultBaseline,queryResultToBeTested);
     
-    // fprintf(stderr, "Running Full Kd-Tree.\n");
-    // queryResultToBeTested = full_kdtree(table,&rangeQueries);
-    // int64_t kd = verify_range_query(queryResultBaseline,queryResultToBeTested);
+    fprintf(stderr, "Running Full Kd-Tree.\n");
+    queryResultToBeTested = full_kdtree(table,&rangeQueries);
+    int64_t kd = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
-    // fprintf(stderr, "Running Sideways Cracking.\n");
-    // queryResultToBeTested = sideways_cracking(table,&rangeQueries);
-    // int64_t sw = verify_range_query(queryResultBaseline,queryResultToBeTested);
+    fprintf(stderr, "Running Sideways Cracking.\n");
+    queryResultToBeTested = sideways_cracking(table,&rangeQueries);
+    int64_t sw = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
     fprintf(stderr, "Running Quasii.\n");
     queryResultToBeTested = quasii(table,&rangeQueries);
@@ -221,11 +221,11 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     // int64_t psw = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
     fprintf(stderr, "SUMMARY------------------------------------------------\n");
-//    fprintf(stderr, "|Full Scan - Number of errors: %ldd\n", fs);
-//    fprintf(stderr, "|Unidimensional Crackig - Number of errors: %ldd\n", std);
-//    fprintf(stderr, "|Cracking KD - Number of errors: %ldd\n", ckd);
-//    fprintf(stderr, "|Full KD - Number of errors: %ldd\n", kd);
-//    fprintf(stderr, "|Sideways Cracking - Number of errors: %ldd\n", sw);
+   fprintf(stderr, "|Full Scan - Number of errors: %ldd\n", fs);
+   fprintf(stderr, "|Unidimensional Crackig - Number of errors: %ldd\n", std);
+   fprintf(stderr, "|Cracking KD - Number of errors: %ldd\n", ckd);
+   fprintf(stderr, "|Full KD - Number of errors: %ldd\n", kd);
+   fprintf(stderr, "|Sideways Cracking - Number of errors: %ldd\n", sw);
     fprintf(stderr, "|Quasii - Number of errors: %ld\n", qs);
     fprintf(stderr, "-------------------------------------------------------\n");
 
