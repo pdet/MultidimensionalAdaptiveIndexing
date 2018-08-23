@@ -15,11 +15,13 @@ FULL_SCAN = "0"
 STANDARD_CRACKING = "1"
 CRACKING_KD_TREE = "2"
 FULL_KD_TREE = "3"
+SIDEWAYS_CRACKING = "4"
+QUASII = "7"
 
 PATH = ""
 
 # Select Experiments to run
-experiments = ["0","4"]
+experiments = [SIDEWAYS_CRACKING, QUASII]
 # Main Configurations
 NUM_QUERIES = "10"
 NUMBER_OF_REPETITIONS = 1

@@ -146,6 +146,23 @@ int64_t smaller_vector(vector<int64_t> v1, vector<int64_t> v2){
     return v1.size();
 }
 
+vector<vector<int64_t>> quasii(Table *table, vector< vector<array<int64_t, 3>>> *queries)
+{
+    vector<vector<int64_t>> queryResult;
+    quasii_pre_processing(table, NULL);
+
+    for (size_t i = 0; i < NUM_QUERIES; ++ i){
+        vector<pair<int, int>> offsets; 
+        vector<int64_t> rowId;
+        quasii_partial_built(table, NULL,&queries->at(i));
+        quasii_index_lookup(NULL,&queries->at(i),&offsets);
+        quasii_scan(table,&queries->at(i), &offsets, &rowId);
+
+        sort(rowId.begin(),rowId.end());
+        queryResult.push_back(rowId);
+    }
+     return queryResult;
+}
 int64_t verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<vector<int64_t>> queryResultToBeTested)
 {
     int64_t n_w = 0;
@@ -155,9 +172,9 @@ int64_t verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<ve
                 queryResultBaseline.at(i).at(j) != queryResultToBeTested.at(i).at(j))
         	{
         		// fprintf(stderr, "Incorrect Results!\n");
-        		// fprintf(stderr, "Query: %ld\n", i);
-        		// fprintf(stderr, "Expected: %ld Got: %ld\n", queryResultBaseline.at(i).at(j), queryResultToBeTested.at(i).at(j));
-                // fprintf(stderr, "Expected size: %ld, Got size: %ld\n", queryResultBaseline.at(i).size(), queryResultToBeTested.at(i).size());
+        		// fprintf(stderr, "Query: %ldd\n", i);
+        		// fprintf(stderr, "Expected: %ldd Got: %ldd\n", queryResultBaseline.at(i).at(j), queryResultToBeTested.at(i).at(j));
+                // fprintf(stderr, "Expected size: %ldd, Got size: %ldd\n", queryResultBaseline.at(i).size(), queryResultToBeTested.at(i).size());
         		// assert(0);
                 n_w++;
                 break;
@@ -195,17 +212,21 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     queryResultToBeTested = sideways_cracking(table,&rangeQueries);
     int64_t sw = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
+    fprintf(stderr, "Running Quasii.\n");
+    queryResultToBeTested = quasii(table,&rangeQueries);
+    int64_t qs = verify_range_query(queryResultBaseline,queryResultToBeTested);
+    
     // fprintf(stderr, "Running Partial Sideways Cracking.\n");
     // queryResultToBeTested = partial_sideways_cracking(table,&rangeQueries);
     // int64_t psw = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
     fprintf(stderr, "SUMMARY------------------------------------------------\n");
-    fprintf(stderr, "|Full Scan - Number of errors: %ld\n", fs);
-    fprintf(stderr, "|Unidimensional Crackig - Number of errors: %ld\n", std);
-    fprintf(stderr, "|Cracking KD - Number of errors: %ld\n", ckd);
-    fprintf(stderr, "|Full KD - Number of errors: %ld\n", kd);
-    fprintf(stderr, "|Sideways Cracking - Number of errors: %ld\n", sw);
-    // fprintf(stderr, "|Partial Sideways - Number of errors: %ld\n", psw);
+   fprintf(stderr, "|Full Scan - Number of errors: %ldd\n", fs);
+   fprintf(stderr, "|Unidimensional Crackig - Number of errors: %ldd\n", std);
+   fprintf(stderr, "|Cracking KD - Number of errors: %ldd\n", ckd);
+   fprintf(stderr, "|Full KD - Number of errors: %ldd\n", kd);
+   fprintf(stderr, "|Sideways Cracking - Number of errors: %ldd\n", sw);
+    fprintf(stderr, "|Quasii - Number of errors: %ld\n", qs);
     fprintf(stderr, "-------------------------------------------------------\n");
 
         

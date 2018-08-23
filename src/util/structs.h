@@ -7,6 +7,9 @@
 
 using namespace std;
 
+extern int64_t COLUMN_SIZE;
+
+
 // ########### BST Structures #############
 
 struct int_pair
@@ -80,6 +83,67 @@ struct ChunkMap // Partial Sideways Cracking
     Tree T;
 
 };
+struct Slice;
+typedef struct Slice Slice;
+
+struct Slice // Quasii
+{
+    int level;
+
+    int64_t data_offset_begin;
+    int64_t data_offset_end;
+    int64_t box_begin;
+    int64_t box_end;
+    vector<Slice> children;
+    // box_end shouldn't be COLUMN_SIZE, it should be the biggest possible value?
+    Slice() : level(0), data_offset_begin(0), data_offset_end(COLUMN_SIZE - 1), box_begin(0), box_end(COLUMN_SIZE){
+    }
+
+    Slice(int l, int64_t offset_begin, int64_t offset_end, int64_t b_begin, int64_t b_end){
+        level = l;
+        data_offset_begin = offset_begin;
+        data_offset_end = offset_end;
+        box_begin = b_begin;
+        box_end = b_end;
+        children = vector<Slice>();
+    }
+
+    bool isBottomLevel(int leaf_level){
+        return level == leaf_level;
+    }
+
+    bool intersects(int64_t low, int64_t high){
+        return (
+            (box_begin <= low && low < box_end) ||
+            (box_begin < high && high <= box_end) ||
+            (low <= box_begin && box_end <= high)
+        );
+    }
+
+    bool bigger_than_threshold(int64_t t){
+        return (data_offset_end - data_offset_begin) > t;
+    }
+
+    void copy_slice(const Slice s){
+        level = s.level;
+        data_offset_begin = s.data_offset_begin;
+        data_offset_end = s.data_offset_end;
+        box_begin = s.box_begin;
+        box_end = s.box_end;
+        children = s.children;
+    }
+
+    bool equal(const Slice s){
+        return (
+            level == s.level &&
+            data_offset_begin == s.data_offset_begin &&
+            data_offset_end == s.data_offset_end &&
+            box_begin == s.box_begin &&
+            box_end == s.box_end
+        );
+    }
+};
+
  
 struct MapSet // Partial Sideways Cracking
 {
