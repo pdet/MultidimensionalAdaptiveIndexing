@@ -21,7 +21,7 @@ QUASII = "7"
 PATH = ""
 
 # Select Experiments to run
-experiments = [SIDEWAYS_CRACKING, QUASII]
+experiments = [FULL_SCAN, STANDARD_CRACKING, CRACKING_KD_TREE, FULL_KD_TREE, SIDEWAYS_CRACKING, QUASII]
 # Main Configurations
 NUM_QUERIES = "10"
 NUMBER_OF_REPETITIONS = 1
