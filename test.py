@@ -33,7 +33,7 @@ QUERIES_PATTERN =  RANDOM
 COLUMN_PATTERN = RANDOM  
 
 print("Compiling")
-os.environ['OPT'] = 'true'
+os.environ['OPT'] = 'false'
 if os.system('make') != 0:
     print("Make Failed")
     exit()
