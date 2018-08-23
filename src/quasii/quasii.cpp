@@ -313,7 +313,7 @@ void lookup(vector<Slice> &Slices, vector<array<int64_t, 3>>  *rangequeries, vec
 }
 
 // The second argument is not used, its only there to conform with the interface defined in main.cpp
-void quasii_pre_processing(Table *table, void*){
+void quasii_pre_processing(Table *table, Tree * t){
 	calculate_level_thresholds();
 	table->crackertable.columns = vector<vector<int64_t> >(NUMBER_OF_COLUMNS);
     table->crackertable.ids = vector<int64_t>(COLUMN_SIZE);
@@ -332,11 +332,11 @@ void quasii_pre_processing(Table *table, void*){
     S.push_back(*slice);
 }
 
-void quasii_partial_built(Table *table, void*, vector<array<int64_t, 3>>  *rangequeries){
+void quasii_partial_built(Table *table, Tree * t, vector<array<int64_t, 3>>  *rangequeries){
 	partial_build(&table->crackertable, S, rangequeries);
 }
 
-void quasii_index_lookup(void*, vector<array<int64_t, 3>>  *rangequeries, vector<pair<int,int>>  *offsets){
+void quasii_index_lookup(Tree * t, vector<array<int64_t, 3>>  *rangequeries, vector<pair<int,int>>  *offsets){
 	lookup(S, rangequeries, offsets);
 }
 
