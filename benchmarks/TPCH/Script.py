@@ -13,13 +13,14 @@ FULL_SCAN = "0"
 STANDARD_CRACKING = "1"
 CRACKING_KD_TREE = "2"
 FULL_KD_TREE = "3"
+SIDEWAYS_CRACKING = "4"
 
 # CONFIGURATIONS
 SCALE_FACTOR = 0.1
 NUM_QUERIES = 1000
 KDTREE_THRESHOLD = '2000'  # Only used for KDTree
 
-experiments = [FULL_SCAN, STANDARD_CRACKING, CRACKING_KD_TREE, FULL_KD_TREE]
+experiments = [FULL_SCAN, STANDARD_CRACKING, CRACKING_KD_TREE, FULL_KD_TREE, SIDEWAYS_CRACKING]
 NUMBER_OF_REPETITIONS = 10
 
 # COLUMNS IN LINEITEM
@@ -146,6 +147,12 @@ def create_output():
     file.write('\n')
     return file
 
+def generateExperimentDefine():
+    os.system('rm src/util/define.h')
+    file = open('src/util/define.h',"w")
+    # file.write('\n')
+    file.close()
+
 # SCRIPT START
 
 if os.path.exists("lineitem.csv") != 1:
@@ -158,6 +165,8 @@ fix_queries()
 print("#### Queries generation complete ####")
 
 os.chdir("../../")
+
+generateExperimentDefine()
 
 print("Compiling")
 os.environ['OPT'] = 'true'

@@ -35,6 +35,7 @@ const int FULL_SCAN = 0;
 const int UNIDIMENSIONAL_CRACKING = 1;
 const int CRACKING_KDTREE = 2;
 const int KDTREE = 3;
+const int SIDEWAYS_CRACKING = 4;
 
 string DATA_FILE_PATH, QUERIES_FILE_PATH;
 int64_t COLUMN_SIZE,NUM_QUERIES, NUMBER_OF_COLUMNS, KDTREE_THRESHOLD, INDEXING_TYPE;
@@ -170,6 +171,9 @@ int main(int argc, char **argv)
     		case KDTREE:
     			benchmarkFunction(&table,query,full_kdtree_pre_processing,NULL,kdtree_index_lookup,kdtree_scan,NULL);
     			break;
+            case SIDEWAYS_CRACKING:
+                benchmarkFunction(&table,query,sideways_cracking_pre_processing,sideways_cracking_partial_built,sideways_cracking_index_lookup,sideways_cracking_scan,NULL);
+                break;
     	}
     #endif
 }

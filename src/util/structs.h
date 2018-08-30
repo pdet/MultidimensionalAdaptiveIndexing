@@ -4,6 +4,7 @@
 #include <climits>
 #include <algorithm>
 #include <string>
+#include <array>
 
 using namespace std;
 
@@ -63,7 +64,16 @@ struct CrackerMaps // Sideways Cracking
     int aux_column;
     vector<int64_t> ids;
     vector<vector<int64_t> > columns;
+    int64_t crack_position;
 
+};
+
+struct CrackerSets // Sideways Cracking
+{
+    int leading_column;
+    vector<CrackerMaps> crackermaps;
+    vector<array<int64_t, 3>> rangequeries;
+    vector<Tree> T;
 };
 
 struct PartialMaps // Partial Sideways Cracking
@@ -164,7 +174,6 @@ struct Table
     vector<int64_t> ids;
     vector<vector<int64_t> > columns;
     vector<vector<string> > s_columns;
-    vector<vector<CrackerMaps> > crackermaps;
     MapSet mapset;
     IndexEntry **crackercolumns;
     CrackerTable crackertable;

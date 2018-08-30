@@ -4,6 +4,8 @@ using namespace std;
 
 extern int64_t COLUMN_SIZE, NUMBER_OF_COLUMNS;
 
+static vector<CrackerSets> crackersets;
+
 void exchange(CrackerMaps *t, int64_t x1, int64_t x2)
 {
     if (x1 == x2)
@@ -86,11 +88,26 @@ Tree sideways_cracking(CrackerMaps *map, Tree T, int64_t lowKey, int64_t highKey
     return T;
 }
 
+void crack_until_latest_query(CrackerSets &set, int64_t aux_col){
+
+    int64_t current_position = set.crackermaps.at(aux_col).crack_position;
+    
+    for(int64_t i = current_position; i < set.rangequeries.size(); i++, set.crackermaps.at(aux_col).crack_position++)
+    {
+        int64_t low = set.rangequeries.at(i).at(0);
+        int64_t high = set.rangequeries.at(i).at(1);
+
+        set.T.at(aux_col) = sideways_cracking(&set.crackermaps.at(aux_col), set.T.at(aux_col), low, high);
+    }
+}
+
 void sideways_cracking_pre_processing(Table *table, Tree * T){
-    table->crackermaps.resize(NUMBER_OF_COLUMNS);
+    crackersets.resize(NUMBER_OF_COLUMNS);
     for (size_t i = 0; i < NUMBER_OF_COLUMNS ; ++i)
     {
-        table->crackermaps.at(i).resize(NUMBER_OF_COLUMNS);
+        crackersets.at(i).leading_column = i;
+        crackersets.at(i).crackermaps.resize(NUMBER_OF_COLUMNS);
+        crackersets.at(i).T.resize(NUMBER_OF_COLUMNS, NULL);
         for(size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
         {
             CrackerMaps map;
@@ -98,36 +115,22 @@ void sideways_cracking_pre_processing(Table *table, Tree * T){
             map.aux_column = j;
             map.ids=table->ids;
             map.columns.push_back(table->columns.at(i));  // Always get most selective columns as leading column
-            map.columns.push_back(table->columns.at(j));  
-            table->crackermaps.at(i).at(j) = map;
+            map.columns.push_back(table->columns.at(j));
+            map.crack_position = 0;
+            crackersets.at(i).crackermaps.at(j) = map;
         }
-        T[i] = NULL;
     }
 }
 
 void sideways_cracking_partial_built(Table *table, Tree * T, vector<array<int64_t, 3>>  *rangequeries){
-    int64_t low = rangequeries->at(0).at(0);
-    int64_t high = rangequeries->at(0).at(1);
-    int64_t col = rangequeries->at(0).at(2);
-    for (size_t i = 1; i < table->crackermaps.at(col).size(); i ++){
-        IntPair p1, p2;
-        IntPair pivot_pair = (IntPair)malloc(sizeof(struct int_pair));
+    int64_t leading_col = rangequeries->at(0).at(2);
 
-        pivot_pair->first = 0;
+    crackersets.at(leading_col).rangequeries.push_back(rangequeries->at(0));
 
-        if(low != -1){
-            p1 = FindNeighborsLT(low, T[col], COLUMN_SIZE - 1);
-            pivot_pair->first = crack_map(&table->crackermaps.at(col).at(i), p1->first, p1->second, low);
-        }
-
-        if(high != -1){
-            p2 = FindNeighborsLT(high, T[col], COLUMN_SIZE - 1);
-            pivot_pair->second = crack_map(&table->crackermaps.at(col).at(i), pivot_pair->first, p2->second, high);
-        }
+    for(size_t i = 0; i < rangequeries->size(); i ++){
+        int64_t c = rangequeries->at(i).at(2);
+        crack_until_latest_query(crackersets.at(leading_col), c);
     }
-
-    T[col] = sideways_cracking(&table->crackermaps.at(col).at(0), T[col], low, high);
-
 }
 
 void sideways_cracking_index_lookup(Tree * T, vector<array<int64_t, 3> >  *rangequeries,vector<pair<int,int>>  *offsets){
@@ -136,12 +139,12 @@ void sideways_cracking_index_lookup(Tree * T, vector<array<int64_t, 3> >  *range
     int64_t col = rangequeries->at(0).at(2);
     IntPair p1, p2;
     if(low != -1)
-        p1 = FindNeighborsGTE(low, T[col], COLUMN_SIZE - 1);
+        p1 = FindNeighborsGTE(low, crackersets.at(col).T.at(col), COLUMN_SIZE - 1);
     else
         p1->first = 0;
     
     if(high != -1)
-        p2 = FindNeighborsLT(high, T[col], COLUMN_SIZE - 1);
+        p2 = FindNeighborsLT(high, crackersets.at(col).T.at(col), COLUMN_SIZE - 1);
     else
         p2->second = COLUMN_SIZE - 1;
     offsets->push_back(make_pair(p1->first, p2->second));
@@ -166,9 +169,9 @@ void sideways_cracking_scan(Table *table, vector<array<int64_t, 3> >  *rangequer
         int64_t low = rangequeries->at(query_num).at(0);
         int64_t high = rangequeries->at(query_num).at(1);
         int64_t col = rangequeries->at(query_num).at(2);
-        scan_maps(&table->crackermaps.at(leading_col).at(col), bitmap, offsets->at(0).first,offsets->at(0).second, low, high);
+        scan_maps(&crackersets.at(leading_col).crackermaps.at(col), bitmap, offsets->at(0).first,offsets->at(0).second, low, high);
     }
     for(size_t i = 0; i < offsets->at(0).second - offsets->at(0).first + 1; ++i)
         if(bitmap[i])
-            result->push_back(table->crackermaps.at(leading_col).at(0).ids.at(i+ offsets->at(0).first));
+            result->push_back(crackersets.at(leading_col).crackermaps.at(0).ids.at(i+ offsets->at(0).first));
 }
