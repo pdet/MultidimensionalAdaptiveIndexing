@@ -23,11 +23,11 @@ PATH = ""
 # Select Experiments to run
 experiments = [FULL_SCAN, STANDARD_CRACKING, CRACKING_KD_TREE, FULL_KD_TREE, SIDEWAYS_CRACKING, QUASII]
 # Main Configurations
-NUM_QUERIES = "10"
-NUMBER_OF_REPETITIONS = 1
+NUM_QUERIES = "1000"
+NUMBER_OF_REPETITIONS = 10
 COLUMN_SIZE = '10000000'
 UPPERBOUND = COLUMN_SIZE
-NUMBER_OF_COLUMNS = '8'
+NUMBER_OF_COLUMNS = ['2', '4', '8', '16']
 KDTREE_THRESHOLD = '2000'  # Only used for KDTree
 
 ONE_SIDED_PERCENTAGE = '0'
@@ -52,23 +52,27 @@ def getFolderToSaveExperiments():
 
 
 def translate_alg(alg):
-    if alg == '0':
+    if alg == FULL_SCAN:
         return 'fs'
-    if alg == '1':
+    if alg == STANDARD_CRACKING:
         return 'stdavl'
-    if alg == '2':
+    if alg == CRACKING_KD_TREE:
         return 'stdkd'
-    if alg == '3':
+    if alg == FULL_KD_TREE:
         return 'fikd'
+    if alg == SIDEWAYS_CRACKING:
+        return 'swc'
+    if alg == QUASII:
+        return 'quasii'
     return alg
 
 #Output is a csv file with:
 #"algorithm;repetition;column_size;column_pattern;number_of_columns;index_creation;index_lookup;scan_time;join_time;total_time"
-def generate_output(file,query_result,repetition,ALGORITHM):
+def generate_output(file,query_result,repetition,ALGORITHM, N_COLUMN):
     query_result = query_result.split("\n")
     for query in range(0, len(query_result)-1):
         file.write(translate_alg(ALGORITHM) + ';' + str(repetition) + ";" + SELECTIVITY_PERCENTAGE +";"+ str(query)
-        + ';' + COLUMN_SIZE + ';' + COLUMN_PATTERN  + ';' + NUMBER_OF_COLUMNS + ';' + query_result[query])
+        + ';' + COLUMN_SIZE + ';' + COLUMN_PATTERN  + ';' + N_COLUMN + ';' + query_result[query])
         file.write('\n')
     file.close()
 
@@ -89,23 +93,23 @@ def generateExperimentDefine():
 generateExperimentDefine()
 
 print("Compiling")
-os.environ['OPT'] = 'false'
+os.environ['OPT'] = 'true'
 if os.system('make') != 0:
     print("Make Failed")
     exit()
 
-print("Generating Data")
-if os.system("./gendata --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  NUMBER_OF_COLUMNS
- + " --selectivity=" +SELECTIVITY_PERCENTAGE + " --queries-pattern=" +  QUERIES_PATTERN + " --column-pattern="+ COLUMN_PATTERN
- + " --one-side-ranges=" +ONE_SIDED_PERCENTAGE + " --upperbound=" + UPPERBOUND) != 0:
-    print("Generating Data Failed")
-    exit()
+for N_COLUMN in NUMBER_OF_COLUMNS:
+    print("Generating Data")
+    if os.system("./gendata --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  N_COLUMN
+    + " --selectivity=" +SELECTIVITY_PERCENTAGE + " --queries-pattern=" +  QUERIES_PATTERN + " --column-pattern="+ COLUMN_PATTERN
+    + " --one-side-ranges=" +ONE_SIDED_PERCENTAGE + " --upperbound=" + UPPERBOUND) != 0:
+        print("Generating Data Failed")
+        exit()
 
-
-for experiment in experiments:
-    for repetition in range(NUMBER_OF_REPETITIONS):
-        getFolderToSaveExperiments()
-        result = os.popen("./crackingmain --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  NUMBER_OF_COLUMNS + " --indexing-type="+experiment
-            +" --kdtree-threshold=" + KDTREE_THRESHOLD).read()
-        file = create_output()
-        generate_output(file,result,repetition,experiment)
+    for experiment in experiments:
+        for repetition in range(NUMBER_OF_REPETITIONS):
+            getFolderToSaveExperiments()
+            result = os.popen("./crackingmain --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  N_COLUMN + " --indexing-type="+experiment
+                +" --kdtree-threshold=" + KDTREE_THRESHOLD).read()
+            file = create_output()
+            generate_output(file,result,repetition,experiment, N_COLUMN)

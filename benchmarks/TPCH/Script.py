@@ -16,7 +16,7 @@ FULL_KD_TREE = "3"
 SIDEWAYS_CRACKING = "4"
 
 # CONFIGURATIONS
-SCALE_FACTOR = 0.1
+SCALE_FACTOR = 1
 NUM_QUERIES = 1000
 KDTREE_THRESHOLD = '2000'  # Only used for KDTree
 
@@ -103,10 +103,6 @@ def fix_queries():
     os.system('rm queries.tbl')
 
 
-# Saving Experiments
-if os.path.exists("ResultsTPCH/") != 1:
-    os.system('mkdir ResultsTPCH')
-
 def getFolderToSaveExperiments():
     global PATH
     experimentsList = os.listdir("ResultsTPCH/")
@@ -119,14 +115,16 @@ def getFolderToSaveExperiments():
     os.system('mkdir ' + PATH)
 
 def translate_alg(alg):
-    if alg == '0':
+    if alg == FULL_SCAN:
         return 'fs'
-    if alg == '1':
+    if alg == STANDARD_CRACKING:
         return 'stdavl'
-    if alg == '2':
+    if alg == CRACKING_KD_TREE:
         return 'stdkd'
-    if alg == '3':
+    if alg == FULL_KD_TREE:
         return 'fikd'
+    if alg == SIDEWAYS_CRACKING:
+        return 'swc'
     return alg
 
 #Output is a csv file with:
@@ -155,16 +153,18 @@ def generateExperimentDefine():
 
 # SCRIPT START
 
-if os.path.exists("lineitem.csv") != 1:
-    generate_lineitem()
-    fix_table_and_save_to_csv()
-    print("#### Data generation complete ####")
+generate_lineitem()
+fix_table_and_save_to_csv()
+print("#### Data generation complete ####")
 
 generate_queries()
 fix_queries()
 print("#### Queries generation complete ####")
 
 os.chdir("../../")
+
+if os.path.exists("ResultsTPCH/") != 1:
+    os.system('mkdir ResultsTPCH')
 
 generateExperimentDefine()
 

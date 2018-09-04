@@ -104,22 +104,20 @@ def fix_queries():
     os.system('rm queries.tbl')
 
 
-# Saving Experiments
-if os.path.exists("ResultsTPCH/") != 1:
-    os.system('mkdir ResultsTPCH')
-
 # SCRIPT START
 
-if os.path.exists("lineitem.csv") != 1:
-    generate_lineitem()
-    fix_table_and_save_to_csv()
-    print("#### Data generation complete ####")
+generate_lineitem()
+fix_table_and_save_to_csv()
+print("#### Data generation complete ####")
 
 generate_queries()
 fix_queries()
 print("#### Queries generation complete ####")
 
 os.chdir("../../")
+
+if os.path.exists("ResultsTPCH/") != 1:
+    os.system('mkdir ResultsTPCH')
 
 print("Compiling")
 os.environ['OPT'] = 'true'

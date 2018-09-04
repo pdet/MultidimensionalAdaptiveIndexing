@@ -166,8 +166,8 @@ vector<vector<int64_t>> quasii(Table *table, vector< vector<array<int64_t, 3>>> 
 int64_t verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<vector<int64_t>> queryResultToBeTested)
 {
     int64_t n_w = 0;
-    for (size_t i = 0; i < queryResultBaseline.size(); ++i){
-        for(size_t j = 0; j < smaller_vector(queryResultBaseline.at(i), queryResultToBeTested.at(i)); ++ j){
+    for (int64_t i = 0; i < queryResultBaseline.size(); ++i){
+        for(int64_t j = 0; j < smaller_vector(queryResultBaseline.at(i), queryResultToBeTested.at(i)); ++ j){
         	if (queryResultBaseline.at(i).size() != queryResultToBeTested.at(i).size() ||
                 queryResultBaseline.at(i).at(j) != queryResultToBeTested.at(i).at(j))
         	{
@@ -221,11 +221,11 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     // int64_t psw = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
     fprintf(stderr, "SUMMARY------------------------------------------------\n");
-   fprintf(stderr, "|Full Scan - Number of errors: %ldd\n", fs);
-   fprintf(stderr, "|Unidimensional Crackig - Number of errors: %ldd\n", std);
-   fprintf(stderr, "|Cracking KD - Number of errors: %ldd\n", ckd);
-   fprintf(stderr, "|Full KD - Number of errors: %ldd\n", kd);
-   fprintf(stderr, "|Sideways Cracking - Number of errors: %ldd\n", sw);
+    fprintf(stderr, "|Full Scan - Number of errors: %ld\n", fs);
+    fprintf(stderr, "|Unidimensional Crackig - Number of errors: %ld\n", std);
+    fprintf(stderr, "|Cracking KD - Number of errors: %ld\n", ckd);
+    fprintf(stderr, "|Full KD - Number of errors: %ld\n", kd);
+    fprintf(stderr, "|Sideways Cracking - Number of errors: %ld\n", sw);
     fprintf(stderr, "|Quasii - Number of errors: %ld\n", qs);
     fprintf(stderr, "-------------------------------------------------------\n");
 
