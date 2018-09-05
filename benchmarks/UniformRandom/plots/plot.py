@@ -103,18 +103,39 @@ def reset_plot():
     plt.clf()
     plt.close()
 
+def response_time_per_query():
+    dfs = [c_kd, q, fkd]
+
+    for df_hash in dfs:
+        name = ''
+        
+        name = df_hash[16]['algorithm'][0]
+        plt.plot(
+            range(len(df_hash[16]['total_time'])-50),
+            df_hash[16]['total_time'][50:],
+            label=translate_alg(name)
+        )
+        plt.legend(loc=2)
+
+    plt.ylabel('Response time (s)')
+    plt.xlabel('Query (#)')
+    plt.title('Response Time per Query')
+    plt.savefig('query16.pdf')
+    reset_plot()
+
 def response_time_all_columns():
-    dfs = [fs, c, c_kd, fkd, swc, q]
+    # dfs = [c_kd, fkd, q]
+    dfs = [swc, c]
 
     cols = sorted(fs.keys())
     marker=itertools.cycle(['.', 's', '*', 'D', 'X'])
-    color = itertools.cycle([
-        (105/255.0,105/255.0,105/255.0),
-        (128/255.0,128/255.0,128/255.0),
-        (169/255.0,169/255.0,169/255.0),
-        (105/255.0,105/255.0,105/255.0),
-        (128/255.0,128/255.0,128/255.0)
-    ])
+    # color = itertools.cycle([
+    #     (105/255.0,105/255.0,105/255.0),
+    #     (128/255.0,128/255.0,128/255.0),
+    #     (169/255.0,169/255.0,169/255.0),
+    #     (105/255.0,105/255.0,105/255.0),
+    #     (128/255.0,128/255.0,128/255.0)
+    # ])
 
     for df_hash in dfs:
         times = []
@@ -127,7 +148,6 @@ def response_time_all_columns():
             times,
             label=translate_alg(name),
             marker=marker.next(),
-            color=color.next(),
             linewidth=2.0
         )
         plt.legend(loc=2)
@@ -140,6 +160,7 @@ def response_time_all_columns():
 
 def main():
     response_time_all_columns()
+    response_time_per_query()
 
 if __name__ == '__main__':
     main()
