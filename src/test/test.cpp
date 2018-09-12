@@ -140,10 +140,10 @@ vector<vector<int64_t>> sideways_cracking(Table *table, vector< vector<array<int
     }
     return queryResult;
 }
-int64_t smaller_vector(vector<int64_t> v1, vector<int64_t> v2){
+int64_t greater_vector_size(vector<int64_t> v1, vector<int64_t> v2){
     if(v1.size() > v2.size())
-        return v2.size();
-    return v1.size();
+        return v1.size();
+    return v2.size();
 }
 
 vector<vector<int64_t>> quasii(Table *table, vector< vector<array<int64_t, 3>>> *queries)
@@ -167,15 +167,13 @@ int64_t verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<ve
 {
     int64_t n_w = 0;
     for (int64_t i = 0; i < queryResultBaseline.size(); ++i){
-        for(int64_t j = 0; j < smaller_vector(queryResultBaseline.at(i), queryResultToBeTested.at(i)); ++ j){
-        	if (queryResultBaseline.at(i).size() != queryResultToBeTested.at(i).size() ||
-                queryResultBaseline.at(i).at(j) != queryResultToBeTested.at(i).at(j))
+        if(queryResultBaseline.at(i).size() != queryResultToBeTested.at(i).size()){
+            n_w++;
+            continue;
+        }
+        for(int64_t j = 0; j < queryResultBaseline.at(i).size(); ++j){
+        	if (queryResultBaseline.at(i).at(j) != queryResultToBeTested.at(i).at(j))
         	{
-        		// fprintf(stderr, "Incorrect Results!\n");
-        		// fprintf(stderr, "Query: %ldd\n", i);
-        		// fprintf(stderr, "Expected: %ldd Got: %ldd\n", queryResultBaseline.at(i).at(j), queryResultToBeTested.at(i).at(j));
-                // fprintf(stderr, "Expected size: %ldd, Got size: %ldd\n", queryResultBaseline.at(i).size(), queryResultToBeTested.at(i).size());
-        		// assert(0);
                 n_w++;
                 break;
         	}
