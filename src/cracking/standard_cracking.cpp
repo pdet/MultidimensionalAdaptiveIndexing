@@ -173,9 +173,14 @@ void cracking_index_lookup(Tree * T, vector<array<int64_t, 3>> *rangequeries,vec
 }
 
 void cracking_intersection(Table *table,vector<pair<int,int>>  *offsets, vector<vector<bool>> *bitmaps, vector<int64_t> * result){
+    int64_t number_of_valid_offsets = 0;
     for (size_t i = 0; i < offsets->size(); i ++){
-        bitmaps->at(i) = vector<bool>(COLUMN_SIZE); 
-        create_bitmap(table->crackercolumns[i], offsets->at(i).first, offsets->at(i).second, bitmaps->at(i));
+        if(offsets->at(i).first < offsets->at(i).second){
+            bitmaps->at(number_of_valid_offsets) = vector<bool>(COLUMN_SIZE);
+            create_bitmap(table->crackercolumns[i], offsets->at(i).first, offsets->at(i).second, bitmaps->at(number_of_valid_offsets));
+            number_of_valid_offsets++;
+        }
     }
+    bitmaps->resize(number_of_valid_offsets);
     *result = join_bitmaps(bitmaps);
 }

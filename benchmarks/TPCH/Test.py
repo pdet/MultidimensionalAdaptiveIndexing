@@ -120,7 +120,7 @@ if os.path.exists("ResultsTPCH/") != 1:
     os.system('mkdir ResultsTPCH')
 
 print("Compiling")
-os.environ['OPT'] = 'true'
+os.environ['OPT'] = 'false'
 if os.system('make') != 0:
     print("Make Failed")
     exit()
