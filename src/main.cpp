@@ -105,6 +105,7 @@ void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQuer
 
 		start = chrono::system_clock::now(); 
     	int64_t final_result = uniformRandomProjection(&result);
+        end = chrono::system_clock::now();
         projectionTime.at(i)  = chrono::duration<double>(end - start).count();
 
         totalTime.at(i)  = indexCreation.at(i) + indexLookup.at(i) + scanTime.at(i) + joinTime.at(i) + projectionTime.at(i);
