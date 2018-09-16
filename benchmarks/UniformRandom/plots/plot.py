@@ -9,12 +9,13 @@ import matplotlib as mpl
 import numpy as np
 import itertools
 
-
+# index_creation;index_lookup;scan_time;join_time;projection_time;total_time
 
 mpl.rcParams['hatch.linewidth'] = 2.0 # Changes hatch line width
 
 
 BASE_DIR = '../../../Results/'
+NR = 10
 
 # 1-10 full scan
 # 11 - 20 cracking avl
@@ -40,14 +41,14 @@ def translate_alg(alg):
 
 def fix_total_time(df):
     df_fixed = df.drop(columns=['total_time'])
-    df_fixed['total_time'] = df['index_creation'] + df['index_lookup'] + df['scan_time'] + df['join_time'] + df['projection_time']
+    df_fixed['total_time'] = df['index_creation'] + df['index_lookup'] + df['scan_time'] + df['join_time']
     
     return df_fixed
 
 def average_df(dir_list):
     df = pd.read_csv(BASE_DIR + str(dir_list[0]) + '/results.csv', sep=';')
     alg = df['algorithm']
-    df = df.drop(columns=['algorithm'])
+    df = df.drop(columns=['algorithm', 'projection_time'])
 
     for f in dir_list[1:]:
         df1 = pd.read_csv(BASE_DIR + str(f) + '/results.csv', sep=';')
@@ -56,46 +57,46 @@ def average_df(dir_list):
     df['algorithm'] = alg
     return fix_total_time(df)
 
-fs = {
-    2: average_df(range(1, 10)),
-    4: average_df(range(61, 70)),
-    8: average_df(range(121, 130)),
-    16: average_df(range(181, 190))
+full_scan = {
+    2: average_df(range(NR * 0 + 1, NR * 1)),
+    4: average_df(range(NR * 6 + 1, NR * 7)),
+    8: average_df(range(NR * 12 + 1, NR * 13)),
+    16: average_df(range(NR * 18 + 1, NR * 19))
 }
 
-c = {
-    2: average_df(range(11, 20)),
-    4: average_df(range(71, 80)),
-    8: average_df(range(131, 140)),
-    16: average_df(range(191, 200))
+std_cracking = {
+    2: average_df(range(NR * 1 + 1, NR * 2)),
+    4: average_df(range(NR * 7 + 1, NR * 8)),
+    8: average_df(range(NR * 13 + 1, NR * 14)),
+    16: average_df(range(NR * 19 + 1, NR * 20))
 }
 
-c_kd = {
-    2: average_df(range(21, 30)),
-    4: average_df(range(81, 90)),
-    8: average_df(range(141, 150)),
-    16: average_df(range(201, 210))
+cracking_kd = {
+    2: average_df(range(NR * 2 + 1, NR * 3)),
+    4: average_df(range(NR * 8 + 1, NR * 9)),
+    8: average_df(range(NR * 14 + 1, NR * 15)),
+    16: average_df(range(NR * 20 + 1, NR * 21))
 }
 
-fkd = {
-    2: average_df(range(31, 40)),
-    4: average_df(range(91, 100)),
-    8: average_df(range(151, 160)),
-    16: average_df(range(211, 220))
+full_kd = {
+    2: average_df(range(NR * 3 + 1, NR * 4)),
+    4: average_df(range(NR * 9 + 1, NR * 10)),
+    8: average_df(range(NR * 15 + 1, NR * 16)),
+    16: average_df(range(NR * 21 + 1, NR * 22))
 }
 
-swc = {
-    2: average_df(range(41, 50)),
-    4: average_df(range(101, 110)),
-    8: average_df(range(161, 170)),
-    16: average_df(range(221, 230))
+sideways = {
+    2: average_df(range(NR * 4 + 1, NR * 5)),
+    4: average_df(range(NR * 10 + 1, NR * 11)),
+    8: average_df(range(NR * 16 + 1, NR * 17)),
+    16: average_df(range(NR * 22 + 1, NR * 23))
 }
 
-q = {
-    2: average_df(range(51, 60)),
-    4: average_df(range(111, 120)),
-    8: average_df(range(171, 180)),
-    16: average_df(range(231, 240))
+quasii = {
+    2: average_df(range(NR * 5 + 1, NR * 6)),
+    4: average_df(range(NR * 11 + 1, NR * 12)),
+    8: average_df(range(NR * 17 + 1, NR * 18)),
+    16: average_df(range(NR * 23 + 1, NR * 24))
 }
 
 def reset_plot():
@@ -103,31 +104,58 @@ def reset_plot():
     plt.clf()
     plt.close()
 
-def response_time_per_query():
-    dfs = [c_kd, q, fkd]
+def time_breakdown(dfs, column):
+    # index_creation;index_lookup;scan_time;join_time;projection_time
+    i_c, i_l, s_t, j_t, p_t = [], [], [], [], [] # this is ugly as hell
+    names = []
+    
+    ind = np.arange(len(dfs))
 
+    for df in dfs:
+        names.append(translate_alg(df[column]['algorithm'][0]))
+        i_c.append(df[column]['index_creation'].sum())
+        i_l.append(df[column]['index_lookup'].sum())
+        s_t.append(df[column]['scan_time'].sum())
+        j_t.append(df[column]['join_time'].sum())
+
+    i_c = np.array(i_c)
+    i_l = np.array(i_l)
+    s_t = np.array(s_t)
+    j_t = np.array(j_t)
+
+    p_i_c = plt.bar(ind, i_c)
+    p_i_l = plt.bar(ind, i_l, bottom=i_c)
+    p_s_t = plt.bar(ind, s_t, bottom=i_c + i_l)
+    p_j_t = plt.bar(ind, j_t, bottom=i_c + i_l + s_t)
+
+    plt.ylabel('Time (s)')
+    plt.xticks(ind, names, rotation=-45)
+    plt.title('Time Breakdown (' + str(column) + ' columns)')
+    plt.legend((p_i_c, p_i_l, p_s_t, p_j_t), ('Index Creation', 'Index Lookup', 'Scan Time', 'Join Time'))
+    plt.tight_layout()
+    plt.savefig('breakdown1-' + str(column) + '.pdf')
+    reset_plot()
+
+def response_time_per_query(dfs, column):
     for df_hash in dfs:
         name = ''
         
-        name = df_hash[16]['algorithm'][0]
+        name = df_hash[column]['algorithm'][0]
+        times = df_hash[column]['total_time'][10:]
         plt.plot(
-            range(len(df_hash[16]['total_time'])-50),
-            df_hash[16]['total_time'][50:],
+            range(len(times)),
+            times,
             label=translate_alg(name)
         )
-        plt.legend(loc=2)
+        plt.legend(loc=0)
 
     plt.ylabel('Response time (s)')
     plt.xlabel('Query (#)')
-    plt.title('Response Time per Query')
-    plt.savefig('query16.pdf')
+    plt.title('Response Time per Query (' + str(column) + ' columns)')
+    plt.savefig('query' + str(column) + '.pdf')
     reset_plot()
 
-def response_time_all_columns():
-    # dfs = [c_kd, fkd, q]
-    dfs = [swc, c]
-
-    cols = sorted(fs.keys())
+def response_time_all_columns(dfs, file_name, attribute):
     marker=itertools.cycle(['.', 's', '*', 'D', 'X'])
     # color = itertools.cycle([
     #     (105/255.0,105/255.0,105/255.0),
@@ -141,7 +169,7 @@ def response_time_all_columns():
         times = []
         name = ''
         for k in sorted(df_hash.keys()):
-            times.append(df_hash[k]['total_time'].sum())
+            times.append(df_hash[k][attribute].sum())
             name = df_hash[k]['algorithm'][0]
         plt.plot(
             sorted(df_hash.keys()),
@@ -150,17 +178,25 @@ def response_time_all_columns():
             marker=marker.next(),
             linewidth=2.0
         )
-        plt.legend(loc=2)
+        plt.legend(loc=0)
     
     plt.ylabel('Response time (s)')
     plt.xlabel('Number of Columns')
-    plt.title('Total Response Time')
-    plt.savefig('all_response_times.pdf')
+    plt.title('Total Response Time (' + attribute + ')')
+    plt.savefig(file_name + '-' + attribute + '.pdf')
     reset_plot()
 
 def main():
-    response_time_all_columns()
-    response_time_per_query()
+    response_time_all_columns([full_scan, std_cracking, cracking_kd, full_kd, sideways, quasii], 'all_r_s', 'total_time')
+    response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'index_creation')
+    response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'scan_time')
+    response_time_per_query([cracking_kd, full_kd, quasii], 2)
+    response_time_per_query([cracking_kd, full_kd, quasii], 4)
+
+    time_breakdown([cracking_kd, full_kd, quasii], 2)
+    time_breakdown([cracking_kd, full_kd, quasii], 4)
+    time_breakdown([cracking_kd, full_kd, quasii], 8)
+    time_breakdown([cracking_kd, full_kd, quasii], 16)
 
 if __name__ == '__main__':
     main()
