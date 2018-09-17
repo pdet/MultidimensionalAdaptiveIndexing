@@ -109,7 +109,7 @@ def time_breakdown(dfs, column):
     i_c, i_l, s_t, j_t, p_t = [], [], [], [], [] # this is ugly as hell
     names = []
     
-    ind = np.arange(len(dfs))
+    ind =  np.linspace(0, 0.25, num=len(dfs))
 
     for df in dfs:
         names.append(translate_alg(df[column]['algorithm'][0]))
@@ -123,17 +123,17 @@ def time_breakdown(dfs, column):
     s_t = np.array(s_t)
     j_t = np.array(j_t)
 
-    p_i_c = plt.bar(ind, i_c)
-    p_i_l = plt.bar(ind, i_l, bottom=i_c)
-    p_s_t = plt.bar(ind, s_t, bottom=i_c + i_l)
-    p_j_t = plt.bar(ind, j_t, bottom=i_c + i_l + s_t)
+    p_i_c = plt.bar(ind, i_c, 0.1)
+    p_i_l = plt.bar(ind, i_l, 0.1, bottom=i_c)
+    p_s_t = plt.bar(ind, s_t, 0.1, bottom=i_c + i_l)
+    p_j_t = plt.bar(ind, j_t, 0.1, bottom=i_c + i_l + s_t)
 
     plt.ylabel('Time (s)')
-    plt.xticks(ind, names, rotation=-45)
+    plt.xticks(ind, names, rotation=0)
     plt.title('Time Breakdown (' + str(column) + ' columns)')
     plt.legend((p_i_c, p_i_l, p_s_t, p_j_t), ('Index Creation', 'Index Lookup', 'Scan Time', 'Join Time'))
     plt.tight_layout()
-    plt.savefig('breakdown1-' + str(column) + '.pdf')
+    plt.savefig('breakdown-' + str(column) + '.pdf')
     reset_plot()
 
 def response_time_per_query(dfs, column):
@@ -231,29 +231,30 @@ def accumulated_response_time(dfs, column):
     reset_plot()
 
 def experiment1():
-    # response_time_all_columns([full_scan, std_cracking, cracking_kd, full_kd, sideways, quasii], 'all_r_s', 'total_time')
+    # response_time_all_columns([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 'all_r_s', 'total_time')
     # response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'total_time')
     # response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'index_creation')
     # response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'scan_time')
+    
     # response_time_per_query([cracking_kd, full_kd, quasii], 2)
     # response_time_per_query([cracking_kd, full_kd, quasii], 4)
     # response_time_per_query([cracking_kd, full_kd, quasii], 8)
     # response_time_per_query([cracking_kd, full_kd, quasii], 16)
 
-    # time_breakdown([cracking_kd, full_kd, quasii], 2)
-    # time_breakdown([cracking_kd, full_kd, quasii], 4)
-    # time_breakdown([cracking_kd, full_kd, quasii], 8)
-    # time_breakdown([cracking_kd, full_kd, quasii], 16)
+    time_breakdown([cracking_kd, full_kd, quasii], 2)
+    time_breakdown([cracking_kd, full_kd, quasii], 4)
+    time_breakdown([cracking_kd, full_kd, quasii], 8)
+    time_breakdown([cracking_kd, full_kd, quasii], 16)
 
     # accumulated_response_time([cracking_kd, full_kd, quasii], 2)
     # accumulated_response_time([cracking_kd, full_kd, quasii], 4)
     # accumulated_response_time([cracking_kd, full_kd, quasii], 8)
     # accumulated_response_time([cracking_kd, full_kd, quasii], 16)
 
-    accumulated_response_time_with_prediction([cracking_kd, full_kd, quasii], 2)
-    accumulated_response_time_with_prediction([cracking_kd, full_kd, quasii], 4)
-    accumulated_response_time_with_prediction([cracking_kd, full_kd, quasii], 8)
-    accumulated_response_time_with_prediction([cracking_kd, full_kd, quasii], 16)
+    # accumulated_response_time_with_prediction([cracking_kd, full_kd, quasii], 2)
+    # accumulated_response_time_with_prediction([cracking_kd, full_kd, quasii], 4)
+    # accumulated_response_time_with_prediction([cracking_kd, full_kd, quasii], 8)
+    # accumulated_response_time_with_prediction([cracking_kd, full_kd, quasii], 16)
 
 def main():
     experiment1()
