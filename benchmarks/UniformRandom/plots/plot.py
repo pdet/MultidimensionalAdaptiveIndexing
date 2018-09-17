@@ -141,7 +141,7 @@ def response_time_per_query(dfs, column):
         name = ''
         
         name = df_hash[column]['algorithm'][0]
-        times = df_hash[column]['total_time'][10:]
+        times = df_hash[column]['total_time'][5:]
         plt.plot(
             range(len(times)),
             times,
@@ -186,17 +186,78 @@ def response_time_all_columns(dfs, file_name, attribute):
     plt.savefig(file_name + '-' + attribute + '.pdf')
     reset_plot()
 
-def main():
-    response_time_all_columns([full_scan, std_cracking, cracking_kd, full_kd, sideways, quasii], 'all_r_s', 'total_time')
-    response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'index_creation')
-    response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'scan_time')
-    response_time_per_query([cracking_kd, full_kd, quasii], 2)
-    response_time_per_query([cracking_kd, full_kd, quasii], 4)
+def accumulated_response_time_with_prediction(dfs, column):
+    for df_hash in dfs:
+        name = ''
 
-    time_breakdown([cracking_kd, full_kd, quasii], 2)
-    time_breakdown([cracking_kd, full_kd, quasii], 4)
-    time_breakdown([cracking_kd, full_kd, quasii], 8)
-    time_breakdown([cracking_kd, full_kd, quasii], 16)
+        name = df_hash[column]['algorithm'][0]
+        avg = np.average(df_hash[column]['total_time'][900:])
+        times = np.concatenate(
+            (np.array(df_hash[column]['total_time']), np.full(3000, avg))
+        )
+        times = np.cumsum(times)
+        plt.plot(
+            range(len(times)),
+            times,
+            label=translate_alg(name)
+        )
+        plt.legend(loc=0)
+
+    plt.ylabel('Acc. Response time (s)')
+    plt.xlabel('Query (#)')
+    plt.title('Accumulated Response Time (' + str(column) + ' columns)')
+    plt.axvline(x=1000, linestyle='dashed', color='grey')
+    plt.savefig('pred-acc-query' + str(column) + '.pdf')
+    reset_plot()
+
+def accumulated_response_time(dfs, column):
+    for df_hash in dfs:
+        name = ''
+
+        name = df_hash[column]['algorithm'][0]
+        times = np.array(df_hash[column]['total_time'])
+        times = np.cumsum(times)
+        plt.plot(
+            range(len(times)),
+            times,
+            label=translate_alg(name)
+        )
+        plt.legend(loc=0)
+
+    plt.ylabel('Acc. Response time (s)')
+    plt.xlabel('Query (#)')
+    plt.title('Accumulated Response Time (' + str(column) + ' columns)')
+    plt.savefig('acc-query' + str(column) + '.pdf')
+    reset_plot()
+
+def experiment1():
+    # response_time_all_columns([full_scan, std_cracking, cracking_kd, full_kd, sideways, quasii], 'all_r_s', 'total_time')
+    # response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'total_time')
+    # response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'index_creation')
+    # response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'scan_time')
+    # response_time_per_query([cracking_kd, full_kd, quasii], 2)
+    # response_time_per_query([cracking_kd, full_kd, quasii], 4)
+    # response_time_per_query([cracking_kd, full_kd, quasii], 8)
+    # response_time_per_query([cracking_kd, full_kd, quasii], 16)
+
+    # time_breakdown([cracking_kd, full_kd, quasii], 2)
+    # time_breakdown([cracking_kd, full_kd, quasii], 4)
+    # time_breakdown([cracking_kd, full_kd, quasii], 8)
+    # time_breakdown([cracking_kd, full_kd, quasii], 16)
+
+    # accumulated_response_time([cracking_kd, full_kd, quasii], 2)
+    # accumulated_response_time([cracking_kd, full_kd, quasii], 4)
+    # accumulated_response_time([cracking_kd, full_kd, quasii], 8)
+    # accumulated_response_time([cracking_kd, full_kd, quasii], 16)
+
+    accumulated_response_time_with_prediction([cracking_kd, full_kd, quasii], 2)
+    accumulated_response_time_with_prediction([cracking_kd, full_kd, quasii], 4)
+    accumulated_response_time_with_prediction([cracking_kd, full_kd, quasii], 8)
+    accumulated_response_time_with_prediction([cracking_kd, full_kd, quasii], 16)
+
+def main():
+    experiment1()
+
 
 if __name__ == '__main__':
     main()
