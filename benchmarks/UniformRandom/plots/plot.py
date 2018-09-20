@@ -123,11 +123,14 @@ def time_breakdown(dfs, column):
     s_t = np.array(s_t)
     # j_t = np.array(j_t)
 
-    p_i_c = plt.bar(ind, i_c, 0.1)
-    p_i_l = plt.bar(ind, i_l, 0.1, bottom=i_c)
-    p_s_t = plt.bar(ind, s_t, 0.1, bottom=i_c + i_l)
+    p_i_c = plt.bar(ind, i_c, 0.1, zorder=3)
+    p_i_l = plt.bar(ind, i_l, 0.1, bottom=i_c, zorder=3)
+    p_s_t = plt.bar(ind, s_t, 0.1, bottom=i_c + i_l, zorder=3)
     # p_j_t = plt.bar(ind, j_t, 0.1, bottom=i_c + i_l + s_t)
 
+    plt.ylim(0, 30)
+    plt.yticks(np.arange(0, 32.5, 2.5))
+    plt.grid(axis='y', linestyle='--', zorder=0)
     plt.ylabel('Time (s)')
     plt.xticks(ind, names, rotation=0)
     plt.title('Time Breakdown (' + str(column) + ' columns)')
@@ -142,7 +145,7 @@ def response_time_per_query(dfs, column):
         name = ''
         
         name = df_hash[column]['algorithm'][0]
-        times = df_hash[column]['total_time'][5:]
+        times = df_hash[column]['total_time']
         plt.plot(
             range(len(times)),
             times,
@@ -150,6 +153,7 @@ def response_time_per_query(dfs, column):
         )
         plt.legend(loc=0)
 
+    plt.ylim(0, 0.04)
     plt.ylabel('Response time (s)')
     plt.xlabel('Query (#)')
     plt.title('Response Time per Query (' + str(column) + ' columns)')
