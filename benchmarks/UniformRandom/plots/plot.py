@@ -248,7 +248,7 @@ def stackplot_per_query(df, column):
     plt.savefig(str(name) + 'stack' + str(column) + '.png')
     reset_plot()
 
-def response_time_bars(dfs, column):
+def response_time_bars(dfs, column, title):
     times = []
     names = []
     for df in dfs:
@@ -260,7 +260,9 @@ def response_time_bars(dfs, column):
         )
     plt.bar(range(len(names)), times)
     plt.xticks(range(len(names)), names)
-    plt.savefig('barchart' + str(column) + '.png')
+    plt.ylabel('Elapsed time (seconds)')
+    plt.title('Total response time (' + str(column) + ' columns)')
+    plt.savefig(title + '.png')
     reset_plot()
 
 def values(dfs):
@@ -273,7 +275,8 @@ def values(dfs):
             )
 
 def experiment1():
-    response_time_bars([std_cracking, full_scan, full_kd], 2)
+    response_time_bars([std_cracking, full_scan, full_kd], 2, 'bars-cff')
+    response_time_bars([std_cracking, full_scan], 2, 'bars-cf')
 
     response_time_all_columns([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 'all_r_s', 'total_time')
     response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'total_time')
