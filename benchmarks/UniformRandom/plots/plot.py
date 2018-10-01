@@ -289,19 +289,21 @@ def stackplot_per_query(df, column):
     reset_plot()
 
 
-def stackplot_per_query_first_ten(df, column):
+def stackplot_per_query_first_fifty(df, column):
     df = df[column]
 
     name = df['algorithm'][0]
 
-    x = range(len(df['total_time'][:10]))
-    y1 = np.array(df['index_creation'][:10])
-    y2 = np.array(df['index_lookup'][:10])
-    y3 = np.array(df['scan_time'][:10])
+    x = range(len(df['total_time'][:50]))
+    y1 = np.array(df['index_creation'][:50])
+    y2 = np.array(df['index_lookup'][:50])
+    y3 = np.array(df['scan_time'][:50])
 
     labels = ["Index Creation ", "Index Lookup", "Scan Time"]
 
     plt.stackplot(x, y1, y2, y3, labels=labels)
+    plt.plot(x, y1 + y2 + y3, marker='.', linestyle = 'None')
+    plt.ylim(0, 0.6)
     plt.ylabel('Elapsed time (seconds)')
     plt.xlabel('Query (#)')
     plt.legend(loc=0)
@@ -378,15 +380,15 @@ def experiment1():
     stackplot_per_query(quasii, 8)
     stackplot_per_query(quasii, 16)
 
-    stackplot_per_query_first_ten(cracking_kd, 2)
-    stackplot_per_query_first_ten(cracking_kd, 4)
-    stackplot_per_query_first_ten(cracking_kd, 8)
-    stackplot_per_query_first_ten(cracking_kd, 16)
+    stackplot_per_query_first_fifty(cracking_kd, 2)
+    stackplot_per_query_first_fifty(cracking_kd, 4)
+    stackplot_per_query_first_fifty(cracking_kd, 8)
+    stackplot_per_query_first_fifty(cracking_kd, 16)
 
-    stackplot_per_query_first_ten(quasii, 2)
-    stackplot_per_query_first_ten(quasii, 4)
-    stackplot_per_query_first_ten(quasii, 8)
-    stackplot_per_query_first_ten(quasii, 16)
+    stackplot_per_query_first_fifty(quasii, 2)
+    stackplot_per_query_first_fifty(quasii, 4)
+    stackplot_per_query_first_fifty(quasii, 8)
+    stackplot_per_query_first_fifty(quasii, 16)
 
 def main():
     experiment1()
