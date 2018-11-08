@@ -24,16 +24,15 @@ PATH = ""
 experiments = [FULL_SCAN, STANDARD_CRACKING, CRACKING_KD_TREE, FULL_KD_TREE, SIDEWAYS_CRACKING, QUASII]
 # Main Configurations
 NUM_QUERIES = "1000"
-NUMBER_OF_REPETITIONS = 10
-COLUMN_SIZE = '10000000'
+NUMBER_OF_REPETITIONS = 3
+COLUMN_SIZE = '1000000'
 UPPERBOUND = COLUMN_SIZE
-NUMBER_OF_COLUMNS = ['2', '4', '8', '16']
+NUMBER_OF_COLUMNS = ['1', '2', '4', '8', '16']
 KDTREE_THRESHOLD = '2000'  # Only used for KDTree
-QUERY_SELECTIVITY = '0.5'
+QUERY_SELECTIVITY = '0.01'
 
 ONE_SIDED_PERCENTAGE = '0'
 
-SELECTIVITY_PERCENTAGE = str(float(QUERY_SELECTIVITY) ** (1/float(NUMBER_OF_COLUMNS)))
 QUERIES_PATTERN =  RANDOM
 COLUMN_PATTERN = RANDOM
 # Saving Experiments
@@ -69,10 +68,10 @@ def translate_alg(alg):
 
 #Output is a csv file with:
 #"algorithm;repetition;column_size;column_pattern;number_of_columns;index_creation;index_lookup;scan_time;join_time;total_time"
-def generate_output(file,query_result,repetition,ALGORITHM, N_COLUMN):
+def generate_output(file,query_result,repetition,ALGORITHM, N_COLUMN, selectivity):
     query_result = query_result.split("\n")
     for query in range(0, len(query_result)-1):
-        file.write(translate_alg(ALGORITHM) + ';' + str(repetition) + ";" + SELECTIVITY_PERCENTAGE +";"+ str(query)
+        file.write(translate_alg(ALGORITHM) + ';' + str(repetition) + ";" + selectivity +";"+ str(query)
         + ';' + COLUMN_SIZE + ';' + COLUMN_PATTERN  + ';' + N_COLUMN + ';' + query_result[query])
         file.write('\n')
     file.close()
@@ -100,6 +99,7 @@ if os.system('make') != 0:
     exit()
 
 for N_COLUMN in NUMBER_OF_COLUMNS:
+    SELECTIVITY_PERCENTAGE = str(float(QUERY_SELECTIVITY) ** (1/float(N_COLUMN)))
     print("Generating Data")
     if os.system("./gendata --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  N_COLUMN
     + " --selectivity=" +SELECTIVITY_PERCENTAGE + " --queries-pattern=" +  QUERIES_PATTERN + " --column-pattern="+ COLUMN_PATTERN
@@ -113,4 +113,4 @@ for N_COLUMN in NUMBER_OF_COLUMNS:
             result = os.popen("./crackingmain --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  N_COLUMN + " --indexing-type="+experiment
                 +" --kdtree-threshold=" + KDTREE_THRESHOLD).read()
             file = create_output()
-            generate_output(file,result,repetition,experiment, N_COLUMN)
+            generate_output(file,result,repetition,experiment, N_COLUMN, SELECTIVITY_PERCENTAGE)

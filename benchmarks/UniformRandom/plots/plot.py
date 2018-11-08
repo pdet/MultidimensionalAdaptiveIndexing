@@ -15,7 +15,7 @@ mpl.rcParams['hatch.linewidth'] = 2.0 # Changes hatch line width
 
 
 BASE_DIR = '../../../Results/'
-NR = 10
+NR = 3
 
 # 1-10 full scan
 # 11 - 20 cracking avl
@@ -42,7 +42,7 @@ def translate_alg(alg):
 def fix_total_time(df):
     df_fixed = df.drop(columns=['total_time'])
     df_fixed['total_time'] = df['index_creation'] + df['index_lookup'] + df['scan_time'] + df['join_time']
-    
+
     return df_fixed
 
 def average_df(dir_list):
@@ -58,45 +58,51 @@ def average_df(dir_list):
     return fix_total_time(df)
 
 full_scan = {
-    2: average_df(range(NR * 0 + 1, NR * 1)),
-    4: average_df(range(NR * 6 + 1, NR * 7)),
-    8: average_df(range(NR * 12 + 1, NR * 13)),
-    16: average_df(range(NR * 18 + 1, NR * 19))
+    1: average_df(range(NR * 0 + 1, NR * 1 + 1)),
+    2: average_df(range(NR * 6 + 1, NR * 7 + 1)),
+    4: average_df(range(NR * 12 + 1, NR * 13 + 1)),
+    8: average_df(range(NR * 18 + 1, NR * 19 + 1)),
+    16: average_df(range(NR * 24 + 1, NR * 25 + 1))
 }
 
 std_cracking = {
-    2: average_df(range(NR * 1 + 1, NR * 2)),
-    4: average_df(range(NR * 7 + 1, NR * 8)),
-    8: average_df(range(NR * 13 + 1, NR * 14)),
-    16: average_df(range(NR * 19 + 1, NR * 20))
+    1: average_df(range(NR * 1 + 1, NR * 2 + 1)),
+    2: average_df(range(NR * 7 + 1, NR * 8 + 1)),
+    4: average_df(range(NR * 13 + 1, NR * 14 + 1)),
+    8: average_df(range(NR * 19 + 1, NR * 20 + 1)),
+    16: average_df(range(NR * 25 + 1, NR * 26 + 1))
 }
 
 cracking_kd = {
-    2: average_df(range(NR * 2 + 1, NR * 3)),
-    4: average_df(range(NR * 8 + 1, NR * 9)),
-    8: average_df(range(NR * 14 + 1, NR * 15)),
-    16: average_df(range(NR * 20 + 1, NR * 21))
+    1: average_df(range(NR * 2 + 1, NR * 3 + 1)),
+    2: average_df(range(NR * 8 + 1, NR * 9 + 1)),
+    4: average_df(range(NR * 14 + 1, NR * 15 + 1)),
+    8: average_df(range(NR * 20 + 1, NR * 21 + 1)),
+    16: average_df(range(NR * 26 + 1, NR * 27 + 1))
 }
 
 full_kd = {
-    2: average_df(range(NR * 3 + 1, NR * 4)),
-    4: average_df(range(NR * 9 + 1, NR * 10)),
-    8: average_df(range(NR * 15 + 1, NR * 16)),
-    16: average_df(range(NR * 21 + 1, NR * 22))
+    1: average_df(range(NR * 3 + 1, NR * 4 + 1)),
+    2: average_df(range(NR * 9 + 1, NR * 10 + 1)),
+    4: average_df(range(NR * 15 + 1, NR * 16 + 1)),
+    8: average_df(range(NR * 21 + 1, NR * 22 + 1)),
+    16: average_df(range(NR * 27 + 1, NR * 28 + 1))
 }
 
 sideways = {
-    2: average_df(range(NR * 4 + 1, NR * 5)),
-    4: average_df(range(NR * 10 + 1, NR * 11)),
-    8: average_df(range(NR * 16 + 1, NR * 17)),
-    16: average_df(range(NR * 22 + 1, NR * 23))
+    1: average_df(range(NR * 4 + 1, NR * 5 + 1)),
+    2: average_df(range(NR * 10 + 1, NR * 11 + 1)),
+    4: average_df(range(NR * 16 + 1, NR * 17 + 1)),
+    8: average_df(range(NR * 22 + 1, NR * 23 + 1)),
+    16: average_df(range(NR * 28 + 1, NR * 29 + 1))
 }
 
 quasii = {
-    2: average_df(range(NR * 5 + 1, NR * 6)),
-    4: average_df(range(NR * 11 + 1, NR * 12)),
-    8: average_df(range(NR * 17 + 1, NR * 18)),
-    16: average_df(range(NR * 23 + 1, NR * 24))
+    1: average_df(range(NR * 5 + 1, NR * 6 + 1)),
+    2: average_df(range(NR * 11 + 1, NR * 12 + 1)),
+    4: average_df(range(NR * 17 + 1, NR * 18 + 1)),
+    8: average_df(range(NR * 23 + 1, NR * 24 + 1)),
+    16: average_df(range(NR * 29 + 1, NR * 30 + 1))
 }
 
 def reset_plot():
@@ -108,7 +114,7 @@ def time_breakdown(dfs, column):
     # index_creation;index_lookup;scan_time;join_time;projection_time
     i_c, i_l, s_t, j_t, p_t = [], [], [], [], [] # this is ugly as hell
     names = []
-    
+
     ind =  np.linspace(0, 0.25, num=len(dfs))
 
     for df in dfs:
@@ -143,7 +149,7 @@ def time_breakdown_with_join(dfs, column):
     # index_creation;index_lookup;scan_time;join_time;projection_time
     i_c, i_l, s_t, j_t, p_t = [], [], [], [], [] # this is ugly as hell
     names = []
-    
+
     ind =  np.linspace(0, 0.25, num=len(dfs))
 
     for df in dfs:
@@ -174,7 +180,7 @@ def time_breakdown_with_join(dfs, column):
 def response_time_per_query(dfs, column):
     for df_hash in dfs:
         name = ''
-        
+
         name = df_hash[column]['algorithm'][0]
         times = df_hash[column]['total_time']
         plt.plot(
@@ -215,7 +221,7 @@ def response_time_all_columns(dfs, file_name, attribute):
             linewidth=2.0
         )
         plt.legend(loc=0)
-    
+
     plt.ylabel('Response time (s)')
     plt.xlabel('Number of Columns')
     plt.title('Total Response Time (' + attribute + ')')
@@ -337,54 +343,63 @@ def values(dfs):
             )
 
 def experiment1():
-    response_time_bars([std_cracking, full_scan, full_kd], 2, 'bars-cff')
-    response_time_bars([std_cracking, full_scan], 2, 'bars-cf')
+    response_time_bars([std_cracking, full_scan, full_kd], 16, 'bars-cff')
+    response_time_bars([std_cracking, full_scan], 16, 'bars-cf')
 
     response_time_all_columns([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 'all_r_s', 'total_time')
     response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'total_time')
     response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'index_creation')
     response_time_all_columns([cracking_kd, full_kd, quasii], 'r_s', 'scan_time')
-    
+
+    time_breakdown([cracking_kd, full_kd, quasii], 1)
     time_breakdown([cracking_kd, full_kd, quasii], 2)
     time_breakdown([cracking_kd, full_kd, quasii], 4)
     time_breakdown([cracking_kd, full_kd, quasii], 8)
     time_breakdown([cracking_kd, full_kd, quasii], 16)
 
+    time_breakdown_with_join([std_cracking, sideways], 1)
     time_breakdown_with_join([std_cracking, sideways], 2)
     time_breakdown_with_join([std_cracking, sideways], 4)
     time_breakdown_with_join([std_cracking, sideways], 8)
     time_breakdown_with_join([std_cracking, sideways], 16)
 
+    response_time_per_query([cracking_kd,  quasii], 1)
     response_time_per_query([cracking_kd,  quasii], 2)
     response_time_per_query([cracking_kd,  quasii], 4)
     response_time_per_query([cracking_kd,  quasii], 8)
     response_time_per_query([cracking_kd,  quasii], 16)
 
+    accumulated_response_time([cracking_kd,  quasii], 1)
     accumulated_response_time([cracking_kd,  quasii], 2)
     accumulated_response_time([cracking_kd,  quasii], 4)
     accumulated_response_time([cracking_kd,  quasii], 8)
     accumulated_response_time([cracking_kd,  quasii], 16)
 
+    accumulated_response_time_with_prediction([cracking_kd,  quasii], 1)
     accumulated_response_time_with_prediction([cracking_kd,  quasii], 2)
     accumulated_response_time_with_prediction([cracking_kd,  quasii], 4)
     accumulated_response_time_with_prediction([cracking_kd,  quasii], 8)
     accumulated_response_time_with_prediction([cracking_kd,  quasii], 16)
 
+    stackplot_per_query(cracking_kd, 1)
     stackplot_per_query(cracking_kd, 2)
     stackplot_per_query(cracking_kd, 4)
     stackplot_per_query(cracking_kd, 8)
     stackplot_per_query(cracking_kd, 16)
 
+    stackplot_per_query(quasii, 1)
     stackplot_per_query(quasii, 2)
     stackplot_per_query(quasii, 4)
     stackplot_per_query(quasii, 8)
     stackplot_per_query(quasii, 16)
 
+    stackplot_per_query_first_fifty(cracking_kd, 1)
     stackplot_per_query_first_fifty(cracking_kd, 2)
     stackplot_per_query_first_fifty(cracking_kd, 4)
     stackplot_per_query_first_fifty(cracking_kd, 8)
     stackplot_per_query_first_fifty(cracking_kd, 16)
 
+    stackplot_per_query_first_fifty(quasii, 1)
     stackplot_per_query_first_fifty(quasii, 2)
     stackplot_per_query_first_fifty(quasii, 4)
     stackplot_per_query_first_fifty(quasii, 8)
@@ -393,7 +408,7 @@ def experiment1():
 def main():
     experiment1()
     values([cracking_kd, full_kd, quasii, sideways])
-    
+
 
 
 if __name__ == '__main__':
