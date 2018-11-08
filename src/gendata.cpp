@@ -295,7 +295,7 @@ void generateQuery(int64_t NUM_QUERIES,
     FILE* f = fopen(QUERIES_FILE_PATH.c_str(), "a+");
     vector<int64_t> leftQuery;
     vector<int64_t> rightQuery;
-    int64_t maxLeftQueryVal = COLUMN_SIZE*SELECTIVITY_PERCENTAGE;
+    int64_t maxLeftQueryVal = COLUMN_SIZE - COLUMN_SIZE*SELECTIVITY_PERCENTAGE + 1;
     start = chrono::system_clock::now();
 
     if(QUERY_PATTERN == 1)
@@ -323,7 +323,7 @@ void generateQuery(int64_t NUM_QUERIES,
             rightQuery[indices.at(i)] = -1;
         }
     }
-    
+
     fwrite(&leftQuery[0], sizeof(int64_t), NUM_QUERIES, f);
     fwrite(&rightQuery[0], sizeof(int64_t), NUM_QUERIES, f);
     fclose(f);
@@ -407,8 +407,7 @@ int main(int argc, char** argv) {
                 print_help(argc, argv);
                 exit(EXIT_FAILURE);
             }
-        }
-    
+    }
 
     truncate(COLUMN_FILE_PATH);
     truncate(QUERIES_FILE_PATH);

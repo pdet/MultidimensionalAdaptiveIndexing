@@ -55,7 +55,7 @@ vector<vector<int64_t>> unidimensional_cracking(Table *table, vector<vector<arra
     cracking_pre_processing(table, T);
     vector<vector<int64_t>> queryResult;
     for (size_t i = 0; i < NUM_QUERIES; ++ i){
-        vector<pair<int, int>> offsets; 
+        vector<pair<int, int>> offsets;
         vector<int64_t> rowId;
         vector<vector<bool>> bitmaps(NUMBER_OF_COLUMNS);
         cracking_partial_built(table, T,&queries->at(i));
@@ -74,7 +74,7 @@ vector<vector<int64_t>> cracking_kdtree(Table *table, vector< vector<array<int64
     vector<vector<int64_t>> queryResult;
 
     for (size_t i = 0; i < NUM_QUERIES; ++ i){
-        vector<pair<int, int>> offsets; 
+        vector<pair<int, int>> offsets;
         vector<int64_t> rowId;
         cracking_kdtree_partial_built(table, T,&queries->at(i));
         kdtree_index_lookup(T,&queries->at(i),&offsets);
@@ -93,7 +93,7 @@ vector<vector<int64_t>> full_kdtree(Table *table, vector< vector<array<int64_t, 
     vector<vector<int64_t>> queryResult;
 
     for (size_t i = 0; i < NUM_QUERIES; ++ i){
-        vector<pair<int, int>> offsets; 
+        vector<pair<int, int>> offsets;
         vector<int64_t> rowId;
         kdtree_index_lookup(T,&queries->at(i),&offsets);
         kdtree_scan(table,&queries->at(i), &offsets, &rowId);
@@ -111,7 +111,7 @@ vector<vector<int64_t>> full_kdtree(Table *table, vector< vector<array<int64_t, 
 //     vector<vector<int64_t>> queryResult;
 
 //     for (size_t i = 0; i < NUM_QUERIES; ++ i){
-//         vector<pair<int, int>> offsets; 
+//         vector<pair<int, int>> offsets;
 //         vector<int64_t> rowId;
 //         partial_sideways_cracking_partial_built(table, T,&queries->at(i));
 //         partial_sideways_cracking_scan(table,&queries->at(i), &offsets, &rowId);
@@ -129,7 +129,7 @@ vector<vector<int64_t>> sideways_cracking(Table *table, vector< vector<array<int
     vector<vector<int64_t>> queryResult;
 
     for (size_t i = 0; i < NUM_QUERIES; ++ i){
-        vector<pair<int, int>> offsets; 
+        vector<pair<int, int>> offsets;
         vector<int64_t> rowId;
         sideways_cracking_partial_built(table, T,&queries->at(i));
         sideways_cracking_index_lookup(T,&queries->at(i),&offsets);
@@ -152,7 +152,7 @@ vector<vector<int64_t>> quasii(Table *table, vector< vector<array<int64_t, 3>>> 
     quasii_pre_processing(table, NULL);
 
     for (size_t i = 0; i < NUM_QUERIES; ++ i){
-        vector<pair<int, int>> offsets; 
+        vector<pair<int, int>> offsets;
         vector<int64_t> rowId;
         quasii_partial_built(table, NULL,&queries->at(i));
         quasii_index_lookup(NULL,&queries->at(i),&offsets);
@@ -168,12 +168,14 @@ int64_t verify_range_query(vector<vector<int64_t>> queryResultBaseline,vector<ve
     int64_t n_w = 0;
     for (int64_t i = 0; i < queryResultBaseline.size(); ++i){
         if(queryResultBaseline.at(i).size() != queryResultToBeTested.at(i).size()){
+            fprintf(stderr, "Different sizes: %zu | %zu\n", queryResultBaseline.at(i).size(), queryResultToBeTested.at(i).size());
             n_w++;
             continue;
         }
         for(int64_t j = 0; j < queryResultBaseline.at(i).size(); ++j){
         	if (queryResultBaseline.at(i).at(j) != queryResultToBeTested.at(i).at(j))
         	{
+                fprintf(stderr, "Different values: %ld | $ld\n", queryResultBaseline.at(i).at(j) - queryResultToBeTested.at(i).at(j));
                 n_w++;
                 break;
         	}
@@ -193,7 +195,7 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     fprintf(stderr, "Running Vectorized Branchless Scan.\n");
     queryResultToBeTested = vectorized_branchless_full_scan(table,&rangeQueries);
     int64_t fs = verify_range_query(queryResultBaseline,queryResultToBeTested);
-   
+
     fprintf(stderr, "Running Unidimensional Cracking.\n");
     queryResultToBeTested = unidimensional_cracking(table,&rangeQueries);
     int64_t std = verify_range_query(queryResultBaseline,queryResultToBeTested);
@@ -201,7 +203,7 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     fprintf(stderr, "Running Cracking KD-Tree.\n");
     queryResultToBeTested = cracking_kdtree(table,&rangeQueries);
     int64_t ckd = verify_range_query(queryResultBaseline,queryResultToBeTested);
-    
+
     fprintf(stderr, "Running Full Kd-Tree.\n");
     queryResultToBeTested = full_kdtree(table,&rangeQueries);
     int64_t kd = verify_range_query(queryResultBaseline,queryResultToBeTested);
@@ -213,7 +215,7 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     fprintf(stderr, "Running Quasii.\n");
     queryResultToBeTested = quasii(table,&rangeQueries);
     int64_t qs = verify_range_query(queryResultBaseline,queryResultToBeTested);
-    
+
     // fprintf(stderr, "Running Partial Sideways Cracking.\n");
     // queryResultToBeTested = partial_sideways_cracking(table,&rangeQueries);
     // int64_t psw = verify_range_query(queryResultBaseline,queryResultToBeTested);
@@ -225,7 +227,15 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     fprintf(stderr, "|Full KD - Number of errors: %ld\n", kd);
     fprintf(stderr, "|Sideways Cracking - Number of errors: %ld\n", sw);
     fprintf(stderr, "|Quasii - Number of errors: %ld\n", qs);
+
+    double avg_selec = 0.0;
+    for (size_t i = 0; i < rangeQueries.size(); i++) {
+      avg_selec += static_cast<double>(queryResultBaseline.at(i).size())/static_cast<double>(table->ids.size());
+    }
+
+    fprintf(stderr, "|Average Selectivity: %f\n", avg_selec/static_cast<int64_t>(rangeQueries.size()));
+
     fprintf(stderr, "-------------------------------------------------------\n");
 
-        
+
 }

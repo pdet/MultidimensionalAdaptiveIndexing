@@ -44,7 +44,7 @@ const int QUASI = 7;
 string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
 int64_t COLUMN_SIZE,NUM_QUERIES, NUMBER_OF_COLUMNS, KDTREE_THRESHOLD, INDEXING_TYPE;
 
-void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQueries, 
+void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQueries,
 	pre_processing_function pre_processing, partial_index_built_function partial_index_built,
 	index_lookup_function index_lookup, scan_data_function scan_data, intersect_data_function intersect_data){
 
@@ -55,62 +55,63 @@ void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQuer
 	vector<double> projectionTime = vector<double>(NUM_QUERIES, 0);
 	vector<double> totalTime = vector<double>(NUM_QUERIES);
 	chrono::time_point<chrono::system_clock> start, end;
-	
+
 	table->crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
 	Tree *T;
 	if(INDEXING_TYPE == 1)
 		T = (Tree *)malloc(sizeof(Tree) * NUMBER_OF_COLUMNS);
-	else 
+	else
 		T = (Tree *)malloc(sizeof(Tree));
 
 	vector<vector<bool> > bitmaps(NUMBER_OF_COLUMNS);
 	// First we do pre-processing. In the case of full index we fully create the index.
 	// In the case of Partial Indexes we copy the elements to a cracker index structure.
+  start = chrono::system_clock::now();
+  if(pre_processing)
+  	pre_processing(table,T);
+  end = chrono::system_clock::now();
+  indexCreation.at(0)  = chrono::duration<double>(end - start).count();
+
+  for(int i = 0; i < NUM_QUERIES; i++) {
+		vector<pair<int, int>> offsets;
+  	vector<int64_t> result;
+  	// If we are running cracking algorithms we do a partial index creation step
+  	start = chrono::system_clock::now();
+  	if(partial_index_built)
+  		partial_index_built(table,T,&rangeQueries.at(i));
+  	end = chrono::system_clock::now();
+    indexCreation.at(i) += chrono::duration<double>(end - start).count();
+
+		// Index Lookup
     start = chrono::system_clock::now();
+    if(index_lookup)
+  		index_lookup(T,&rangeQueries.at(i),&offsets);
+  	end = chrono::system_clock::now();
+    indexLookup.at(i) = chrono::duration<double>(end - start).count();
 
-    if(pre_processing)
-    	pre_processing(table,T);
+    // Scan data
+    start = chrono::system_clock::now();
+  	if (scan_data)
+  		scan_data(table,&rangeQueries.at(i),&offsets,&result);
+  	end = chrono::system_clock::now();
+    scanTime.at(i)  = chrono::duration<double>(end - start).count();
+
+		// Intersection
+    start = chrono::system_clock::now();
+  	if(intersect_data)
+  		intersect_data(table,&offsets,&bitmaps,&result);
+  	end = chrono::system_clock::now();
+    joinTime.at(i)  = chrono::duration<double>(end - start).count();
+
+		// Projection
+		start = chrono::system_clock::now();
+  	int64_t final_result = uniformRandomProjection(&result);
     end = chrono::system_clock::now();
-    indexCreation.at(0)  = chrono::duration<double>(end - start).count();
+    projectionTime.at(i)  = chrono::duration<double>(end - start).count();
 
-    for(int i = 0; i < NUM_QUERIES; i++) {
-		vector<pair<int, int>> offsets;  
-    	vector<int64_t> result;
-    	// If we are running cracking algorithms we do a partial index creation step
-    	start = chrono::system_clock::now();
-
-    	if(partial_index_built)
-    		partial_index_built(table,T,&rangeQueries.at(i));
-    	end = chrono::system_clock::now();
-        indexCreation.at(i) += chrono::duration<double>(end - start).count();
-
-        start = chrono::system_clock::now();
-        if(index_lookup)
-    		index_lookup(T,&rangeQueries.at(i),&offsets);
-    	end = chrono::system_clock::now();
-        indexLookup.at(i) = chrono::duration<double>(end - start).count();
-      
-       // Intersecting data for uni-dimensional indexes
-        start = chrono::system_clock::now();
-    	if (scan_data)
-    		scan_data(table,&rangeQueries.at(i),&offsets,&result);
-    	end = chrono::system_clock::now();
-        scanTime.at(i)  = chrono::duration<double>(end - start).count();
-        
-        start = chrono::system_clock::now(); 
-    	if(intersect_data)
-    		intersect_data(table,&offsets,&bitmaps,&result);
-    	end = chrono::system_clock::now();
-        joinTime.at(i)  = chrono::duration<double>(end - start).count();
-
-		start = chrono::system_clock::now(); 
-    	int64_t final_result = uniformRandomProjection(&result);
-        end = chrono::system_clock::now();
-        projectionTime.at(i)  = chrono::duration<double>(end - start).count();
-
-        totalTime.at(i)  = indexCreation.at(i) + indexLookup.at(i) + scanTime.at(i) + joinTime.at(i) + projectionTime.at(i);
-        fprintf(stderr, "Result : %ld\n", final_result);
-    }
+    totalTime.at(i) = indexCreation.at(i) + indexLookup.at(i) + scanTime.at(i) + joinTime.at(i) + projectionTime.at(i);
+    fprintf(stderr, "Result : %ld\n", final_result);
+  }
 	for (int i = 0; i < NUM_QUERIES; i++){
 		cout << indexCreation.at(i) << ";" << indexLookup.at(i) << ";" << scanTime.at(i) << ";" << joinTime.at(i) << ";" << totalTime.at(i) << ";" << projectionTime.at(i) << "\n";
 		fprintf(stderr, "%f\n",totalTime.at(i));
@@ -156,7 +157,7 @@ int main(int argc, char **argv)
                 exit(EXIT_FAILURE);
             }
         }
-   
+
     Column *c = (Column *)malloc(sizeof(Column) * NUMBER_OF_COLUMNS);
     loadcolumn(c, COLUMN_FILE_PATH, COLUMN_SIZE, NUMBER_OF_COLUMNS);
     Table table;
@@ -203,18 +204,18 @@ int main(int argc, char **argv)
     		case KDTREE:
     			benchmarkFunction(&table,query,full_kdtree_pre_processing,NULL,kdtree_index_lookup,kdtree_scan,NULL);
     			break;
-            case SIDEWAYS_CRACKING:
-                benchmarkFunction(&table,query,sideways_cracking_pre_processing,sideways_cracking_partial_built,sideways_cracking_index_lookup,sideways_cracking_scan,NULL);
-                break;
-            // case PARTIAL_SIDEWAYS_CRACKING:
-            //     benchmarkFunction(&table,query,partial_sideways_cracking_pre_processing,partial_sideways_cracking_partial_built,NULL,partial_sideways_cracking_scan,NULL);
-            //     break;
-            // case COVERED_CRACKING:
-            //     benchmarkFunction(&table,query,sideways_cracking_pre_processing,sideways_cracking_partial_built,sideways_cracking_index_lookup,sideways_cracking_scan,NULL);
-            //     break;
-            case QUASI:
-                benchmarkFunction(&table, query, quasii_pre_processing, quasii_partial_built, quasii_index_lookup, quasii_scan, NULL);
-                break;
+        case SIDEWAYS_CRACKING:
+          benchmarkFunction(&table,query,sideways_cracking_pre_processing,sideways_cracking_partial_built,sideways_cracking_index_lookup,sideways_cracking_scan,NULL);
+          break;
+        // case PARTIAL_SIDEWAYS_CRACKING:
+        //     benchmarkFunction(&table,query,partial_sideways_cracking_pre_processing,partial_sideways_cracking_partial_built,NULL,partial_sideways_cracking_scan,NULL);
+        //     break;
+        // case COVERED_CRACKING:
+        //     benchmarkFunction(&table,query,sideways_cracking_pre_processing,sideways_cracking_partial_built,sideways_cracking_index_lookup,sideways_cracking_scan,NULL);
+        //     break;
+        case QUASI:
+          benchmarkFunction(&table, query, quasii_pre_processing, quasii_partial_built, quasii_index_lookup, quasii_scan, NULL);
+          break;
     	}
     #endif
 }

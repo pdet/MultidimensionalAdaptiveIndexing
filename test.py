@@ -25,15 +25,16 @@ COLUMN_SIZE = '100000'
 UPPERBOUND = COLUMN_SIZE
 NUMBER_OF_COLUMNS = '8'
 KDTREE_THRESHOLD = '2000'  # Only used for KDTree
+QUERY_SELECTIVITY = '0.8'
 
 ONE_SIDED_PERCENTAGE = '0'
 
-SELECTIVITY_PERCENTAGE = "0.2"
-QUERIES_PATTERN =  RANDOM 
-COLUMN_PATTERN = RANDOM  
+SELECTIVITY_PERCENTAGE = str(float(QUERY_SELECTIVITY) ** (1/float(NUMBER_OF_COLUMNS)))
+QUERIES_PATTERN =  RANDOM
+COLUMN_PATTERN = RANDOM
 
 print("Compiling")
-os.environ['OPT'] = 'false'
+os.environ['OPT'] = 'true'
 if os.system('make') != 0:
     print("Make Failed")
     exit()

@@ -7,7 +7,7 @@ extern int64_t NUMBER_OF_COLUMNS,COLUMN_SIZE;
 static vector<Slice> S; //Static variable to hold all the slices on the first level
 
 
-const int last_level_threshold = 60; // No clue how to set up this parameter for highly dimensional queries.
+const int last_level_threshold = 2000; // No clue how to set up this parameter for highly dimensional queries.
 vector<int64_t> dimension_threshold;
 
 // Caculate threshold of each level
@@ -15,7 +15,7 @@ void calculate_level_thresholds(){
 	dimension_threshold.push_back(last_level_threshold);
 	double root_aux = 1/NUMBER_OF_COLUMNS;
 	int64_t r = ceil(pow(COLUMN_SIZE/last_level_threshold, (double) 1.0/NUMBER_OF_COLUMNS));
-	
+
 
 	int64_t cur_thr = r * last_level_threshold;
 	dimension_threshold.push_back(cur_thr);
@@ -253,7 +253,7 @@ vector<Slice> refine(Slice &slice, CrackerTable *table, vector<array<int64_t, 3>
 // 					query(rangequeries,table,&refined_slices[j].children, result);
 // 				}
 // 			}
-// 		}	
+// 		}
 // 		refined_slice_aux.insert(refined_slice_aux.end(), refined_slices.begin(), refined_slices.end());
 // 		i++;
 // 	}
@@ -359,7 +359,3 @@ void quasii_scan(Table *table, vector<array<int64_t, 3>> *query, vector<pair<int
             result->push_back(table->crackertable.ids[sel_vector[j] + offsets->at(i).first]);
     }
 }
-
-
-
-
