@@ -46,7 +46,8 @@ int64_t crack_map(CrackerMaps *map, int64_t low, int64_t high, int64_t element)
     }
     if (x1 < x2)
         printf("Not all elements were inspected!");
-    x1--;
+    if(x1 > 0)
+        x1--;
     return x1;
 }
 
@@ -61,17 +62,16 @@ Tree sideways_cracking(CrackerMaps *map, Tree T, int64_t lowKey, int64_t highKey
         p2 = FindNeighborsLT(highKey, T, COLUMN_SIZE - 1);
 
     IntPair pivot_pair = NULL;
-  
+
     // crack in two
     pivot_pair = (IntPair)malloc(sizeof(struct int_pair));
     pivot_pair->first = 0;
 
     if(lowKey != -1)
         pivot_pair->first = crack_map(map, p1->first, p1->second, lowKey);
-    
+
     if(highKey != -1)
         pivot_pair->second = crack_map(map, pivot_pair->first, p2->second, highKey);
-
     if(lowKey != -1)
         T = Insert(pivot_pair->first, lowKey, T);
     if(highKey != -1)
@@ -126,7 +126,6 @@ void sideways_cracking_partial_built(Table *table, Tree * T, vector<array<int64_
     int64_t leading_col = rangequeries->at(0).at(2);
 
     crackersets.at(leading_col).rangequeries.push_back(rangequeries->at(0));
-
     for(size_t i = 0; i < rangequeries->size(); i ++){
         int64_t c = rangequeries->at(i).at(2);
         crack_until_latest_query(crackersets.at(leading_col), c);
