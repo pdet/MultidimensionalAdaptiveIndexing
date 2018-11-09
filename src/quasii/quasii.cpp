@@ -7,14 +7,14 @@ extern int64_t NUMBER_OF_COLUMNS,COLUMN_SIZE;
 static vector<Slice> S; //Static variable to hold all the slices on the first level
 
 
-const int last_level_threshold = 2000; // No clue how to set up this parameter for highly dimensional queries.
+const int last_level_threshold = 2; // No clue how to set up this parameter for highly dimensional queries.
 vector<int64_t> dimension_threshold;
 
 // Caculate threshold of each level
 void calculate_level_thresholds(){
 	dimension_threshold.push_back(last_level_threshold);
-	double root_aux = 1/NUMBER_OF_COLUMNS;
-	int64_t r = ceil(pow(COLUMN_SIZE/last_level_threshold, (double) 1.0/NUMBER_OF_COLUMNS));
+	double root_aux = 1.0/NUMBER_OF_COLUMNS;
+	int64_t r = ceil(pow((double)COLUMN_SIZE/last_level_threshold, (double) 1.0/NUMBER_OF_COLUMNS));
 
 
 	int64_t cur_thr = r * last_level_threshold;
@@ -111,13 +111,23 @@ vector<Slice> sliceThreeWay(Slice &S, CrackerTable *table, int64_t low, int64_t 
         }
     }
 
-	Slice *s1 = new Slice(S.level, S.data_offset_begin, x1, S.box_begin, low);
-	Slice *s2 = new Slice(S.level, x3 + 1, x2, low, high);
-	Slice *s3 = new Slice(S.level, x2 + 1, S.data_offset_end, high, S.box_end);
+    if(x1 - S.data_offset_begin >= 0){
+        result.push_back(
+            *new Slice(S.level, S.data_offset_begin, x1, S.box_begin, low)
+        );
+    }
 
-	result.push_back(*s1);
-	result.push_back(*s2);
-	result.push_back(*s3);
+    if(x2 - x3 + 1 >= 0){
+        result.push_back(
+                *new Slice(S.level, x3 + 1, x2, low, high)
+        );
+    }
+
+    if(S.data_offset_end - x2 + 1 >= 0){
+        result.push_back(
+                *new Slice(S.level, x2 + 1, S.data_offset_end, high, S.box_end)
+        );
+    }
 
 	return result;
 }
@@ -297,7 +307,7 @@ void lookup(vector<Slice> &Slices, vector<array<int64_t, 3>>  *rangequeries, vec
     int64_t low = rangequeries->at(dim).at(0);
     int64_t high = rangequeries->at(dim).at(1);
 	int64_t i = binarySearch (&Slices, low);
-	while (i < Slices.size() && Slices.at(i).box_begin <= high){
+	while (i < Slices.size() && Slices.at(i).box_begin < high){
 		if(Slices.at(i).intersects(low, high)){
 			if(Slices.at(i).isBottomLevel(NUMBER_OF_COLUMNS - 1)){
 				offsets->push_back(make_pair(

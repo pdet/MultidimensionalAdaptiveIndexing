@@ -21,10 +21,10 @@ FULL_KD_TREE = "3"
 
 # Main Configurations
 NUM_QUERIES = "1000"
-COLUMN_SIZE = '1000000'
+COLUMN_SIZE = '10'
 UPPERBOUND = COLUMN_SIZE
-NUMBER_OF_COLUMNS = ['1', '2', '4', '8', '16']
-KDTREE_THRESHOLD = '2000'  # Only used for KDTree
+NUMBER_OF_COLUMNS = ['2']
+KDTREE_QUASII_THRESHOLD = '2000'  # Only used for KDTree
 QUERY_SELECTIVITY = '0.01'
 
 ONE_SIDED_PERCENTAGE = '0'
@@ -50,4 +50,4 @@ for N_COLUMNS in NUMBER_OF_COLUMNS:
 
     print("Testing Algorithms")
 
-    os.system("./crackingmain --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  N_COLUMNS +" --kdtree-threshold=" + KDTREE_THRESHOLD)
+    os.system("./crackingmain --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  N_COLUMNS +" --kdtree-threshold=" + KDTREE_QUASII_THRESHOLD)

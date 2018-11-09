@@ -124,10 +124,10 @@ int main(int argc, char **argv)
 	COLUMN_FILE_PATH = "column";
 	QUERIES_FILE_PATH = "query";
 	NUM_QUERIES = 1000;
-	COLUMN_SIZE = 10000000;
-	NUMBER_OF_COLUMNS = 16;
+	COLUMN_SIZE = 1000000;
+	NUMBER_OF_COLUMNS = 1;
 	INDEXING_TYPE = 0;
-	KDTREE_THRESHOLD = 1000;
+	KDTREE_THRESHOLD = 2000;
 
     for(int i = 1; i < argc; i++) {
         auto arg = string(argv[i]);
