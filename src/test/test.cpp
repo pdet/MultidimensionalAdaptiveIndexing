@@ -160,15 +160,15 @@ int64_t verify_range_query(vector<vector<int64_t>> queryResultBaseline, vector<v
     int64_t n_w = 0;
     for (int64_t i = 0; i < queryResultBaseline.size(); ++i) {
         if (queryResultBaseline.at(i).size() != queryResultToBeTested.at(i).size()) {
-            fprintf(stderr, "Different sizes(%ld): %zu | %zu\n", i, queryResultBaseline.at(i).size(),
-                    queryResultToBeTested.at(i).size());
+            fprintf(stderr, "Different sizes(%ld): %zu | %zu (%ld)\n", i, queryResultBaseline.at(i).size(),
+                    queryResultToBeTested.at(i).size(), (int64_t) queryResultBaseline.at(i).size() - (int64_t) queryResultToBeTested.at(i).size());
             n_w++;
             continue;
         }
         for (int64_t j = 0; j < queryResultBaseline.at(i).size(); ++j) {
             if (queryResultBaseline.at(i).at(j) != queryResultToBeTested.at(i).at(j)) {
-                fprintf(stderr, "Different values: %ld | $ld\n",
-                        queryResultBaseline.at(i).at(j) - queryResultToBeTested.at(i).at(j));
+                fprintf(stderr, "Different values: %ld | %ld\n",
+                        queryResultBaseline.at(i).at(j), queryResultToBeTested.at(i).at(j));
                 n_w++;
                 break;
             }

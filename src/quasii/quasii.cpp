@@ -7,7 +7,7 @@ extern int64_t NUMBER_OF_COLUMNS,COLUMN_SIZE;
 static vector<Slice> S; //Static variable to hold all the slices on the first level
 
 
-const int last_level_threshold = 2; // No clue how to set up this parameter for highly dimensional queries.
+const int last_level_threshold = 2000; // No clue how to set up this parameter for highly dimensional queries.
 vector<int64_t> dimension_threshold;
 
 // Caculate threshold of each level
@@ -111,23 +111,43 @@ vector<Slice> sliceThreeWay(Slice &S, CrackerTable *table, int64_t low, int64_t 
         }
     }
 
-    if(x1 - S.data_offset_begin >= 0){
+	int64_t slice1_begin = S.data_offset_begin;
+	int64_t slice1_end = x1;
+	int64_t slice1_value_begin = S.box_begin;
+	int64_t slice1_value_end = low;
+
+	int64_t slice2_begin = x1 + 1;
+	int64_t slice2_end = x2;
+	int64_t slice2_value_begin = low;
+	int64_t slice2_value_end = high;
+
+	int64_t slice3_begin = x2 + 1;
+	int64_t slice3_end = S.data_offset_end;
+	int64_t slice3_value_begin = high;
+	int64_t slice3_value_end = S.box_end;
+
+    if(slice1_end <= slice1_begin){
+            slice2_begin= slice1_begin;
+            slice2_value_begin = slice1_value_begin;
+    }else{
+		result.push_back(
+				*new Slice(S.level, slice1_begin, slice1_end, slice1_value_begin, slice1_value_end)
+		);
+    }
+
+    if(slice3_end <= slice3_begin){
+        slice2_end = slice3_end;
+        slice2_value_end = slice3_value_end;
+    }else{
         result.push_back(
-            *new Slice(S.level, S.data_offset_begin, x1, S.box_begin, low)
+                *new Slice(S.level, slice3_begin, slice3_end, slice3_value_begin, slice3_value_end)
         );
     }
 
-    if(x2 - x3 + 1 >= 0){
-        result.push_back(
-                *new Slice(S.level, x3 + 1, x2, low, high)
-        );
-    }
+    result.push_back(
+            *new Slice(S.level, slice2_begin, slice2_end, slice2_value_begin, slice2_value_end)
+    );
 
-    if(S.data_offset_end - x2 + 1 >= 0){
-        result.push_back(
-                *new Slice(S.level, x2 + 1, S.data_offset_end, high, S.box_end)
-        );
-    }
 
 	return result;
 }
@@ -159,11 +179,38 @@ vector<Slice> sliceTwoWay(Slice &S, CrackerTable *table, int64_t key){
         printf("Not all elements were inspected!");
     x1--;
 
-	Slice *s1 = new Slice(S.level, S.data_offset_begin, x1, S.box_begin, key);
-	Slice *s2 = new Slice(S.level, x1 + 1, S.data_offset_end, key, S.box_end);
+    int64_t slice1_begin = S.data_offset_begin;
+    int64_t slice1_end = x1;
+    int64_t slice1_box_begin = S.box_begin;
+    int64_t slice1_box_end = key;
 
-	result.push_back(*s1);
-	result.push_back(*s2);
+    int64_t slice2_begin = x1 + 1;
+    int64_t slice2_end = S.data_offset_end;
+    int64_t slice2_box_begin = key;
+    int64_t slice2_box_end = S.box_end;
+
+    if(slice1_end <= slice1_begin){
+        slice2_begin= slice1_begin;
+        slice2_box_begin = slice1_box_begin;
+
+        result.push_back(
+                *new Slice(S.level, slice2_begin, slice2_end, slice2_box_begin, slice2_box_end)
+        );
+    }else if(slice2_end <= slice2_begin){
+        slice1_end= slice2_end;
+        slice1_box_end= slice2_box_end;
+
+        result.push_back(
+                *new Slice(S.level, slice1_begin, slice1_end, slice1_box_begin, slice1_box_end)
+        );
+    }else {
+        result.push_back(
+                *new Slice(S.level, slice2_begin, slice2_end, slice2_box_begin, slice2_box_end)
+        );
+        result.push_back(
+                *new Slice(S.level, slice1_begin, slice1_end, slice1_box_begin, slice1_box_end)
+        );
+    }
 
 	return result;
 }
@@ -184,15 +231,15 @@ vector<Slice> sliceArtificial(Slice &S, CrackerTable *table){
 				slice, table, (slice.box_end + slice.box_begin)/2
 			);
 			for(size_t i = 0; i < slices_refined.size(); ++i){
-				if(!slices_refined.at(i).equal(slice))
-					slices_to_be_refined.push(slices_refined.at(i));
+				if(slices_refined.at(i).equal(slice))
+				    result.push_back(slices_refined.at(i));
+                else
+                    slices_to_be_refined.push(slices_refined.at(i));
 			}
 		}
 		else
 			result.push_back(slice);
 	} while(!slices_to_be_refined.empty());
-
-	reverse(result.begin(), result.end());
 
 	return result;
 }
@@ -226,8 +273,6 @@ vector<Slice> refine(Slice &slice, CrackerTable *table, vector<array<int64_t, 3>
  	else
  		refined_slice = sliceArtificial(slice, table);
  	for (size_t i = 0; i < refined_slice.size(); i ++){
-	    low = rangequeries->at(slice.level).at(0);
-    	high = rangequeries->at(slice.level).at(1);
  		if(refined_slice[i].bigger_than_threshold(dimension_threshold[refined_slice[i].level]) && refined_slice[i].intersects(low, high)){
  			vector<Slice> refined_slice_aux = sliceArtificial(refined_slice[i], table);
 			result_slices.insert(result_slices.end(), refined_slice_aux.begin(), refined_slice_aux.end());
@@ -350,8 +395,38 @@ void quasii_index_lookup(Tree * t, vector<array<int64_t, 3>>  *rangequeries, vec
 	lookup(S, rangequeries, offsets);
 }
 
+bool verify_slice(Slice slice, CrackerTable *table){
+    int64_t begin = slice.data_offset_begin;
+    int64_t end = slice.data_offset_end;
+
+    int64_t low = slice.box_begin;
+    int64_t high = slice.box_end;
+
+    for (int i = begin; i <= end; ++i) {
+        if(!(low <= table->columns.at(slice.level).at(i) && table->columns.at(slice.level).at(i) < high))
+            return false;
+    }
+    return true;
+}
+
+void verify_slices(vector<Slice> S, CrackerTable *table){
+    for (size_t i = 0; i < S.size(); ++i) {
+        if(!verify_slice(S.at(i), table)){
+            fprintf(stderr, "Bad slice\n");
+            fprintf(stderr, "Level: %d\n", S.at(i).level);
+            fprintf(stderr, "Offset begin: %ld\n", S.at(i).data_offset_begin);
+            fprintf(stderr, "Offset end: %ld\n", S.at(i).data_offset_end);
+            fprintf(stderr, "Value begin: %ld\n", S.at(i).box_begin);
+            fprintf(stderr, "Value end: %ld\n", S.at(i).box_end);
+        }
+        if(S.at(i).children.size() > 0)
+            verify_slices(S.at(i).children, table);
+    }
+}
+
 void quasii_scan(Table *table, vector<array<int64_t, 3>> *query, vector<pair<int,int>>  *offsets, vector<int64_t> * result){
-	for(size_t i = 0; i < offsets->size(); ++i){
+//	verify_slices(S, &table->crackertable);
+    for(size_t i = 0; i < offsets->size(); ++i){
         int sel_size;
         int sel_vector[offsets->at(i).second - offsets->at(i).first + 1];
         int64_t low = query->at(0).at(0);
