@@ -1,5 +1,5 @@
-#ifndef MULTIDEMIONSIONALINDEXING_TEST_H
-#define MULTIDEMIONSIONALINDEXING_TEST_H
+#ifndef MULTIDEMIONSIONALINDEXING_TEST_TPCH
+#define MULTIDEMIONSIONALINDEXING_TEST_TPCH
 #include "../util/structs.h"
 #include <unordered_map>
 #include <vector>
@@ -13,4 +13,4 @@
 
 using namespace std;
 void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueries);
-#endif //MULTIDEMIONSIONALINDEXING_TEST_H
+#endif //MULTIDEMIONSIONALINDEXING_TEST_TPCH

@@ -1,4 +1,4 @@
-#include "test.h"
+#include "test_tpch.h"
 
 extern int64_t COLUMN_SIZE, NUM_QUERIES, NUMBER_OF_COLUMNS, KDTREE_THRESHOLD, INDEXING_TYPE;
 
@@ -154,9 +154,9 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     queryResultToBeTested = cracking_kdtree(table,&rangeQueries);
     int64_t ckd = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
-    fprintf(stderr, "Running Full Kd-Tree.\n");
-    queryResultToBeTested = full_kdtree(table,&rangeQueries);
-    int64_t kd = verify_range_query(queryResultBaseline,queryResultToBeTested);
+//    fprintf(stderr, "Running Full Kd-Tree.\n");
+//    queryResultToBeTested = full_kdtree(table,&rangeQueries);
+//    int64_t kd = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
     fprintf(stderr, "Running Sideways Cracking.\n");
     queryResultToBeTested = sideways_cracking(table, &rangeQueries);
@@ -167,7 +167,7 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     fprintf(stderr, "|Full Scan - Number of errors: %ld\n", fs);
     fprintf(stderr, "|Unidimensional Crackig - Number of errors: %ld\n", std);
     fprintf(stderr, "|Cracking KD - Number of errors: %ld\n", ckd);
-    fprintf(stderr, "|Full KD - Number of errors: %ld\n", kd);
+//    fprintf(stderr, "|Full KD - Number of errors: %ld\n", kd);
     fprintf(stderr, "|Sideways Cracking - Number of errors: %ld\n", sw);
 
     double avg_selec = 0.0;
