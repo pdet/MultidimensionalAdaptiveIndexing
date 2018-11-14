@@ -108,7 +108,7 @@ void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQuer
         fprintf(stderr, "Result : %lu\n",final_result);
     }
 	for (int i = 0; i < NUM_QUERIES; i++){
-		cout << indexCreation.at(i) << ";" << indexLookup.at(i) << ";" << scanTime.at(i) << ";" << joinTime.at(i) << ";" << totalTime.at(i) << ";" << projectionTime.at(i) << "\n";
+		cout << indexCreation.at(i) << ";" << indexLookup.at(i) << ";" << scanTime.at(i) << ";" << joinTime.at(i) << ";" << projectionTime.at(i) << ";" << totalTime.at(i) << "\n";
 		fprintf(stderr, "%f\n",totalTime.at(i));
 	}
 }
