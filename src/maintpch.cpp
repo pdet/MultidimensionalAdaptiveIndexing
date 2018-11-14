@@ -17,7 +17,7 @@
 #include "util/file_manager.h"
 #include "util/structs.h"
 #include "util/util.h"
-#include "test/test.h"
+#include "test/test_tpch.h"
 #include "util/define.h"
 
 // #define test

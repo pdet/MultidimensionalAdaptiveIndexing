@@ -16,6 +16,7 @@ set(SOURCE_FILES
         src/quasii/quasii.cpp
         src/util/util.cpp
         src/test/test.cpp
+        src/test/test_tpch.cpp
         )
 
 add_executable(multidimensionalindexing ${SOURCE_FILES}  src/main.cpp)
