@@ -1,6 +1,7 @@
 query*
 column*
 cmake-build-debug/
+venv/
 gendata
 readme.txt
 crackingmain
