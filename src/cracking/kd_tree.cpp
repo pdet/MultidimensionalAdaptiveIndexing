@@ -236,9 +236,12 @@ void Insert(Tree *tree, int64_t column, int64_t element, Table *table)
     }
 }
 
-// This method only works if we use the last element as the pivot
-int pivot_table(CrackerTable *table, int64_t column, int64_t low, int64_t high, int64_t pivot)
+int64_t pivot_table(CrackerTable *table, int64_t column, int64_t low, int64_t high, int64_t pivot, int64_t pivot_position)
 {
+//  This method only works if we use the last element as the pivot
+//  So we change the pivot to the last position
+    exchange(table, pivot_position, high);
+
     int64_t i = low - 1;
 
     for (int64_t j = low; j < high; ++j)
@@ -261,8 +264,9 @@ pair<int64_t, int64_t> find_median(CrackerTable *table, int64_t column, int64_t 
 
     do
     {
-        element = table->columns.at(column).at(high);
-        position = pivot_table(table, column, low, high, element);
+
+        element = table->columns.at(column).at((high+low)/2);
+        position = pivot_table(table, column, low, high, element, (high+low)/2);
 
         if (position <= low)
         {
@@ -294,8 +298,8 @@ pair<int64_t, int64_t> find_median(CrackerTable *table, int64_t column, int64_t 
 
 Tree FullTree(CrackerTable *table)
 {
-    int n_of_cols = table->columns.size();
-    int col_size = table->ids.size() - 1;
+    int64_t n_of_cols = table->columns.size();
+    int64_t col_size = table->ids.size() - 1;
     vector<Tree> nodes;
     vector<int64_t> columns;
     vector<int64_t> lower_limits;
