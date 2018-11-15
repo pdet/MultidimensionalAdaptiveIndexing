@@ -82,7 +82,7 @@ Tree sideways_cracking(CrackerMaps *map, Tree T, int64_t lowKey, int64_t highKey
     if (pivot_pair)
     {
         free(pivot_pair);
-        pivot_pair = NULL;
+        pivot_pair = nullptr;
     }
 
     return T;
@@ -103,11 +103,11 @@ void crack_until_latest_query(CrackerSets &set, int64_t aux_col){
 
 void sideways_cracking_pre_processing(Table *table, Tree * T){
     crackersets.resize(NUMBER_OF_COLUMNS);
-    for (size_t i = 0; i < NUMBER_OF_COLUMNS ; ++i)
+    for (int i = 0; i < NUMBER_OF_COLUMNS ; ++i)
     {
         crackersets.at(i).leading_column = i;
         crackersets.at(i).crackermaps.resize(NUMBER_OF_COLUMNS);
-        crackersets.at(i).T.resize(NUMBER_OF_COLUMNS, NULL);
+        crackersets.at(i).T.resize(NUMBER_OF_COLUMNS, nullptr);
         for(size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
         {
             CrackerMaps map;
@@ -161,10 +161,9 @@ void scan_maps(CrackerMaps *map, vector<bool> &bitmap, int lowOffset, int highOf
 
 void sideways_cracking_scan(Table *table, vector<array<int64_t, 3> >  *rangequeries,vector<pair<int,int>> *offsets, vector<int64_t> * result){
     int64_t leading_col = rangequeries->at(0).at(2);
-    vector<bool> bitmap(offsets->at(0).second - offsets->at(0).first + 1); 
-    for(size_t i = 0; i < offsets->at(0).second - offsets->at(0).first  + 1; ++i)
-        bitmap[i]=1;
-    for (size_t query_num = 0; query_num < rangequeries->size(); query_num ++){
+    vector<bool> bitmap(offsets->at(0).second - offsets->at(0).first + 1, 1);
+//    Since the first predicate is used as the leading column, there is no need to re-search it
+    for (size_t query_num = 1; query_num < rangequeries->size(); query_num ++){
         int64_t low = rangequeries->at(query_num).at(0);
         int64_t high = rangequeries->at(query_num).at(1);
         int64_t col = rangequeries->at(query_num).at(2);
@@ -172,5 +171,5 @@ void sideways_cracking_scan(Table *table, vector<array<int64_t, 3> >  *rangequer
     }
     for(size_t i = 0; i < offsets->at(0).second - offsets->at(0).first + 1; ++i)
         if(bitmap[i])
-            result->push_back(crackersets.at(leading_col).crackermaps.at(0).ids.at(i+ offsets->at(0).first));
+            result->push_back(crackersets.at(leading_col).crackermaps.at(leading_col).ids.at(i+ offsets->at(0).first));
 }
