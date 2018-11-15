@@ -212,7 +212,7 @@ void verifyAlgorithms(Table *table, vector<vector<array<int64_t, 3>>> rangeQueri
     // queryResultToBeTested = partial_sideways_cracking(table,&rangeQueries);
     // int64_t psw = verify_range_query(queryResultBaseline,queryResultToBeTested);
 
-    fprintf(stderr, "SUMMARY------------------------------------------------\n");
+    fprintf(stderr, "SUMMARY----N-Of-Columns:%zu------------------------------\n", table->columns.size());
     fprintf(stderr, "|Full Scan - Number of errors: %ld\n", fs);
     fprintf(stderr, "|Unidimensional Crackig - Number of errors: %ld\n", std);
     fprintf(stderr, "|Cracking KD - Number of errors: %ld\n", ckd);
