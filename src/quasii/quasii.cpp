@@ -12,6 +12,10 @@ vector<int64_t> dimension_threshold;
 
 // Caculate threshold of each level
 void calculate_level_thresholds(){
+    if(NUMBER_OF_COLUMNS == 1){
+        dimension_threshold.push_back(last_level_threshold);
+        return;
+    }
 	dimension_threshold.push_back(last_level_threshold);
 	double root_aux = 1.0/NUMBER_OF_COLUMNS;
 	int64_t r = ceil(pow((double)COLUMN_SIZE/last_level_threshold, (double) 1.0/NUMBER_OF_COLUMNS));
