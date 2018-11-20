@@ -403,7 +403,7 @@ def experiment1():
 def main():
     read_files()
     experiment1()
-    values([cracking_kd, full_kd, quasii, sideways])
+    values([full_scan, std_cracking, cracking_kd, full_kd, quasii, sideways])
 
 
 
