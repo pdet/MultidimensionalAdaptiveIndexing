@@ -58,6 +58,14 @@ def get_hash(alg):
     if alg == 'quasii':
         return quasii
 
+def remove_join_time(col, hash):
+    if col not in hash:
+        return
+    df = hash[col]
+    df['join_time'] = 0
+    df['total_time'] = df['index_creation'] + df['index_lookup'] + df['scan_time'] + df['projection_time']
+    hash[col] = df
+
 def average_df(df1, df2):
     alg = df1['algorithm']
 
@@ -81,6 +89,12 @@ def read_files():
         add_dataframe_to_hash(
             pd.read_csv(BASE_DIR + '/' + file_name + '/results.csv', sep=';')
         )
+    remove_join_time(1, full_scan)
+    remove_join_time(1, std_cracking)
+    remove_join_time(1, cracking_kd)
+    remove_join_time(1, full_kd)
+    remove_join_time(1, sideways)
+    remove_join_time(1, quasii)
 
 def reset_plot():
     plt.cla()
@@ -320,7 +334,11 @@ def values(dfs):
             )
 
 def experiment1():
-    response_time_bars([std_cracking, full_scan, full_kd], 16, 'bars-cff')
+    response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 1, 'bars-cff-1')
+    response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 2, 'bars-cff-2')
+    response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 4, 'bars-cff-4')
+    response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 8, 'bars-cff-8')
+    response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 16, 'bars-cff-16')
     response_time_bars([full_kd, cracking_kd], 8, 'bars-cf')
 
     response_time_all_columns([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 'all_r_s', 'total_time')
