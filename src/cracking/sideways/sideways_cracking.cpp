@@ -126,24 +126,42 @@ void sideways_cracking_partial_built(Table *table, Tree * T, vector<array<int64_
     int64_t leading_col = rangequeries->at(0).at(2);
 
     crackersets.at(leading_col).rangequeries.push_back(rangequeries->at(0));
-    for(size_t i = 0; i < rangequeries->size(); i ++){
+    size_t i;
+//    If there is only one attribute in the query, cracks the map with the same head and tail as of that attribute
+    if(rangequeries->size() == 1) {
+        i = 0;
+    }
+//    Otherwise, skip the map with the same tail as the first attribute in the query
+    else{
+        i = 1;
+    }
+    for(; i < rangequeries->size(); i ++){
         int64_t c = rangequeries->at(i).at(2);
         crack_until_latest_query(crackersets.at(leading_col), c);
     }
 }
 
 void sideways_cracking_index_lookup(Tree * T, vector<array<int64_t, 3> >  *rangequeries,vector<pair<int,int>>  *offsets){
-    int64_t low = rangequeries->at(0).at(0);
-    int64_t high = rangequeries->at(0).at(1);
-    int64_t col = rangequeries->at(0).at(2);
+    int64_t low, high, col, set_col;
+
+    low = rangequeries->at(0).at(0);
+    high = rangequeries->at(0).at(1);
+    set_col = rangequeries->at(0).at(2);
+    if(rangequeries->size() == 1){
+//        If there is only one attribute in the query, search on its cracker map with same head and tail
+        col = rangequeries->at(0).at(2);
+    }else{
+//        If there is multiple attributes in the query, the first query attribute will be the cracker map with same head and tail, so search the next one.
+        col = rangequeries->at(1).at(2);
+    }
     IntPair p1, p2;
     if(low != -1)
-        p1 = FindNeighborsGTE(low, crackersets.at(col).T.at(col), COLUMN_SIZE - 1);
+        p1 = FindNeighborsGTE(low, crackersets.at(set_col).T.at(col), COLUMN_SIZE - 1);
     else
         p1->first = 0;
     
     if(high != -1)
-        p2 = FindNeighborsLT(high, crackersets.at(col).T.at(col), COLUMN_SIZE - 1);
+        p2 = FindNeighborsLT(high, crackersets.at(set_col).T.at(col), COLUMN_SIZE - 1);
     else
         p2->second = COLUMN_SIZE - 1;
     offsets->push_back(make_pair(p1->first, p2->second));
@@ -161,8 +179,16 @@ void scan_maps(CrackerMaps *map, vector<bool> &bitmap, int lowOffset, int highOf
 
 void sideways_cracking_scan(Table *table, vector<array<int64_t, 3> >  *rangequeries,vector<pair<int,int>> *offsets, vector<int64_t> * result){
     int64_t leading_col = rangequeries->at(0).at(2);
+    int64_t search_col;
+    if(rangequeries->size() == 1){
+//        If there is only one attribute in the query, search on its cracker map with same head and tail
+        search_col = leading_col;
+    }else{
+//        If there is multiple attributes in the query, the first query attribute will be the cracker map with same head and tail, so search the next one.
+        search_col = rangequeries->at(1).at(2);
+    }
     vector<bool> bitmap(offsets->at(0).second - offsets->at(0).first + 1, 1);
-//    Since the first predicate is used as the leading column, there is no need to re-search it
+//    Since the first predicate is used as the leading column, there is no need to re-search it. That's why i = 1.
     for (size_t query_num = 1; query_num < rangequeries->size(); query_num ++){
         int64_t low = rangequeries->at(query_num).at(0);
         int64_t high = rangequeries->at(query_num).at(1);
@@ -171,5 +197,5 @@ void sideways_cracking_scan(Table *table, vector<array<int64_t, 3> >  *rangequer
     }
     for(size_t i = 0; i < offsets->at(0).second - offsets->at(0).first + 1; ++i)
         if(bitmap[i])
-            result->push_back(crackersets.at(leading_col).crackermaps.at(leading_col).ids.at(i+ offsets->at(0).first));
+            result->push_back(crackersets.at(leading_col).crackermaps.at(search_col).ids.at(i+ offsets->at(0).first));
 }
