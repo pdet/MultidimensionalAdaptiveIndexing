@@ -276,6 +276,12 @@ vector<Slice> refine(Slice &slice, CrackerTable *table, vector<array<int64_t, 3>
  		refined_slice = sliceTwoWay(slice, table, high);
  	else
  		refined_slice = sliceArtificial(slice, table);
+ 	if(NUMBER_OF_COLUMNS == 1){
+//      It is not necessary to refine the created slices because there is no children
+//      Otherwise, the creation cost may become too high, since the first level of slices will have a small threshold
+//      resulting in a lot of sliceArtificial calls.
+ 	    return refined_slice;
+ 	}
  	for (size_t i = 0; i < refined_slice.size(); i ++){
  		if(refined_slice[i].bigger_than_threshold(dimension_threshold[refined_slice[i].level]) && refined_slice[i].intersects(low, high)){
  			vector<Slice> refined_slice_aux = sliceArtificial(refined_slice[i], table);
