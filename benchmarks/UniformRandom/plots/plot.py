@@ -106,7 +106,7 @@ def time_breakdown(dfs, column):
     i_c, i_l, s_t, j_t, p_t = [], [], [], [], [] # this is ugly as hell
     names = []
 
-    ind =  np.linspace(0, 0.25, num=len(dfs))
+    ind =  np.linspace(0, 1, num=len(dfs))
 
     for df in dfs:
         names.append(translate_alg(df[column]['algorithm'][0]))
@@ -128,7 +128,7 @@ def time_breakdown(dfs, column):
     # plt.yticks(np.arange(0, 32.5, 2.5))
     plt.grid(axis='y', linestyle='--', zorder=0)
     plt.ylabel('Time (s)')
-    plt.xticks(ind, names, rotation=0)
+    plt.xticks(ind, names, rotation=-30)
     plt.title('Time Breakdown (' + str(column) + ' columns)')
     # plt.legend((p_i_c, p_i_l, p_s_t, p_j_t), ('Index Creation', 'Index Lookup', 'Scan Time', 'Join Time'))
     plt.legend((p_i_c, p_i_l, p_s_t), ('Index Creation', 'Index Lookup', 'Scan Time'))
@@ -141,7 +141,7 @@ def time_breakdown_with_join(dfs, column):
     i_c, i_l, s_t, j_t, p_t = [], [], [], [], [] # this is ugly as hell
     names = []
 
-    ind =  np.linspace(0, 0.25, num=len(dfs))
+    ind =  np.linspace(0, 1, num=len(dfs))
 
     for df in dfs:
         names.append(translate_alg(df[column]['algorithm'][0]))
@@ -161,7 +161,7 @@ def time_breakdown_with_join(dfs, column):
     p_j_t = plt.bar(ind, j_t, 0.1, bottom=i_c + i_l + s_t)
 
     plt.ylabel('Time (s)')
-    plt.xticks(ind, names, rotation=0)
+    plt.xticks(ind, names, rotation=-30)
     plt.title('Time Breakdown (' + str(column) + ' columns)')
     plt.legend((p_i_c, p_i_l, p_s_t, p_j_t), ('Index Creation', 'Index Lookup', 'Scan Time', 'Join Time'))
     plt.tight_layout()
@@ -334,71 +334,64 @@ def values(dfs):
             )
 
 def experiment1():
-    response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 1, 'bars-cff-1')
-    response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 2, 'bars-cff-2')
-    response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 4, 'bars-cff-4')
-    response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 8, 'bars-cff-8')
-    response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 16, 'bars-cff-16')
-    response_time_bars([full_kd, cracking_kd], 8, 'bars-cf')
+    response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 1, 'bars-1')
+    response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 2, 'bars-2')
+    response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 4, 'bars-4')
+    # response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 8, 'bars-cff-8')
+    # response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 16, 'bars-cff-16')
 
-    response_time_all_columns([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 'all_r_s', 'total_time')
-    response_time_all_columns([cracking_kd, full_kd, quasii, full_scan], 'r_s', 'total_time')
-    response_time_all_columns([cracking_kd, full_kd, quasii, full_scan], 'r_s', 'index_creation')
-    response_time_all_columns([cracking_kd, full_kd, quasii, full_scan], 'r_s', 'scan_time')
+    response_time_all_columns([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 'all_algs', 'total_time')
+    response_time_all_columns([cracking_kd, full_kd, quasii], 'few_algs', 'total_time')
+    response_time_all_columns([cracking_kd, full_kd, quasii], 'few_algs', 'index_creation')
+    response_time_all_columns([cracking_kd, full_kd, quasii], 'few_algs', 'scan_time')
 
-    time_breakdown([cracking_kd, full_kd, quasii], 1)
-    time_breakdown([cracking_kd, full_kd, quasii], 2)
-    time_breakdown([cracking_kd, full_kd, quasii], 4)
-    time_breakdown([cracking_kd, full_kd, quasii], 8)
-    time_breakdown([cracking_kd, full_kd, quasii], 16)
+    time_breakdown([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 1)
+    time_breakdown([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 2)
+    time_breakdown([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 4)
+    # time_breakdown([cracking_kd, full_kd, quasii], 8)
+    # time_breakdown([cracking_kd, full_kd, quasii], 16)
 
-    time_breakdown_with_join([std_cracking, sideways], 1)
-    time_breakdown_with_join([std_cracking, sideways], 2)
-    time_breakdown_with_join([std_cracking, sideways], 4)
-    time_breakdown_with_join([std_cracking, sideways], 8)
-    time_breakdown_with_join([std_cracking, sideways], 16)
+    time_breakdown_with_join([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 1)
+    time_breakdown_with_join([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 2)
+    time_breakdown_with_join([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 4)
+    # time_breakdown_with_join([std_cracking, sideways], 8)
+    # time_breakdown_with_join([std_cracking, sideways], 16)
 
-    response_time_per_query([cracking_kd,  quasii], 1)
-    response_time_per_query([cracking_kd,  quasii], 2)
-    response_time_per_query([cracking_kd,  quasii], 4)
-    response_time_per_query([cracking_kd,  quasii], 8)
-    response_time_per_query([cracking_kd,  quasii], 16)
+    response_time_per_query([cracking_kd,  quasii, full_kd], 1)
+    response_time_per_query([cracking_kd,  quasii, full_kd], 2)
+    response_time_per_query([cracking_kd,  quasii, full_kd], 4)
+    # response_time_per_query([cracking_kd,  quasii], 8)
+    # response_time_per_query([cracking_kd,  quasii], 16)
 
-    accumulated_response_time([cracking_kd,  quasii], 1)
-    accumulated_response_time([cracking_kd,  quasii], 2)
-    accumulated_response_time([cracking_kd,  quasii], 4)
-    accumulated_response_time([cracking_kd,  quasii], 8)
-    accumulated_response_time([cracking_kd,  quasii], 16)
+    accumulated_response_time([cracking_kd,  quasii, full_kd], 1)
+    accumulated_response_time([cracking_kd,  quasii, full_kd], 2)
+    accumulated_response_time([cracking_kd,  quasii, full_kd], 4)
+    # accumulated_response_time([cracking_kd,  quasii], 8)
+    # accumulated_response_time([cracking_kd,  quasii], 16)
 
-    accumulated_response_time_with_prediction([cracking_kd,  quasii], 1)
-    accumulated_response_time_with_prediction([cracking_kd,  quasii], 2)
-    accumulated_response_time_with_prediction([cracking_kd,  quasii], 4)
-    accumulated_response_time_with_prediction([cracking_kd,  quasii], 8)
-    accumulated_response_time_with_prediction([cracking_kd,  quasii], 16)
-
-    stackplot_per_query(cracking_kd, 1)
-    stackplot_per_query(cracking_kd, 2)
-    stackplot_per_query(cracking_kd, 4)
-    stackplot_per_query(cracking_kd, 8)
-    stackplot_per_query(cracking_kd, 16)
+    # stackplot_per_query(cracking_kd, 1)
+    # stackplot_per_query(cracking_kd, 2)
+    # stackplot_per_query(cracking_kd, 4)
+    # stackplot_per_query(cracking_kd, 8)
+    # stackplot_per_query(cracking_kd, 16)
 
     stackplot_per_query(quasii, 1)
     stackplot_per_query(quasii, 2)
     stackplot_per_query(quasii, 4)
-    stackplot_per_query(quasii, 8)
-    stackplot_per_query(quasii, 16)
+    # stackplot_per_query(quasii, 8)
+    # stackplot_per_query(quasii, 16)
 
-    stackplot_per_query_first_fifty(cracking_kd, 1)
-    stackplot_per_query_first_fifty(cracking_kd, 2)
-    stackplot_per_query_first_fifty(cracking_kd, 4)
-    stackplot_per_query_first_fifty(cracking_kd, 8)
-    stackplot_per_query_first_fifty(cracking_kd, 16)
+    # stackplot_per_query_first_fifty(cracking_kd, 1)
+    # stackplot_per_query_first_fifty(cracking_kd, 2)
+    # stackplot_per_query_first_fifty(cracking_kd, 4)
+    # stackplot_per_query_first_fifty(cracking_kd, 8)
+    # stackplot_per_query_first_fifty(cracking_kd, 16)
 
-    stackplot_per_query_first_fifty(quasii, 1)
-    stackplot_per_query_first_fifty(quasii, 2)
-    stackplot_per_query_first_fifty(quasii, 4)
-    stackplot_per_query_first_fifty(quasii, 8)
-    stackplot_per_query_first_fifty(quasii, 16)
+    # stackplot_per_query_first_fifty(quasii, 1)
+    # stackplot_per_query_first_fifty(quasii, 2)
+    # stackplot_per_query_first_fifty(quasii, 4)
+    # stackplot_per_query_first_fifty(quasii, 8)
+    # stackplot_per_query_first_fifty(quasii, 16)
 
 def main():
     read_files()
