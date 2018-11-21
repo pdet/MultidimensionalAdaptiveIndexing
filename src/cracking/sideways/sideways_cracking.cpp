@@ -177,25 +177,46 @@ void scan_maps(CrackerMaps *map, vector<bool> &bitmap, int lowOffset, int highOf
                 bitmap[i] = 0;
 }
 
-void sideways_cracking_scan(Table *table, vector<array<int64_t, 3> >  *rangequeries,vector<pair<int,int>> *offsets, vector<int64_t> * result){
+void sideways_cracking_scan(Table *table, vector<array<int64_t, 3> > *rangequeries, vector<pair<int, int>> *offsets,
+                            vector<int64_t> *result) {
     int64_t leading_col = rangequeries->at(0).at(2);
     int64_t search_col;
-    if(rangequeries->size() == 1){
-//        If there is only one attribute in the query, search on its cracker map with same head and tail
+    if (rangequeries->size() == 1) {
+//  If there is only one attribute in the query, search on its cracker map with same head and tail
         search_col = leading_col;
-    }else{
-//        If there is multiple attributes in the query, the first query attribute will be the cracker map with same head and tail, so search the next one.
+        for (size_t i = 0; i < offsets->at(0).second - offsets->at(0).first + 1; ++i)
+            result->push_back(crackersets.at(leading_col).crackermaps.at(search_col).ids.at(i + offsets->at(0).first));
+    } else if (rangequeries->size() == 2) {
+//  With two attributes there is no need to intersect, just search on the cracker map of the second attribute
         search_col = rangequeries->at(1).at(2);
+        int64_t lowKey = rangequeries->at(1).at(0);
+        int64_t highKey = rangequeries->at(1).at(1);
+        int64_t lowOffset = offsets->at(0).first;
+        CrackerMaps *map = &crackersets.at(leading_col).crackermaps.at(search_col);
+        for (size_t i = 0; i < offsets->at(0).second - offsets->at(0).first + 1; ++i) {
+            if (
+                    ((lowKey <= map->columns.at(1).at(lowOffset + i)) || (lowKey == -1)) &&
+                    ((map->columns.at(1).at(lowOffset + i) < highKey) || (highKey == -1))
+                    ) {
+                result->push_back(
+                        crackersets.at(leading_col).crackermaps.at(search_col).ids.at(i + offsets->at(0).first));
+            }
+        }
+    } else {
+//  If there is multiple attributes in the query, the first query attribute will be the cracker map with same head and tail, so search the next one.
+        search_col = rangequeries->at(1).at(2);
+        vector<bool> bitmap(offsets->at(0).second - offsets->at(0).first + 1, 1);
+//  Since the first predicate is used as the leading column, there is no need to re-search it. That's why i = 1.
+        for (size_t query_num = 1; query_num < rangequeries->size(); query_num++) {
+            int64_t low = rangequeries->at(query_num).at(0);
+            int64_t high = rangequeries->at(query_num).at(1);
+            int64_t col = rangequeries->at(query_num).at(2);
+            scan_maps(&crackersets.at(leading_col).crackermaps.at(col), bitmap, offsets->at(0).first,
+                      offsets->at(0).second, low, high);
+        }
+        for (size_t i = 0; i < offsets->at(0).second - offsets->at(0).first + 1; ++i)
+            if (bitmap[i])
+                result->push_back(
+                        crackersets.at(leading_col).crackermaps.at(search_col).ids.at(i + offsets->at(0).first));
     }
-    vector<bool> bitmap(offsets->at(0).second - offsets->at(0).first + 1, 1);
-//    Since the first predicate is used as the leading column, there is no need to re-search it. That's why i = 1.
-    for (size_t query_num = 1; query_num < rangequeries->size(); query_num ++){
-        int64_t low = rangequeries->at(query_num).at(0);
-        int64_t high = rangequeries->at(query_num).at(1);
-        int64_t col = rangequeries->at(query_num).at(2);
-        scan_maps(&crackersets.at(leading_col).crackermaps.at(col), bitmap, offsets->at(0).first,offsets->at(0).second, low, high);
-    }
-    for(size_t i = 0; i < offsets->at(0).second - offsets->at(0).first + 1; ++i)
-        if(bitmap[i])
-            result->push_back(crackersets.at(leading_col).crackermaps.at(search_col).ids.at(i+ offsets->at(0).first));
 }
