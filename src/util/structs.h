@@ -105,7 +105,7 @@ struct Slice // Quasii
     int64_t box_begin;
     int64_t box_end;
     vector<Slice> children;
-    // box_end shouldn't be COLUMN_SIZE, it should be the biggest possible value?
+    // TODO: box_end shouldn't be COLUMN_SIZE, it should be the biggest possible value?
     Slice() : level(0), data_offset_begin(0), data_offset_end(COLUMN_SIZE - 1), box_begin(0), box_end(COLUMN_SIZE){
     }
 
@@ -154,7 +154,7 @@ struct Slice // Quasii
     }
 };
 
- 
+
 struct MapSet // Partial Sideways Cracking
 {
     ChunkMap chunkmap;
