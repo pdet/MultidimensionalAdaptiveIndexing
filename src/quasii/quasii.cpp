@@ -224,6 +224,13 @@ vector<Slice> sliceArtificial(Slice &S, CrackerTable *table){
 	stack<Slice> slices_to_be_refined;
 	int64_t t = dimension_threshold[S.level];
 
+	if(NUMBER_OF_COLUMNS == 1){
+	    if(S.bigger_than_threshold(t))
+	        return sliceTwoWay(S, table, (S.box_end + S.box_begin)/2);
+	    else
+	        return result;
+	}
+
 	slices_to_be_refined.push(S);
 
 	do{
