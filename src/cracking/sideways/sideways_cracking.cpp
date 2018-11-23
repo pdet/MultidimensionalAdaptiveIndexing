@@ -101,6 +101,18 @@ void crack_until_latest_query(CrackerSets &set, int64_t aux_col){
     }
 }
 
+void lazy_map_creation(Table *table, vector<array<int64_t, 3>>  *rangequeries){
+    int64_t leading_col = rangequeries->at(0).at(2);
+    for(int i = 0; i < rangequeries->size(); ++i){
+        int64_t col = rangequeries->at(i).at(2);
+        if(crackersets.at(leading_col).crackermaps.at(col).ids.size() > 0)
+            continue;
+        crackersets.at(leading_col).crackermaps.at(col).ids = table->ids;
+        crackersets.at(leading_col).crackermaps.at(col).columns.push_back(table->columns.at(leading_col));
+        crackersets.at(leading_col).crackermaps.at(col).columns.push_back(table->columns.at(col));
+    }
+}
+
 void sideways_cracking_pre_processing(Table *table, Tree * T){
     crackersets.resize(NUMBER_OF_COLUMNS);
     for (int i = 0; i < NUMBER_OF_COLUMNS ; ++i)
@@ -108,14 +120,14 @@ void sideways_cracking_pre_processing(Table *table, Tree * T){
         crackersets.at(i).leading_column = i;
         crackersets.at(i).crackermaps.resize(NUMBER_OF_COLUMNS);
         crackersets.at(i).T.resize(NUMBER_OF_COLUMNS, nullptr);
-        for(size_t j = 0; j < NUMBER_OF_COLUMNS; ++j)
+        for(int j = 0; j < NUMBER_OF_COLUMNS; ++j)
         {
             CrackerMaps map;
             map.leading_column = i;
             map.aux_column = j;
-            map.ids=table->ids;
-            map.columns.push_back(table->columns.at(i));  // Always get most selective columns as leading column
-            map.columns.push_back(table->columns.at(j));
+//            map.ids=table->ids;
+//            map.columns.push_back(table->columns.at(i));  // Always get most selective columns as leading column
+//            map.columns.push_back(table->columns.at(j));
             map.crack_position = 0;
             crackersets.at(i).crackermaps.at(j) = map;
         }
@@ -123,6 +135,7 @@ void sideways_cracking_pre_processing(Table *table, Tree * T){
 }
 
 void sideways_cracking_partial_built(Table *table, Tree * T, vector<array<int64_t, 3>>  *rangequeries){
+    lazy_map_creation(table, rangequeries); // Lazy map creation because otherwise the cost of the first query is too big, and unnecessary maps are created.
     int64_t leading_col = rangequeries->at(0).at(2);
 
     crackersets.at(leading_col).rangequeries.push_back(rangequeries->at(0));
