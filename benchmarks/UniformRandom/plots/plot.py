@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
 import itertools
+from scipy.interpolate import spline
 
 # index_creation;index_lookup;scan_time;join_time;projection_time;total_time
 
@@ -27,6 +28,8 @@ full_kd = {}
 sideways = {}
 
 quasii = {}
+
+FILE_TYPE = '.pdf'
 
 
 def translate_alg(alg):
@@ -133,7 +136,7 @@ def time_breakdown(dfs, column):
     # plt.legend((p_i_c, p_i_l, p_s_t, p_j_t), ('Index Creation', 'Index Lookup', 'Scan Time', 'Join Time'))
     plt.legend((p_i_c, p_i_l, p_s_t), ('Index Creation', 'Index Lookup', 'Scan Time'))
     plt.tight_layout()
-    plt.savefig('breakdown-' + str(column) + '.png')
+    plt.savefig('breakdown-' + str(column) + FILE_TYPE)
     reset_plot()
 
 def time_breakdown_with_join(dfs, column):
@@ -165,7 +168,7 @@ def time_breakdown_with_join(dfs, column):
     plt.title('Time Breakdown (' + str(column) + ' columns)')
     plt.legend((p_i_c, p_i_l, p_s_t, p_j_t), ('Index Creation', 'Index Lookup', 'Scan Time', 'Join Time'))
     plt.tight_layout()
-    plt.savefig('breakdown-join-' + str(column) + '.png')
+    plt.savefig('breakdown-join-' + str(column) + FILE_TYPE)
     reset_plot()
 
 def response_time_per_query(dfs, column):
@@ -173,19 +176,27 @@ def response_time_per_query(dfs, column):
         name = ''
 
         name = df_hash[column]['algorithm'][0]
-        times = df_hash[column]['total_time']
+        times = df_hash[column]['total_time'][:1000]
+        x = range(len(times))
+
+
+        # x = np.linspace(x[0], x[-1], 5)
+        # times = spline(x, times, x)
         plt.plot(
-            range(len(times)),
+            x,
             times,
             label=translate_alg(name)
         )
         plt.legend(loc=0)
 
-    plt.ylim(0, 0.04)
+    # plt.ylim(0, 0.04)
     plt.ylabel('Response time (s)')
     plt.xlabel('Query (#)')
+    plt.yscale('log')
+    # plt.xscale('log')
+    plt.grid(True)
     plt.title('Response Time per Query (' + str(column) + ' columns)')
-    plt.savefig('query' + str(column) + '.png')
+    plt.savefig('query' + str(column) + FILE_TYPE)
     reset_plot()
 
 def response_time_all_columns(dfs, file_name, attribute):
@@ -216,7 +227,7 @@ def response_time_all_columns(dfs, file_name, attribute):
     plt.ylabel('Response time (s)')
     plt.xlabel('Number of Columns')
     plt.title('Total Response Time (' + attribute + ')')
-    plt.savefig(file_name + '-' + attribute + '.png')
+    plt.savefig(file_name + '-' + attribute + FILE_TYPE)
     reset_plot()
 
 def accumulated_response_time_with_prediction(dfs, column):
@@ -240,27 +251,33 @@ def accumulated_response_time_with_prediction(dfs, column):
     plt.xlabel('Query (#)')
     plt.title('Accumulated Response Time (' + str(column) + ' columns)')
     plt.axvline(x=1000, linestyle='dashed', color='grey')
-    plt.savefig('pred-acc-query' + str(column) + '.png')
+    plt.savefig('pred-acc-query' + str(column) + FILE_TYPE)
     reset_plot()
 
 def accumulated_response_time(dfs, column):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
     for df_hash in dfs:
         name = ''
 
         name = df_hash[column]['algorithm'][0]
         times = np.array(df_hash[column]['total_time'])
         times = np.cumsum(times)
-        plt.plot(
+        ax.plot(
             range(len(times)),
             times,
             label=translate_alg(name)
         )
-        plt.legend(loc=0)
+        ax.legend(loc=0)
 
-    plt.ylabel('Acc. Response time (s)')
-    plt.xlabel('Query (#)')
-    plt.title('Accumulated Response Time (' + str(column) + ' columns)')
-    plt.savefig('acc-query' + str(column) + '.png')
+    ax.set_ylabel('Acc. Response time (s)')
+    ax.set_xlabel('Query (#)')
+    ax.set_yscale('log')
+    ax.yaxis.set_major_formatter(mpl.ticker.FormatStrFormatter('%d'))
+    ax.grid(True)
+    ax.set_title('Accumulated Response Time (' + str(column) + ' columns)')
+    fig.savefig('acc-query' + str(column) + FILE_TYPE)
     reset_plot()
 
 def stackplot_per_query(df, column):
@@ -268,21 +285,22 @@ def stackplot_per_query(df, column):
 
     name = df['algorithm'][0]
 
-    x = range(len(df['total_time']))
-    y1 = np.array(df['index_creation'])
-    y2 = np.array(df['index_lookup'])
-    y3 = np.array(df['scan_time'])
+    x = range(len(df['total_time'][50:]))
+    y1 = np.array(df['index_creation'][50:])
+    y2 = np.array(df['index_lookup'][50:])
+    y3 = np.array(df['scan_time'][50:])
+    y4 = np.array(df['join_time'][50:])
 
-    labels = ["Index Creation ", "Index Lookup", "Scan Time"]
+    labels = ["Index Creation ", "Index Lookup", "Scan Time", "Join Time"]
 
-    plt.stackplot(x, y1, y2, y3, labels=labels)
+    plt.stackplot(x, y1, y2, y3, y4, labels=labels)
     plt.ylabel('Elapsed time (seconds)')
     plt.xlabel('Query (#)')
-    plt.ylim(0, 0.05)
+    # plt.ylim(0, 0.05)
     plt.legend(loc=0)
     plt.title(
         'Time Breakdown per Query (' + translate_alg(name) + ', ' + str(column) + ' columns)')
-    plt.savefig(str(name) + 'stack' + str(column) + '.png')
+    plt.savefig(str(name) + 'stack' + str(column) + FILE_TYPE)
     reset_plot()
 
 
@@ -304,7 +322,7 @@ def stackplot_per_query_first_fifty(df, column):
     plt.ylabel('Elapsed time (seconds)')
     plt.xlabel('Query (#)')
     plt.legend(loc=0)
-    plt.savefig(str(name) + '-10-stack' + str(column) + '.png')
+    plt.savefig(str(name) + '-10-stack' + str(column) + FILE_TYPE)
     reset_plot()
 
 def response_time_bars(dfs, column, title):
@@ -321,7 +339,7 @@ def response_time_bars(dfs, column, title):
     plt.xticks(range(len(names)), names)
     plt.ylabel('Elapsed time (seconds)')
     plt.title('Total response time (' + str(column) + ' columns)')
-    plt.savefig(title + '.png')
+    plt.savefig(title + FILE_TYPE)
     reset_plot()
 
 def values(dfs):
@@ -338,6 +356,7 @@ def experiment1():
     response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 2, 'bars-2')
     response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 4, 'bars-4')
     response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 8, 'bars-8')
+    response_time_bars([std_cracking, full_scan], 2, 'bars-2-full-vs-cracking')
     response_time_bars([std_cracking, full_scan, full_kd, cracking_kd], 16, 'bars-16')
 
     response_time_all_columns([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 'all_algs', 'total_time')
@@ -345,10 +364,10 @@ def experiment1():
     response_time_all_columns([cracking_kd, full_kd, quasii], 'few_algs', 'index_creation')
     response_time_all_columns([cracking_kd, full_kd, quasii], 'few_algs', 'scan_time')
 
-    time_breakdown([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 1)
-    time_breakdown([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 2)
-    time_breakdown([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 4)
-    time_breakdown([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 8)
+    time_breakdown([cracking_kd, full_kd, quasii, std_cracking, sideways], 1)
+    time_breakdown([cracking_kd, full_kd, quasii, std_cracking, sideways], 2)
+    time_breakdown([cracking_kd, full_kd, quasii, std_cracking, sideways], 4)
+    time_breakdown([cracking_kd, full_kd, quasii, std_cracking, sideways], 8)
     time_breakdown([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 16)
 
     time_breakdown_with_join([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 1)
@@ -363,11 +382,11 @@ def experiment1():
     response_time_per_query([cracking_kd,  quasii, full_kd], 8)
     response_time_per_query([cracking_kd,  quasii, full_kd], 16)
 
-    accumulated_response_time([cracking_kd,  quasii, full_kd], 1)
-    accumulated_response_time([cracking_kd,  quasii, full_kd], 2)
-    accumulated_response_time([cracking_kd,  quasii, full_kd], 4)
-    accumulated_response_time([cracking_kd,  quasii, full_kd], 8)
-    accumulated_response_time([cracking_kd,  quasii, full_kd], 16)
+    accumulated_response_time([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 1)
+    accumulated_response_time([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 2)
+    accumulated_response_time([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 4)
+    accumulated_response_time([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 8)
+    accumulated_response_time([cracking_kd, full_kd, quasii, full_scan, std_cracking, sideways], 16)
 
     stackplot_per_query(cracking_kd, 1)
     stackplot_per_query(cracking_kd, 2)
@@ -380,6 +399,18 @@ def experiment1():
     stackplot_per_query(quasii, 4)
     stackplot_per_query(quasii, 8)
     stackplot_per_query(quasii, 16)
+
+    stackplot_per_query(sideways, 1)
+    stackplot_per_query(sideways, 2)
+    stackplot_per_query(sideways, 4)
+    stackplot_per_query(sideways, 8)
+    stackplot_per_query(sideways, 16)
+
+    stackplot_per_query(std_cracking, 1)
+    stackplot_per_query(std_cracking, 2)
+    stackplot_per_query(std_cracking, 4)
+    stackplot_per_query(std_cracking, 8)
+    stackplot_per_query(cracking_kd, 16)
 
     # stackplot_per_query_first_fifty(cracking_kd, 1)
     # stackplot_per_query_first_fifty(cracking_kd, 2)
