@@ -190,46 +190,78 @@ void scan_maps(CrackerMaps *map, vector<bool> &bitmap, int lowOffset, int highOf
                 bitmap[i] = 0;
 }
 
+//void sideways_cracking_scan(Table *table, vector<array<int64_t, 3> > *rangequeries, vector<pair<int, int>> *offsets,
+//                            vector<int64_t> *result) {
+//    int64_t leading_col = rangequeries->at(0).at(2);
+//    int64_t search_col;
+//    if (rangequeries->size() == 1) {
+////  If there is only one attribute in the query, search on its cracker map with same head and tail
+//        search_col = leading_col;
+//        for (size_t i = 0; i < offsets->at(0).second - offsets->at(0).first + 1; ++i)
+//            result->push_back(crackersets.at(leading_col).crackermaps.at(search_col).ids.at(i + offsets->at(0).first));
+//    } else if (rangequeries->size() == 2) {
+////  With two attributes there is no need to intersect, just search on the cracker map of the second attribute
+//        search_col = rangequeries->at(1).at(2);
+//        int64_t lowKey = rangequeries->at(1).at(0);
+//        int64_t highKey = rangequeries->at(1).at(1);
+//        int64_t lowOffset = offsets->at(0).first;
+//        CrackerMaps *map = &crackersets.at(leading_col).crackermaps.at(search_col);
+//        for (size_t i = 0; i < offsets->at(0).second - offsets->at(0).first + 1; ++i) {
+//            if (
+//                    ((lowKey <= map->columns.at(1).at(lowOffset + i)) || (lowKey == -1)) &&
+//                    ((map->columns.at(1).at(lowOffset + i) < highKey) || (highKey == -1))
+//                    ) {
+//                result->push_back(
+//                        crackersets.at(leading_col).crackermaps.at(search_col).ids.at(i + offsets->at(0).first));
+//            }
+//        }
+//    } else {
+////  If there is multiple attributes in the query, the first query attribute will be the cracker map with same head and tail, so search the next one.
+//        search_col = rangequeries->at(1).at(2);
+//        vector<bool> bitmap(offsets->at(0).second - offsets->at(0).first + 1, 1);
+////  Since the first predicate is used as the leading column, there is no need to re-search it. That's why i = 1.
+//        for (size_t query_num = 1; query_num < rangequeries->size(); query_num++) {
+//            int64_t low = rangequeries->at(query_num).at(0);
+//            int64_t high = rangequeries->at(query_num).at(1);
+//            int64_t col = rangequeries->at(query_num).at(2);
+//            scan_maps(&crackersets.at(leading_col).crackermaps.at(col), bitmap, offsets->at(0).first,
+//                      offsets->at(0).second, low, high);
+//        }
+//        for (size_t i = 0; i < offsets->at(0).second - offsets->at(0).first + 1; ++i)
+//            if (bitmap[i])
+//                result->push_back(
+//                        crackersets.at(leading_col).crackermaps.at(search_col).ids.at(i + offsets->at(0).first));
+//    }
+//}
+
 void sideways_cracking_scan(Table *table, vector<array<int64_t, 3> > *rangequeries, vector<pair<int, int>> *offsets,
                             vector<int64_t> *result) {
-    int64_t leading_col = rangequeries->at(0).at(2);
-    int64_t search_col;
-    if (rangequeries->size() == 1) {
-//  If there is only one attribute in the query, search on its cracker map with same head and tail
-        search_col = leading_col;
-        for (size_t i = 0; i < offsets->at(0).second - offsets->at(0).first + 1; ++i)
-            result->push_back(crackersets.at(leading_col).crackermaps.at(search_col).ids.at(i + offsets->at(0).first));
-    } else if (rangequeries->size() == 2) {
-//  With two attributes there is no need to intersect, just search on the cracker map of the second attribute
-        search_col = rangequeries->at(1).at(2);
-        int64_t lowKey = rangequeries->at(1).at(0);
-        int64_t highKey = rangequeries->at(1).at(1);
-        int64_t lowOffset = offsets->at(0).first;
-        CrackerMaps *map = &crackersets.at(leading_col).crackermaps.at(search_col);
-        for (size_t i = 0; i < offsets->at(0).second - offsets->at(0).first + 1; ++i) {
-            if (
-                    ((lowKey <= map->columns.at(1).at(lowOffset + i)) || (lowKey == -1)) &&
-                    ((map->columns.at(1).at(lowOffset + i) < highKey) || (highKey == -1))
-                    ) {
-                result->push_back(
-                        crackersets.at(leading_col).crackermaps.at(search_col).ids.at(i + offsets->at(0).first));
-            }
-        }
-    } else {
-//  If there is multiple attributes in the query, the first query attribute will be the cracker map with same head and tail, so search the next one.
-        search_col = rangequeries->at(1).at(2);
-        vector<bool> bitmap(offsets->at(0).second - offsets->at(0).first + 1, 1);
-//  Since the first predicate is used as the leading column, there is no need to re-search it. That's why i = 1.
-        for (size_t query_num = 1; query_num < rangequeries->size(); query_num++) {
+    if(rangequeries->size() == 1){
+        int64_t leading_col = rangequeries->at(0).at(2);
+        int64_t search_col = rangequeries->at(0).at(2);
+        for (size_t j = 0; j < offsets->at(0).second - offsets->at(0).first + 1; ++j)
+            result->push_back(crackersets.at(leading_col).crackermaps.at(search_col).ids[j + offsets->at(0).first]);
+    }else{
+        int64_t leading_col = rangequeries->at(0).at(2);
+        int64_t search_col = rangequeries->at(1).at(2);
+        int sel_size;
+        int sel_vector[offsets->at(0).second - offsets->at(0).first + 1];
+        int64_t low = rangequeries->at(1).at(0);
+        int64_t high = rangequeries->at(1).at(1);
+        int64_t col = rangequeries->at(1).at(2);
+        sel_size = select_rq_scan_new(
+                sel_vector, &crackersets.at(leading_col).crackermaps.at(col).columns[1][offsets->at(0).first],
+                low, high,
+                offsets->at(0).second - offsets->at(0).first + 1
+        );
+        for (size_t query_num = 2; query_num < rangequeries->size(); query_num++)
+        {
             int64_t low = rangequeries->at(query_num).at(0);
             int64_t high = rangequeries->at(query_num).at(1);
             int64_t col = rangequeries->at(query_num).at(2);
-            scan_maps(&crackersets.at(leading_col).crackermaps.at(col), bitmap, offsets->at(0).first,
-                      offsets->at(0).second, low, high);
+            sel_size = select_rq_scan_sel_vec(sel_vector, &crackersets.at(leading_col).crackermaps.at(col).columns[1][offsets->at(0).first],low,high,sel_size);
         }
-        for (size_t i = 0; i < offsets->at(0).second - offsets->at(0).first + 1; ++i)
-            if (bitmap[i])
-                result->push_back(
-                        crackersets.at(leading_col).crackermaps.at(search_col).ids.at(i + offsets->at(0).first));
+        for (size_t j = 0; j < sel_size; ++j)
+            result->push_back(crackersets.at(leading_col).crackermaps.at(search_col).ids[sel_vector[j] + offsets->at(0).first]);
     }
 }
