@@ -649,7 +649,7 @@ void kdtree_scan(Table *table, vector<array<int64_t, 3>> *query, vector<pair<int
 {
     for(size_t i = 0; i < offsets->size(); ++i){
         int sel_size;
-        int sel_vector[offsets->at(i).second - offsets->at(i).first + 1];
+        int *sel_vector = new int[offsets->at(i).second - offsets->at(i).first + 1];
         int64_t low = query->at(0).at(0);
 		int64_t high = query->at(0).at(1);
 		int64_t col = query->at(0).at(2);

@@ -245,7 +245,7 @@ void sideways_cracking_scan(Table *table, vector<array<int64_t, 3> > *rangequeri
         int64_t leading_col = rangequeries->at(0).at(2);
         int64_t search_col = rangequeries->at(1).at(2);
         int sel_size;
-        int sel_vector[offsets->at(0).second - offsets->at(0).first + 1];
+        int *sel_vector = new int[offsets->at(0).second - offsets->at(0).first + 1];
         int64_t low = rangequeries->at(1).at(0);
         int64_t high = rangequeries->at(1).at(1);
         int64_t col = rangequeries->at(1).at(2);
