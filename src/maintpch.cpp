@@ -50,6 +50,8 @@ void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQuer
 	vector<double> joinTime = vector<double>(NUM_QUERIES, 0);
     vector<double> projectionTime = vector<double>(NUM_QUERIES, 0);
 	vector<double> totalTime = vector<double>(NUM_QUERIES);
+    vector<int64_t> nOffsets = vector<int64_t> (NUM_QUERIES, 0);
+    vector<int64_t> OffsetsSizes = vector<int64_t> (NUM_QUERIES, 0);
 	chrono::time_point<chrono::system_clock> start, end;
 	
 	table->crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
@@ -85,6 +87,10 @@ void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQuer
     		index_lookup(T,&rangeQueries.at(i),&offsets);
     	end = chrono::system_clock::now();
         indexLookup.at(i) = chrono::duration<double>(end - start).count();
+        nOffsets.at(i) = offsets.size();
+        for (int64_t j = 0; j < offsets.size(); ++j) {
+            OffsetsSizes.at(i) += abs(offsets.at(j).second - offsets.at(j).first);
+        }
       
        // Intersecting data for uni-dimensional indexes
         start = chrono::system_clock::now();
@@ -108,7 +114,7 @@ void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQuer
         fprintf(stderr, "Result : %lu\n",final_result);
     }
 	for (int i = 0; i < NUM_QUERIES; i++){
-		cout << indexCreation.at(i) << ";" << indexLookup.at(i) << ";" << scanTime.at(i) << ";" << joinTime.at(i) << ";" << projectionTime.at(i) << ";" << totalTime.at(i) << "\n";
+        cout << indexCreation.at(i) << ";" << indexLookup.at(i) << ";" << scanTime.at(i) << ";" << joinTime.at(i) << ";" << projectionTime.at(i) << ";" << totalTime.at(i) << ";" << nOffsets.at(i) << ";" << OffsetsSizes.at(i) << "\n";
 		fprintf(stderr, "%f\n",totalTime.at(i));
 	}
 }
