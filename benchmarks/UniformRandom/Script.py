@@ -30,6 +30,7 @@ UPPERBOUND = COLUMN_SIZE
 NUMBER_OF_COLUMNS = ['1', '2', '4', '8', '16']
 KDTREE_THRESHOLD = '2000'  # Only used for KDTree
 QUERY_SELECTIVITY = '0.01'
+SEED = '1098'
 
 ONE_SIDED_PERCENTAGE = '0'
 
@@ -103,7 +104,7 @@ for N_COLUMN in NUMBER_OF_COLUMNS:
     print("Generating Data")
     if os.system("./gendata --num-queries=" + NUM_QUERIES + " --column-size=" + COLUMN_SIZE + " --column-number=" +  N_COLUMN
     + " --selectivity=" +SELECTIVITY_PERCENTAGE + " --queries-pattern=" +  QUERIES_PATTERN + " --column-pattern="+ COLUMN_PATTERN
-    + " --one-side-ranges=" +ONE_SIDED_PERCENTAGE + " --upperbound=" + UPPERBOUND) != 0:
+    + " --one-side-ranges=" +ONE_SIDED_PERCENTAGE + " --upperbound=" + UPPERBOUND + " --seed=" + SEED) != 0:
         print("Generating Data Failed")
         exit()
 

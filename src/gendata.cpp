@@ -371,6 +371,7 @@ int main(int argc, char** argv) {
     int64_t QUERIES_PATTERN = 1;
     int64_t COLUMN_PATTERN = 1;
     int64_t NUMBER_OF_COLUMNS = 16;
+    uint SEED = 1098;
 
     for(int i = 1; i < argc; i++) {
         auto arg = string(argv[i]);
@@ -403,11 +404,15 @@ int main(int argc, char** argv) {
                 COLUMN_PATTERN = atoi(arg_value.c_str());
             } else if (arg_name == "column-number") {
                 NUMBER_OF_COLUMNS = atoi(arg_value.c_str());
+            } else if (arg_name == "seed"){
+                SEED = atoi(arg_name.c_str());
             } else {
                 print_help(argc, argv);
                 exit(EXIT_FAILURE);
             }
     }
+
+    srand(SEED);
 
     truncate(COLUMN_FILE_PATH);
     truncate(QUERIES_FILE_PATH);
