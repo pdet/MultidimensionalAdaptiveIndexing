@@ -2,26 +2,26 @@
 
 using namespace std;
 
-extern int64_t NUMBER_OF_COLUMNS,COLUMN_SIZE;
+extern int64_t NUMBER_OF_COLUMNS, COLUMN_SIZE, KDTREE_THRESHOLD;
 
 static vector<Slice> S; //Static variable to hold all the slices on the first level
 
 
-const int last_level_threshold = 2000; // No clue how to set up this parameter for highly dimensional queries.
+//const int last_level_threshold = 2000; // No clue how to set up this parameter for highly dimensional queries.
 vector<int64_t> dimension_threshold;
 
 // Caculate threshold of each level
 void calculate_level_thresholds(){
     if(NUMBER_OF_COLUMNS == 1){
-        dimension_threshold.push_back(last_level_threshold);
+        dimension_threshold.push_back(KDTREE_THRESHOLD);
         return;
     }
-	dimension_threshold.push_back(last_level_threshold);
+	dimension_threshold.push_back(KDTREE_THRESHOLD);
 	double root_aux = 1.0/NUMBER_OF_COLUMNS;
-	int64_t r = ceil(pow((double)COLUMN_SIZE/last_level_threshold, (double) 1.0/NUMBER_OF_COLUMNS));
+	int64_t r = ceil(pow((double)COLUMN_SIZE/KDTREE_THRESHOLD, (double) 1.0/NUMBER_OF_COLUMNS));
 
 
-	int64_t cur_thr = r * last_level_threshold;
+	int64_t cur_thr = r * KDTREE_THRESHOLD;
 	dimension_threshold.push_back(cur_thr);
 	for (int i = 2; i  < NUMBER_OF_COLUMNS; i ++){
 		cur_thr = r * cur_thr;

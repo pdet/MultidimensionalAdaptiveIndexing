@@ -28,8 +28,8 @@ NUMBER_OF_REPETITIONS = 3
 COLUMN_SIZE = '10000000'
 UPPERBOUND = COLUMN_SIZE
 NUMBER_OF_COLUMNS = ['1', '2', '4', '8', '16']
-KDTREE_THRESHOLD = '2000'  # Only used for KDTree
-QUERY_SELECTIVITY = '0.01'
+KDTREE_THRESHOLD = '100'  # Only used for KDTree
+QUERY_SELECTIVITY = '0.001'
 SEED = '1098'
 
 ONE_SIDED_PERCENTAGE = '0'
@@ -37,18 +37,18 @@ ONE_SIDED_PERCENTAGE = '0'
 QUERIES_PATTERN =  RANDOM
 COLUMN_PATTERN = RANDOM
 # Saving Experiments
-if os.path.exists("Results/") != 1:
-    os.system('mkdir Results')
+if os.path.exists("Results2/") != 1:
+    os.system('mkdir Results2')
 
 def getFolderToSaveExperiments():
     global PATH
-    experimentsList = os.listdir("Results/")
+    experimentsList = os.listdir("Results2/")
     aux = 0
     for experiment in experimentsList:
         if aux < int(experiment):
             aux = int(experiment)
     currentexperiment = aux + 1
-    PATH = "Results/" + str(currentexperiment) + '/'
+    PATH = "Results2/" + str(currentexperiment) + '/'
     os.system('mkdir ' + PATH)
 
 
