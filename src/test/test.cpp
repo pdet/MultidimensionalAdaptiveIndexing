@@ -56,6 +56,7 @@ vector<vector<int64_t>> unidimensional_cracking(Table *table, vector<vector<arra
         vector<vector<bool>> bitmaps(NUMBER_OF_COLUMNS);
         cracking_partial_built(table, T, &queries->at(i));
         cracking_index_lookup(T, &queries->at(i), &offsets);
+        cracking_scan(table, &queries->at(i), &offsets, &rowId);
         cracking_intersection(table, &offsets, &bitmaps, &rowId);
         sort(rowId.begin(), rowId.end());
         queryResult.push_back(rowId);
@@ -131,12 +132,6 @@ vector<vector<int64_t>> sideways_cracking(Table *table, vector<vector<array<int6
         queryResult.push_back(rowId);
     }
     return queryResult;
-}
-
-int64_t greater_vector_size(vector<int64_t> v1, vector<int64_t> v2) {
-    if (v1.size() > v2.size())
-        return v1.size();
-    return v2.size();
 }
 
 vector<vector<int64_t>> quasii(Table *table, vector<vector<array<int64_t, 3>>> *queries) {

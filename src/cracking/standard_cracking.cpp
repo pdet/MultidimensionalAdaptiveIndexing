@@ -4,6 +4,8 @@
 using namespace std;
 
 extern int64_t COLUMN_SIZE, NUMBER_OF_COLUMNS;
+
+static vector<vector<bool>> *std_cracking_bitmaps;
 void exchange(IndexEntry *&c, int64_t x1, int64_t x2)
 {
     IndexEntry tmp = *(c + x1);
@@ -170,15 +172,19 @@ void cracking_index_lookup(Tree *T, vector<array<int64_t, 3>> *rangequeries, vec
 
 }
 
-void cracking_intersection(Table *table, vector<pair<int, int>> *offsets, vector<vector<bool>> *bitmaps,
-                           vector<int64_t> *result) {
+void cracking_scan(Table *table, vector<array<int64_t, 3>> *query, vector<pair<int,int>>  *offsets, vector<int64_t> * result){
+    std_cracking_bitmaps = new vector<vector<bool>> (NUMBER_OF_COLUMNS);
     for (size_t i = 0; i < offsets->size(); i++) {
         if (offsets->at(i).first > offsets->at(i).second)
-            bitmaps->at(i) = vector<bool>(COLUMN_SIZE, 1);
+            std_cracking_bitmaps->at(i) = vector<bool>(COLUMN_SIZE, 1);
         else {
-            bitmaps->at(i) = vector<bool>(COLUMN_SIZE, 0);
-            create_bitmap(table->crackercolumns[i], offsets->at(i).first, offsets->at(i).second, bitmaps->at(i));
+            std_cracking_bitmaps->at(i) = vector<bool>(COLUMN_SIZE, 0);
+            create_bitmap(table->crackercolumns[i], offsets->at(i).first, offsets->at(i).second, std_cracking_bitmaps->at(i));
         }
     }
-    *result = join_bitmaps(bitmaps);
+}
+
+void cracking_intersection(Table *table, vector<pair<int, int>> *offsets, vector<vector<bool>> *bitmaps,
+                           vector<int64_t> *result) {
+    *result = join_bitmaps(std_cracking_bitmaps);
 }

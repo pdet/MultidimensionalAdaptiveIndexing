@@ -203,7 +203,7 @@ int main(int argc, char **argv)
     			benchmarkFunction(&table,query,NULL,NULL,NULL,full_scan,NULL);
     			break;
     		case UNIDIMENSIONAL_CRACKING:
-    			benchmarkFunction(&table,query,cracking_pre_processing,cracking_partial_built,cracking_index_lookup,NULL,cracking_intersection);
+    			benchmarkFunction(&table,query,cracking_pre_processing,cracking_partial_built,cracking_index_lookup,cracking_scan,cracking_intersection);
     			break;
     		case CRACKING_KDTREE:
     			benchmarkFunction(&table,query,cracking_kdtree_pre_processing,cracking_kdtree_partial_built,kdtree_index_lookup,kdtree_scan,NULL);
