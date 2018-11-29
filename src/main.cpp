@@ -242,7 +242,7 @@ int main(int argc, char **argv)
         //     benchmarkFunction(&table,query,sideways_cracking_pre_processing,sideways_cracking_partial_built,sideways_cracking_index_lookup,sideways_cracking_scan,NULL, NULL);
         //     break;
         case QUASI:
-          benchmarkFunction(&table, query, quasii_pre_processing, quasii_partial_built, quasii_index_lookup, quasii_scan, NULL, NULL);
+          benchmarkFunction(&table, query, quasii_pre_processing, quasii_partial_built, quasii_index_lookup, quasii_scan, NULL, quasii_info);
           break;
     	}
     #endif

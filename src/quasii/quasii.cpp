@@ -1,4 +1,5 @@
 #include "quasii.h"
+#include <stack>
 
 using namespace std;
 
@@ -460,4 +461,37 @@ void quasii_scan(Table *table, vector<array<int64_t, 3>> *query, vector<pair<int
         for (size_t j = 0; j < sel_size; ++j)
             result->push_back(table->crackertable.ids[sel_vector[j] + offsets->at(i).first]);
     }
+}
+
+void quasii_info(Table *table, Tree * T, int64_t &n_partitions, int64_t &n_of_nodes, int64_t &index_height, int64_t &n_of_leafs, int64_t &min_partition_size, int64_t &max_partition_size){
+    n_partitions = 0;
+    n_of_nodes = 0;
+    n_of_leafs = 0;
+    index_height = NUMBER_OF_COLUMNS;
+    min_partition_size = 0;
+    max_partition_size = 0;
+
+    for (size_t i = 0; i < S.size(); ++i) {
+        stack<Slice> slices;
+        slices.push(S.at(i));
+        while(!slices.empty()){
+            Slice current = slices.top();
+            slices.pop();
+
+            n_of_nodes++;
+            if(current.isBottomLevel(NUMBER_OF_COLUMNS) || current.children.empty()){
+                n_of_leafs++;
+                int64_t partition_size = abs(current.data_offset_end - current.data_offset_begin);
+                if(partition_size > max_partition_size)
+                    max_partition_size = partition_size;
+                if(partition_size < min_partition_size)
+                    min_partition_size = partition_size;
+            }else{
+                for (size_t j = 0; j < current.children.size(); ++j) {
+                    slices.push(current.children.at(j));
+                }
+            }
+        }
+    }
+    n_partitions = n_of_leafs;
 }
