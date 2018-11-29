@@ -30,6 +30,8 @@ typedef void (*index_lookup_function)(Tree * T,vector<array<int64_t, 3>>  *range
 typedef void (*scan_data_function)(Table *table, vector<array<int64_t, 3>>  *rangequeries,vector<pair<int,int>>  *offsets, vector<int64_t> * result);
 typedef void (*intersect_data_function)(Table *table,vector<pair<int,int>>  *offsets, vector<vector<bool> > *bitmaps, vector<int64_t> * result);
 
+typedef void (*get_info_function)(Table *table, Tree * T, int64_t &n_partitions, int64_t &n_of_nodes, int64_t &index_height, int64_t &n_of_leafs, int64_t &min_partition_size, int64_t &max_partition_size);
+
 //Settings for Indexes
 const int FULL_SCAN = 0;
 const int UNIDIMENSIONAL_CRACKING = 1;
@@ -45,8 +47,10 @@ string COLUMN_FILE_PATH, QUERIES_FILE_PATH;
 int64_t COLUMN_SIZE,NUM_QUERIES, NUMBER_OF_COLUMNS, KDTREE_THRESHOLD, INDEXING_TYPE;
 
 void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQueries,
-	pre_processing_function pre_processing, partial_index_built_function partial_index_built,
-	index_lookup_function index_lookup, scan_data_function scan_data, intersect_data_function intersect_data){
+                       pre_processing_function pre_processing, partial_index_built_function partial_index_built,
+                       index_lookup_function index_lookup, scan_data_function scan_data,
+                       intersect_data_function intersect_data,
+                       get_info_function get_info) {
 
 	vector<double> indexCreation = vector<double>(NUM_QUERIES, 0);
 	vector<double> indexLookup = vector<double>(NUM_QUERIES, 0);
@@ -56,6 +60,12 @@ void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQuer
 	vector<double> totalTime = vector<double>(NUM_QUERIES);
 	vector<int64_t> nOffsets = vector<int64_t> (NUM_QUERIES, 0);
     vector<int64_t> OffsetsSizes = vector<int64_t> (NUM_QUERIES, 0);
+    vector<int64_t > n_partitions (NUM_QUERIES, 0);
+    vector<int64_t > n_of_nodes (NUM_QUERIES, 0);
+    vector<int64_t > n_of_leafs (NUM_QUERIES, 0);
+    vector<int64_t > index_height (NUM_QUERIES, 0);
+    vector<int64_t > min_partition_size(NUM_QUERIES, 0);
+    vector<int64_t > max_partition_size (NUM_QUERIES, 0);
 	chrono::time_point<chrono::system_clock> start, end;
 
 	table->crackercolumns = (IndexEntry **)malloc(NUMBER_OF_COLUMNS * sizeof(IndexEntry *));
@@ -116,11 +126,22 @@ void benchmarkFunction(Table *table, vector<vector<array<int64_t, 3>>> rangeQuer
     end = chrono::system_clock::now();
     projectionTime.at(i)  = chrono::duration<double>(end - start).count();
 
+    if(get_info){
+        get_info(table, T, n_partitions.at(i), n_of_nodes.at(i), index_height.at(i), n_of_leafs.at(i),
+                 min_partition_size.at(i), max_partition_size.at(i));
+    }
+
     totalTime.at(i) = indexCreation.at(i) + indexLookup.at(i) + scanTime.at(i) + joinTime.at(i) + projectionTime.at(i);
     fprintf(stderr, "Result : %ld\n", final_result);
   }
 	for (int i = 0; i < NUM_QUERIES; i++){
-		cout << indexCreation.at(i) << ";" << indexLookup.at(i) << ";" << scanTime.at(i) << ";" << joinTime.at(i) << ";" << projectionTime.at(i) << ";" << totalTime.at(i) << ";" << nOffsets.at(i) << ";" << OffsetsSizes.at(i) << "\n";
+        cout << indexCreation.at(i) << ";" << indexLookup.at(i) << ";" << scanTime.at(i) << ";" << joinTime.at(i) << ";"
+             <<
+             projectionTime.at(i) << ";" << totalTime.at(i) << ";" << nOffsets.at(i) << ";" << OffsetsSizes.at(i) << ";"
+             <<
+             n_partitions.at(i) << ";" << n_of_nodes.at(i) << ";" << index_height.at(i) << ";" << n_of_leafs.at(i)
+             << ";" <<
+             min_partition_size.at(i) << ";" << max_partition_size.at(i) << "\n";
 		fprintf(stderr, "%f\n",totalTime.at(i));
 	}
 }
@@ -200,28 +221,28 @@ int main(int argc, char **argv)
     #else
     	switch(INDEXING_TYPE){
     		case FULL_SCAN:
-    			benchmarkFunction(&table,query,NULL,NULL,NULL,full_scan,NULL);
+    			benchmarkFunction(&table,query,NULL,NULL,NULL,full_scan,NULL, NULL);
     			break;
     		case UNIDIMENSIONAL_CRACKING:
-    			benchmarkFunction(&table,query,cracking_pre_processing,cracking_partial_built,cracking_index_lookup,cracking_scan,cracking_intersection);
+    			benchmarkFunction(&table,query,cracking_pre_processing,cracking_partial_built,cracking_index_lookup,cracking_scan,cracking_intersection, NULL);
     			break;
     		case CRACKING_KDTREE:
-    			benchmarkFunction(&table,query,cracking_kdtree_pre_processing,cracking_kdtree_partial_built,kdtree_index_lookup,kdtree_scan,NULL);
+    			benchmarkFunction(&table,query,cracking_kdtree_pre_processing,cracking_kdtree_partial_built,kdtree_index_lookup,kdtree_scan,NULL, kdtree_info);
     			break;
     		case KDTREE:
-    			benchmarkFunction(&table,query,full_kdtree_pre_processing,NULL,kdtree_index_lookup,kdtree_scan,NULL);
+    			benchmarkFunction(&table,query,full_kdtree_pre_processing,NULL,kdtree_index_lookup,kdtree_scan,NULL, kdtree_info);
     			break;
         case SIDEWAYS_CRACKING:
-          benchmarkFunction(&table,query,sideways_cracking_pre_processing,sideways_cracking_partial_built,sideways_cracking_index_lookup,sideways_cracking_scan,NULL);
+          benchmarkFunction(&table,query,sideways_cracking_pre_processing,sideways_cracking_partial_built,sideways_cracking_index_lookup,sideways_cracking_scan,NULL, NULL);
           break;
         // case PARTIAL_SIDEWAYS_CRACKING:
-        //     benchmarkFunction(&table,query,partial_sideways_cracking_pre_processing,partial_sideways_cracking_partial_built,NULL,partial_sideways_cracking_scan,NULL);
+        //     benchmarkFunction(&table,query,partial_sideways_cracking_pre_processing,partial_sideways_cracking_partial_built,NULL,partial_sideways_cracking_scan,NULL, NULL);
         //     break;
         // case COVERED_CRACKING:
-        //     benchmarkFunction(&table,query,sideways_cracking_pre_processing,sideways_cracking_partial_built,sideways_cracking_index_lookup,sideways_cracking_scan,NULL);
+        //     benchmarkFunction(&table,query,sideways_cracking_pre_processing,sideways_cracking_partial_built,sideways_cracking_index_lookup,sideways_cracking_scan,NULL, NULL);
         //     break;
         case QUASI:
-          benchmarkFunction(&table, query, quasii_pre_processing, quasii_partial_built, quasii_index_lookup, quasii_scan, NULL);
+          benchmarkFunction(&table, query, quasii_pre_processing, quasii_partial_built, quasii_index_lookup, quasii_scan, NULL, NULL);
           break;
     	}
     #endif

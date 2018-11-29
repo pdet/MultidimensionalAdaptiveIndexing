@@ -79,7 +79,7 @@ def generate_output(file,query_result,repetition,ALGORITHM, N_COLUMN, selectivit
 
 def create_output():
     # Saving Experiments
-    header = "algorithm;repetition;query_selectivity;query_number;column_size;column_pattern;number_of_columns;index_creation;index_lookup;scan_time;join_time;projection_time;total_time;n_offsets;offsets_size"
+    header = "algorithm;repetition;query_selectivity;query_number;column_size;column_pattern;number_of_columns;index_creation;index_lookup;scan_time;join_time;projection_time;total_time;n_offsets;offsets_size;n_partitions;n_nodes;index_height;n_leafs;min_partition;max_partition"
     file = open(PATH + "results.csv", "w")
     file.write(header)
     file.write('\n')
