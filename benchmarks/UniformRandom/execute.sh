@@ -1,3 +1,5 @@
 #!/bin/bash
 
-python $(dirname "$0")/Script.py && python $(dirname "$0")/Script2.py && python $(dirname "$0")/Script3.py
+python Script.py
+python Script2.py
+python Script3.py
