@@ -468,7 +468,7 @@ void quasii_info(Table *table, Tree * T, int64_t &n_partitions, int64_t &n_of_no
     n_of_nodes = 0;
     n_of_leafs = 0;
     index_height = NUMBER_OF_COLUMNS;
-    min_partition_size = 0;
+    min_partition_size = COLUMN_SIZE;
     max_partition_size = 0;
 
     for (size_t i = 0; i < S.size(); ++i) {
