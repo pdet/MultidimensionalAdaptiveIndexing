@@ -19,4 +19,5 @@ void cracking_kdtree_pre_processing(Table *table, Tree * T);
 void cracking_kdtree_partial_built(Table *table, Tree * T, vector<array<int64_t, 3>> *rangequeries);
 void kdtree_index_lookup(Tree * tree, vector<array<int64_t, 3>> *query,vector<pair<int,int>>  *offsets);
 void kdtree_scan(Table *table, vector<array<int64_t, 3>> *query, vector<pair<int,int>>  *offsets, vector<int64_t> * result);
+void kdtree_info(Table *table, Tree * T, int64_t &n_partitions, int64_t &n_of_nodes, int64_t &index_height, int64_t &n_of_leafs, int64_t &min_partition_size, int64_t &max_partition_size);
 #endif //MULTIDEMIONSIONALINDEXING_KD_TREE_H

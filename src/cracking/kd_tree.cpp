@@ -1,6 +1,7 @@
 #include "kd_tree.h"
 #include <algorithm>
 #include <array>
+#include <stack>
 
 // #define test
 
@@ -666,3 +667,69 @@ void kdtree_scan(Table *table, vector<array<int64_t, 3>> *query, vector<pair<int
     }
 }
 
+void kdtree_info(Table *table, Tree * T, int64_t &n_partitions, int64_t &n_of_nodes, int64_t &index_height, int64_t &n_of_leafs, int64_t &min_partition_size, int64_t &max_partition_size){
+    n_partitions = 0;
+    n_of_nodes = 0;
+    n_of_leafs = 0;
+    index_height = 0;
+    min_partition_size = 0;
+    max_partition_size = 0;
+
+    if(T == nullptr)
+        return;
+
+    vector<int64_t> offsets;
+    offsets.push_back(0);
+
+    stack<Tree> nodes;
+    stack<int64_t> heights;
+    nodes.push(*T);
+    heights.push(0);
+
+    while(!nodes.empty()){
+        Tree current = nodes.top();
+        nodes.pop();
+
+        int64_t h = heights.top();
+        heights.pop();
+
+        n_of_nodes++;
+
+        offsets.push_back(current->left_position);
+
+        if(h > index_height)
+            index_height = h;
+
+        if(current->Left == nullptr && current->Right == nullptr)
+            n_of_leafs++;
+
+        if(current->Right){
+            nodes.push(current->Right);
+            heights.push(h + 1);
+        }
+
+        if(current->Left){
+            nodes.push(current->Left);
+            heights.push(h + 1);
+        }
+    }
+    n_partitions = n_of_nodes + 1;
+
+    offsets.push_back(COLUMN_SIZE);
+    sort(offsets.begin(), offsets.end());
+
+    for (size_t i = 0; i < offsets.size() - 1; ++i) {
+        offsets.at(i) = offsets.at(i+1) - offsets.at(i);
+    }
+    offsets.resize(offsets.size() - 1);
+
+    min_partition_size = offsets.at(0);
+    max_partition_size = offsets.at(0);
+
+    for (size_t j = 1; j < offsets.size(); ++j) {
+        if(offsets.at(j) > max_partition_size)
+            max_partition_size = offsets.at(j);
+        if(offsets.at(j) < min_partition_size)
+            min_partition_size = offsets.at(j);
+    }
+}
