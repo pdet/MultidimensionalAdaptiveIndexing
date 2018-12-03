@@ -290,6 +290,8 @@ def response_time_all_columns(dfs, file_name, cols=[1, 2, 4, 8, 16]):
     xticks = []
     algs = []
 
+    sel = dfs[0][cols[0]]['query_selectivity'][0]
+
     for col in cols:
         for df in dfs:
             index_creation = df[col]['index_creation'].sum()
@@ -321,7 +323,7 @@ def response_time_all_columns(dfs, file_name, cols=[1, 2, 4, 8, 16]):
     plt.grid(axis='y', which='both')
     plt.xlabel('Number of Columns')
     plt.xticks(xticks, algs, rotation=270)
-    plt.title('Total Response Time')
+    plt.title('Total Response Time ( ' + str(sel * 100) + '% selectivity)')
     plt.tight_layout()
     plt.savefig(file_name + FILE_TYPE)
     reset_plot()
@@ -426,7 +428,7 @@ def experiment1():
     response_time_all_columns([full_scan, std_cracking], 'full-vs-cracking')
     response_time_all_columns([full_scan, std_cracking, sideways], 'full-vs-cracking-vs-sideways')
 
-    response_time_all_columns([full_scan, std_cracking, sideways, cracking_kd, full_kd, quasii], 'all_algs')
+    response_time_all_columns([full_scan, sideways, cracking_kd, full_kd, quasii], 'all_algs')
     response_time_all_columns([cracking_kd, full_kd, quasii, full_scan], 'few_algs')
 
     time_breakdown([cracking_kd, full_kd, quasii, sideways, full_scan], 1)
