@@ -321,7 +321,7 @@ def response_time_all_columns(dfs, file_name, cols=[1, 2, 4, 8, 16]):
 
     plt.ylabel('Response time (s)')
     plt.grid(axis='y', which='both')
-    plt.xlabel('Number of Columns')
+    # plt.xlabel('Number of Columns')
     plt.xticks(xticks, algs, rotation=270)
     plt.title('Total Response Time ( ' + str(sel * 100) + '% selectivity)')
     plt.tight_layout()
