@@ -37,7 +37,7 @@ def translate_alg(alg):
     if alg == 'fs':
         return 'Full Scan'
     if alg == 'stdavl':
-        return 'Standard Cracking'
+        return 'Database Cracking'
     if alg == 'stdkd':
         return 'Cracking KD-Tree'
     if alg == 'fikd':
@@ -53,7 +53,7 @@ def alg_abbreviation(alg):
     if alg == 'fs':
         return 'F.S.'
     if alg == 'stdavl':
-        return 'S.C.'
+        return 'D.C.'
     if alg == 'stdkd':
         return 'C.KD.'
     if alg == 'fikd':
