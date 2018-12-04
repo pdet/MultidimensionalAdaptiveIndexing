@@ -99,6 +99,12 @@ def remove_lookup_time(hash):
         hash[k]['index_lookup'] = 0
 
 
+def fix_n_partitions_and_scan_tuples(hash):
+    for k in hash.keys():
+        hash[k]['n_offsets'] = 1
+        hash[k]['offsets_size'] = hash[k]['column_size']
+
+
 def average_df(df1, df2):
     alg = df1['algorithm']
 
@@ -133,6 +139,7 @@ def read_files():
 
     remove_creation_time(full_scan)
     remove_lookup_time(full_scan)
+    fix_n_partitions_and_scan_tuples(full_scan)
 
 
 def reset_plot():
@@ -243,6 +250,8 @@ def response_time_per_query(dfs, column):
 def index_info_per_query(df, column):
     df = df[column]
 
+    n_rows = int(df['column_size'][0])
+
     name = df['algorithm'][0]
 
     x = range(len(df['total_time']))
@@ -255,14 +264,14 @@ def index_info_per_query(df, column):
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    ax.plot(x, n_nodes, label="Number of Nodes")
-    ax.plot(x, n_partitions, label="Number of Partitions")
-    ax.plot(x, index_height, label="Index Height")
     ax.plot(x, tuples_scanned, label="Tuples Scanned")
+    ax.plot(x, n_partitions, label="Number of Partitions")
+    ax.plot(x, n_nodes, label="Number of Nodes")
     ax.plot(x, partitions_scanned, label="Partitions Scanned")
+    ax.plot(x, index_height, label="Index Height")
     ax.set_ylabel('Elapsed time (seconds)')
     ax.set_xlabel('Query (#)')
-    ax.set_ylim(bottom=1)
+    ax.set_ylim(bottom=1, top=n_rows + n_rows*0.2)
     ax.set_yscale('log')
     # ax.yaxis.set_major_formatter(mpl.ticker.FormatStrFormatter('%d'))
     # plt.ylim(0, 0.05)
@@ -316,6 +325,60 @@ def response_time_all_columns(dfs, file_name, cols=[1, 2, 4, 8, 16]):
             xticks.append(step)
             algs.append(alg_abbreviation(df[col]['algorithm'][0]) + ' (' + str(col) + ')')
             plt.legend((p_i_c, p_i_l, p_s_t, p_j_t), ('Index Creation', 'Index Lookup', 'Scan Time', 'Intersection Time'))
+
+            step += width + small_step
+        step += small_step * 2
+
+    plt.ylabel('Response time (s)')
+    plt.grid(axis='y', which='both')
+    # plt.xlabel('Number of Columns')
+    plt.xticks(xticks, algs, rotation=270)
+    plt.title('Total Response Time (' + str(sel * 100) + '% selectivity)')
+    plt.tight_layout()
+    plt.savefig(file_name + FILE_TYPE)
+    reset_plot()
+
+
+def response_time_all_columns_no_join(dfs, file_name, cols=[1, 2, 4, 8, 16]):
+    marker = itertools.cycle(['.', 's', '*', 'D', 'X'])
+    # color = itertools.cycle([
+    #     (105/255.0,105/255.0,105/255.0),
+    #     (128/255.0,128/255.0,128/255.0),
+    #     (169/255.0,169/255.0,169/255.0),
+    #     (105/255.0,105/255.0,105/255.0),
+    #     (128/255.0,128/255.0,128/255.0)
+    # ])
+
+    small_step = 0.1
+    width = 0.25
+    step = 0.0
+
+    xticks = []
+    algs = []
+
+    sel = dfs[0][cols[0]]['query_selectivity'][0]
+
+    for col in cols:
+        for df in dfs:
+            index_creation = df[col]['index_creation'].sum()
+            index_lookup = df[col]['index_lookup'].sum()
+            scan_time = df[col]['scan_time'].sum()
+
+            p_i_c = plt.bar(step, index_creation, width, zorder=3, color='blue')
+            p_i_l = plt.bar(step, index_lookup, width, bottom=index_creation, zorder=3, color='orange')
+            p_s_t = plt.bar(step, scan_time, width, bottom=index_creation + index_lookup, zorder=3, color='green')
+
+            plt.text(
+                y=int((index_creation + index_lookup + scan_time) + 2),
+                x=step,
+                s=str(int(index_creation + index_lookup + scan_time)),
+                verticalalignment='bottom',
+                horizontalalignment='center'
+            )
+
+            xticks.append(step)
+            algs.append(alg_abbreviation(df[col]['algorithm'][0]) + ' (' + str(col) + ')')
+            plt.legend((p_i_c, p_i_l, p_s_t), ('Index Creation', 'Index Lookup', 'Scan Time'))
 
             step += width + small_step
         step += small_step * 2
@@ -429,14 +492,14 @@ def experiment1():
     response_time_all_columns([full_scan, std_cracking], 'full-vs-cracking')
     response_time_all_columns([full_scan, std_cracking, sideways], 'full-vs-cracking-vs-sideways')
 
-    response_time_all_columns([full_scan, sideways, cracking_kd, full_kd, quasii], 'all_algs')
-    response_time_all_columns([cracking_kd, full_kd, quasii, full_scan], 'few_algs')
+    response_time_all_columns_no_join([full_scan, sideways, cracking_kd, full_kd, quasii], 'all_algs')
+    response_time_all_columns_no_join([cracking_kd, full_kd, quasii, full_scan], 'few_algs')
 
-    time_breakdown([cracking_kd, full_kd, quasii, sideways, full_scan], 1)
-    time_breakdown([cracking_kd, full_kd, quasii, sideways, full_scan], 2)
-    time_breakdown([cracking_kd, full_kd, quasii, sideways, full_scan], 4)
-    time_breakdown([cracking_kd, full_kd, quasii, sideways, full_scan], 8)
-    time_breakdown([cracking_kd, full_kd, quasii, sideways, full_scan], 16)
+    time_breakdown([full_scan, sideways, cracking_kd, full_kd, quasii], 1)
+    time_breakdown([full_scan, sideways, cracking_kd, full_kd, quasii], 2)
+    time_breakdown([full_scan, sideways, cracking_kd, full_kd, quasii], 4)
+    time_breakdown([full_scan, sideways, cracking_kd, full_kd, quasii], 8)
+    time_breakdown([full_scan, sideways, cracking_kd, full_kd, quasii], 16)
 
     time_breakdown_with_join([cracking_kd, full_kd, quasii, full_scan, sideways, std_cracking], 1)
     time_breakdown_with_join([cracking_kd, full_kd, quasii, full_scan, sideways, std_cracking], 2)
