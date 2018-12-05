@@ -324,7 +324,7 @@ def response_time_all_columns(dfs, file_name, cols=[1, 2, 4, 8, 16]):
 
             xticks.append(step)
             algs.append(alg_abbreviation(df[col]['algorithm'][0]) + ' (' + str(col) + ')')
-            plt.legend((p_i_c, p_i_l, p_s_t, p_j_t), ('Index Creation', 'Index Lookup', 'Scan Time', 'Intersection Time'))
+            plt.legend((p_i_c, p_i_l, p_s_t, p_j_t), ('Index Creation', 'Index Lookup', 'Scan Time', 'Intersection Time'), loc='center left', bbox_to_anchor=(1, 0.5))
 
             step += width + small_step
         step += small_step * 2
@@ -378,7 +378,7 @@ def response_time_all_columns_no_join(dfs, file_name, cols=[1, 2, 4, 8, 16]):
 
             xticks.append(step)
             algs.append(alg_abbreviation(df[col]['algorithm'][0]) + ' (' + str(col) + ')')
-            plt.legend((p_i_c, p_i_l, p_s_t), ('Index Creation', 'Index Lookup', 'Scan Time'))
+            plt.legend((p_i_c, p_i_l, p_s_t), ('Index Creation', 'Index Lookup', 'Scan Time'), loc='center left', bbox_to_anchor=(1, 0.5))
 
             step += width + small_step
         step += small_step * 2
