@@ -18,7 +18,6 @@ struct Node
 {
     int64_t Element;
     int64_t offset;
-    int64_t column;
 
     Tree  Left;
     Tree  Right;
