@@ -26,9 +26,8 @@ void BranchlessFullScan::search(
     int64_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
 	size_t sel_size;
 	int64_t sel_vector [vector_size];
-	int64_t count = 0;
 	int64_t low, high, col;
-	int64_t i = 0;
+	size_t i = 0;
     resulting_ids.resize(0);
     for (i = 0; i < data_size - vector_size; i+= vector_size){
 		low = query.at(0).at(0);
