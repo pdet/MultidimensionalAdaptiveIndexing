@@ -40,7 +40,10 @@ class Algorithm{
         virtual void scan() = 0;
 
         // For the algorithms that need to intersect the partial results
-        virtual vector<int64_t> intersect() = 0;
+        virtual void intersect() = 0;
+
+        //Gets the final result of the query, namely, a vector of ids
+        virtual vector<int64_t> get_result() = 0;
 };
 
 #endif //ALGORITHMS_INTERFACE

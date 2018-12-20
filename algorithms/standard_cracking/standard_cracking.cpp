@@ -82,15 +82,16 @@ void StandardCracking::scan(){
     }
 }
 
-vector<int64_t> StandardCracking::intersect(){
-    vector<int64_t> resulting_ids;
+void StandardCracking::intersect(){
 
     for(size_t i = 1; i < bitsets.size(); i++)
     {
         bitsets[0] &= bitsets[i];
     }
+}
 
-
+vector<int64_t> StandardCracking::get_result(){
+    vector<int64_t> resulting_ids;
     for(size_t i = 0; i < data_size; i++)
     {
         if(bitsets[0][i] == 1)

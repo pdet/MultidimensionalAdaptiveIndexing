@@ -39,7 +39,9 @@ class StandardCracking : public Algorithm {
         void scan();
 
         // For the algorithms that need to intersect the partial results
-        vector<int64_t> intersect();
+        void intersect();
+
+        vector<int64_t> get_result();
     private:
         vector<CrackerColumn> cracker_columns;
         vector<Tree> index;
