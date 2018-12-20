@@ -2,7 +2,6 @@
 #define BRANCHLESS_FULL_SCAN_H
 
 #include "../interface.h"
-#include <utility>
 
 class BranchlessFullScan : public Algorithm {
     public:

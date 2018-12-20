@@ -3,7 +3,6 @@
 
 #include "../interface.h"
 #include "avl_tree.h"
-#include <utility>
 #include <boost/dynamic_bitset.hpp>
 
 class StandardCracking : public Algorithm {
