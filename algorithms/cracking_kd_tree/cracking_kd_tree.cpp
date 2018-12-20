@@ -167,7 +167,7 @@ void CrackingKdTree::scan(
 			int64_t col = query.at(query_num).at(2);
             sel_size = select_rq_scan_sel_vec(sel_vector, &columns[col][offsets.at(i).first],low,high,sel_size);
         }
-        for (size_t j = 0; j < sel_size; ++j)
+        for (int64_t j = 0; j < sel_size; ++j)
             resulting_ids.push_back(ids[sel_vector[j] + offsets.at(i).first]);
     }
 }
