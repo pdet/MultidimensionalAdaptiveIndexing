@@ -1,13 +1,16 @@
 #include "standard_cracking.h"
 #include <algorithm>
+#include <boost/dynamic_bitset.hpp>
 
 void StandardCracking::pre_processing(
     vector<int64_t> &ids,
     vector<vector<int64_t> > &columns
 ){
-    cracker_columns.resize(columns.size());
-    index.resize(columns.size(), nullptr);
-    for(size_t i = 0; i < columns.size(); i++)
+    data_size = ids.size();
+    number_of_columns = columns.size();
+    cracker_columns.resize(number_of_columns);
+    index.resize(number_of_columns, nullptr);
+    for(size_t i = 0; i < number_of_columns; i++)
     {
         cracker_columns.at(i).resize(ids.size());
         for(size_t j = 0; j < ids.size(); j++)
@@ -35,13 +38,67 @@ void StandardCracking::partial_index_build(
 
 }
 
-vector<pair<int64_t, int64_t> > StandardCracking::search(
+void StandardCracking::search(
     vector<array<int64_t, 3> > &query
-){}
+){
+    offsets.resize(0);
+    for (size_t query_num = 0; query_num < query.size(); query_num++) {
+        int64_t low = query.at(query_num).at(0);
+        int64_t high = query.at(query_num).at(1);
+        int64_t col = query.at(query_num).at(2);
+        IntPair p1, p2;
+        if (low == -1) {
+            p1 = (IntPair) malloc(sizeof(struct int_pair));
+            p1->first = 0;
+        } else {
+            p1 = FindNeighborsGTE(low, index.at(col), data_size - 1);
+        }
+        if (high == -1) {
+            p2 = (IntPair) malloc(sizeof(struct int_pair));
+            p2->second = data_size - 1;
+        } else {
+            p2 = FindNeighborsLT(high, index.at(col), data_size - 1);
+        }
+        array<int64_t, 3> partition = {p1->first, p2->second, col};
+        offsets.push_back(partition);
+    }
+}
 
-void StandardCracking::scan(
-    vector<pair<int64_t, int64_t> > &partitions
-){}
+void StandardCracking::scan(){
+    bitsets.resize(0);
+
+    for(size_t i = 0; i < offsets.size(); i++)
+    {
+        int64_t from = offsets.at(i).at(0);
+        int64_t to = offsets.at(i).at(1);
+        int64_t col = offsets.at(i).at(2);
+        boost::dynamic_bitset<> bitset (data_size);
+        for(int64_t j = from; j < to; j++)
+        {
+            int64_t id = cracker_columns.at(col).at(j).first;
+            bitset[id] = 1;
+        }
+        bitsets.push_back(bitset);
+    }
+}
+
+vector<int64_t> StandardCracking::intersect(){
+    vector<int64_t> resulting_ids;
+
+    for(size_t i = 1; i < bitsets.size(); i++)
+    {
+        bitsets[0] &= bitsets[i];
+    }
+
+
+    for(size_t i = 0; i < data_size; i++)
+    {
+        if(bitsets[0][i] == 1)
+            resulting_ids.push_back(i);
+    }
+
+    return resulting_ids;
+}
 
 
 // ###### PRIVATE METHODS #######

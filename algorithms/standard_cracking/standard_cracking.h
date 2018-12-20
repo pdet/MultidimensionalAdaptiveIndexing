@@ -4,6 +4,7 @@
 #include "../interface.h"
 #include "avl_tree.h"
 #include <utility>
+#include <boost/dynamic_bitset.hpp>
 
 class StandardCracking : public Algorithm {
     typedef vector<pair<int64_t, int64_t> > CrackerColumn;
@@ -27,20 +28,25 @@ class StandardCracking : public Algorithm {
         );
 
         // Executes the range search on each required attribute
-        // Returns the partitions that need to be scanned
+        // Stores internally the partitions that need to be scanned
         // query: follows the same pattern described in the partial_index_build™
-        vector<pair<int64_t, int64_t> > search(
+        void search(
             vector<array<int64_t, 3> > &query
         );
 
         // Scans the partitions defined on the search process
         // Holds the intermediate results inside the class
-        void scan(
-            vector<pair<int64_t, int64_t> > &partitions
-        );
+        void scan();
+
+        // For the algorithms that need to intersect the partial results
+        vector<int64_t> intersect();
     private:
         vector<CrackerColumn> cracker_columns;
         vector<Tree> index;
+        vector<array<int64_t, 3> > offsets;
+        vector<boost::dynamic_bitset<> > bitsets;
+        size_t data_size;
+        size_t number_of_columns;
 
         void exchange(CrackerColumn &cracker_column, int64_t x1, int64_t x2);
         int crackInTwoItemWise(

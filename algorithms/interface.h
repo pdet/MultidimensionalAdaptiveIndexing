@@ -29,17 +29,18 @@ class Algorithm{
         ) = 0;
 
         // Executes the range search on each required attribute
-        // Returns the partitions that need to be scanned
+        // Stores internally the partitions that need to be scanned
         // query: follows the same pattern described in the partial_index_build™
-        virtual vector<pair<int64_t, int64_t> > search(
+        virtual void search(
             vector<array<int64_t, 3> > &query
         ) = 0;
 
         // Scans the partitions defined on the search process
         // Holds the intermediate results inside the class
-        virtual void scan(
-            vector<pair<int64_t, int64_t> > &partitions
-        ) = 0;
+        virtual void scan() = 0;
+
+        // For the algorithms that need to intersect the partial results
+        virtual vector<int64_t> intersect() = 0;
 };
 
 #endif //ALGORITHMS_INTERFACE
