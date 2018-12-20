@@ -25,7 +25,7 @@ void BranchlessFullScan::search(
 ){
     int64_t vector_size = 2000; // 2000*64 = 128000 bits 1/2 L1.
 	size_t sel_size;
-	int64_t sel_vector [vector_size];
+	int64_t* sel_vector = (int64_t*) malloc(sizeof(int64_t) * vector_size);
 	int64_t low, high, col;
 	size_t i = 0;
     resulting_ids.resize(0);

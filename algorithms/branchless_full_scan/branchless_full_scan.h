@@ -22,7 +22,7 @@ class BranchlessFullScan : public Algorithm {
         // The third position is the column
         void partial_index_build(
             vector<array<int64_t, 3> > &query
-        ){};
+        );
 
         // Executes the range search on each required attribute
         // Stores internally the partitions that need to be scanned
@@ -33,10 +33,10 @@ class BranchlessFullScan : public Algorithm {
 
         // Scans the partitions defined on the search process
         // Holds the intermediate results inside the class
-        void scan(){};
+        void scan();
 
         // For the algorithms that need to intersect the partial results
-        void intersect(){};
+        void intersect();
 
         vector<int64_t> get_result();
     private:
