@@ -37,7 +37,7 @@ class Algorithm{
 
         // Scans the partitions defined on the search process
         // Holds the intermediate results inside the class
-        virtual void scan() = 0;
+        virtual void scan(vector<array<int64_t, 3> > &query) = 0;
 
         // For the algorithms that need to intersect the partial results
         virtual void intersect() = 0;

@@ -64,7 +64,7 @@ void StandardCracking::search(
     }
 }
 
-void StandardCracking::scan(){
+void StandardCracking::scan(vector<array<int64_t, 3> > &query){
     bitsets.resize(0);
 
     for(size_t i = 0; i < offsets.size(); i++)

@@ -35,7 +35,7 @@ class StandardCracking : public Algorithm {
 
         // Scans the partitions defined on the search process
         // Holds the intermediate results inside the class
-        void scan();
+        void scan(vector<array<int64_t, 3> > &query);
 
         // For the algorithms that need to intersect the partial results
         void intersect();
