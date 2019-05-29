@@ -9,6 +9,7 @@ crackingtpch
 progressive
 experiments/generatedscripts
 ScriptExperiments/
+runs/**
 .*
 *.pdf
 *.pyc

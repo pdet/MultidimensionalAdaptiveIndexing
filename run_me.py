@@ -2,6 +2,15 @@
 import subprocess
 from datetime import datetime
 from collections import OrderedDict
+import os
+import json
+
+def input_or_default(message, default):
+    got = input(message)
+    if len(got) == 0:
+        return default
+    else:
+        return got
 
 def benchmark_string(benchmark):
     if benchmark == 0:
@@ -15,32 +24,33 @@ def benchmark_string(benchmark):
     exit('Error: Benchmark not identified')
 
 # Choose which benchmark to run
-
-benchmark = input(
+benchmark = input_or_default(
 """1) Which benchmark do you want to execute?
     [0] - Genome
     [1] - Sensor Data
     [2] - Uniform Distribution (Synthetic)
     [3] - Clustered (Synthetic)
-Please type a number: """
+Please type a number [default: 0]: """,
+0
 )
 benchmark = int(benchmark)
+
 # All benchmarks have variable number of attributes
 # Except for Genome, which has always the same number
 if benchmark != 0:
-    number_of_attributes = input("""`-1.1) How many attributes? """)
+    number_of_attributes = input_or_default("""'-1.1) How many attributes [default: 5]? """, '5')
     number_of_attributes = ''.join(number_of_attributes.split('.'))
 else:
     number_of_attributes = 16
 number_of_attributes = int(number_of_attributes)
 
 # Number of tuples in the dataset
-number_of_tuples = input("""2) How many tuples? """)
+number_of_tuples = input_or_default("""2) How many tuples [default: 1000]? """, '1000')
 number_of_tuples = ''.join(number_of_tuples.split('.'))
-number_of_attributes = int(number_of_tuples)
+number_of_tuples = int(number_of_tuples)
 
 # Which algorithms to execute
-algorithms = input(
+algorithms = input_or_default(
 """3) Which Algorithms do you want to compare?
     [0] - Cracking KD-Tree Broad
     [1] - Cracking KD-Tree Narrow (To Be Implemented)
@@ -50,37 +60,35 @@ algorithms = input(
     [5] - Standard Cracking/AVL using Space Filling Curves (To Be Implemented)
     [6] - BB-Tree
     [7] - ELF
-Please specify splitting by spaces: """
+Please specify splitting by spaces [default: 0 1 2 3 4 5 6 7]: """,
+'0 1 2 3 4 5 6 7'
 ).split(' ')
 algorithms = list(map(int, OrderedDict.fromkeys(algorithms)))
 
-# Name of script
+# Create runs dir
+if not os.path.exists('./runs/'):
+    os.makedirs('./runs/')
 
-file_name = input("""Please name your Python script (without .py at the end):
-""")
+# Name of experiment
+while(True):
+    experiment_name = input("""Please name your experiment: """)
+    if os.path.exists('./runs/' + experiment_name):
+        print("Experiment already exists, please choose another name.")
+    else:
+        os.makedirs('./runs/' + experiment_name)
+        break
 
-# Create script file
-with open(file_name + '.py', 'w') as file:
-    file.write(
-    f"""\
-# Script generated using Wizard
+# Create config dictionary
+config = {
+    'benchmark': benchmark,
+    'number_of_attributes': number_of_attributes,
+    'number_of_tuples': number_of_tuples,
+    'algorithms': algorithms
+}
 
-# Git hash: {subprocess.check_output(["git", "rev-parse", "HEAD"]).decode('ascii').strip()}
-# Generated at: {datetime.now().strftime("%Y-%m-%d %H:%M")}
-
-# Beggining of script
-
-import subprocess
-
-if not subprocess.run("make"):
-    exit("Failed to run make")
-
-if subprocess.run("./generator -b {benchmark} -a {number_of_attributes} -t {number_of_tuples}"):
-    subprocess.run("./simulator -d data -q query")
-
-if not subprocess.run("make clean"):
-    exit("Failed to run make clean")
-""")
+# Create config file
+with open('./runs/' + experiment_name + '/config.json', 'w') as file:
+    file.write(json.dumps(config, indent=4, separators=(',', ': ')))
 
 # Summary of what was selected
 print(
@@ -88,21 +96,25 @@ f"""
 --- Summary ---
 
 Benchmark
-`- Benchmark: {benchmark} [{benchmark_string(benchmark)}]
-`- Number of Attributes: {number_of_attributes}
-`- Number of Tuples: {number_of_tuples}
+'- Benchmark: {benchmark} [{benchmark_string(benchmark)}]
+'- Number of Attributes: {number_of_attributes}
+'- Number of Tuples: {number_of_tuples}
 
 Algorithms: {algorithms}
 
-You can find your script in: {file_name}.py
+You can find your experiment in:
+-runs/{experiment_name}
+  '- run.py               # python script to run the experiment
+  '- config.json          # configuration file
+
 ---------------
 
-To run the program call:
-    python {file_name}.py
+To run the program:
+    $ cd ./runs/{experiment_name}
+    $ python run.py
 
-A SQLite file called '{file_name}' will be created, with all the measurements stored inside.
+A SQLite file called 'results' will be created, with all the measurements stored inside.
 If you wish to move the script to some other place just make sure to fix the paths.
-Do notice that the Genome Benchmark depends on other files, so move those files as well.
 
 If you wish to visualize the results, call:
     python visualizer.py $path to SQLite file$
