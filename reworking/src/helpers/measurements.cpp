@@ -14,8 +14,8 @@ public:
     std::vector<int64_t> number_of_nodes;
     std::vector<int64_t> memory_footprint;
 
-    Measurements();
-    ~Measurements();
+    Measurements(){}
+    ~Measurements(){}
 
     time_point time(){
         return std::chrono::steady_clock::now();

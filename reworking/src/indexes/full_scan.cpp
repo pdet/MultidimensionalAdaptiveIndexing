@@ -3,21 +3,21 @@
 
 #include "abstract_index.cpp"
 
-class FullScan : AbstractIndex
+class FullScan : public AbstractIndex
 {
 public:
-    FullScan();
-    ~FullScan();
+    FullScan(){}
+    ~FullScan(){}
 
     void initialize(Table &table_to_copy){
-        table = table_to_copy;
+        table = &table_to_copy;
     }
     void adapt_index(Query query){}
-    unique_ptr<Table> range_query(Query query){
-        auto result = make_unique<Table>(table.col_count());
-        for(size_t row_id = 0; row_id < table.row_count(); row_id++){
+    Table* range_query(Query query){
+        auto result = new Table(table->col_count());
+        for(size_t row_id = 0; row_id < table->row_count(); row_id++){
             if(condition_is_true(query, row_id))
-                result->append(table.materialize_row(row_id));
+                result->append(table->materialize_row(row_id));
         }
         return result;
     }
@@ -28,7 +28,7 @@ private:
             auto low = query.predicates.at(predicate_index)->low;
             auto high = query.predicates.at(predicate_index)->high;
 
-            auto value = table.columns.at(column)->at(row_index);
+            auto value = table->columns.at(column)->at(row_index);
             if(!(low <= value && value < high))
                 return false;
         }

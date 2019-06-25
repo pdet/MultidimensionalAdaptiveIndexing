@@ -12,7 +12,7 @@ private:
     size_t number_of_rows;
     size_t number_of_columns;
 public:
-    vector<unique_ptr<Column> > columns;
+    vector<Column*> columns;
 
     Table(vector<vector<int64_t> > &columns_to_be_copied){
         number_of_columns = columns_to_be_copied.size();
@@ -20,7 +20,7 @@ public:
 
         columns.resize(number_of_columns);
         for (size_t col = 0; col < number_of_columns; col++){
-            columns.at(col) = make_unique<Column>(
+            columns.at(col) = new Column(
                 columns_to_be_copied.at(col)
             );
         }
@@ -30,6 +30,8 @@ public:
         columns.resize(number_of_columns);
         number_of_rows = 0;
     }
+
+    ~Table(){};
 
     vector<int64_t> materialize_row(size_t row_index){
         vector<int64_t> row(col_count());
