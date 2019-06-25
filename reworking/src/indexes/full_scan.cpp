@@ -13,8 +13,8 @@ public:
         table = &table_to_copy;
     }
     void adapt_index(Query query){}
-    Table* range_query(Query query){
-        auto result = new Table(table->col_count());
+    unique_ptr<Table> range_query(Query query){
+        auto result = make_unique<Table>(table->col_count());
         for(size_t row_id = 0; row_id < table->row_count(); row_id++){
             if(condition_is_true(query, row_id))
                 result->append(table->materialize_row(row_id));

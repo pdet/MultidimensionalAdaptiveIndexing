@@ -34,11 +34,6 @@ int main(int argc, char** argv){
             return -1;
         }
 
-    cout << workload_path << endl;
-    cout << data_path << endl;
-    cout << index_algorithm << endl;
-    cout << sqlite_path << endl;
-
-    AbstractIndex* index = IndexFactory::getIndex(index_algorithm);
+    auto index = IndexFactory::getIndex(index_algorithm);
     return 0;
 }

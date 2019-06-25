@@ -10,10 +10,10 @@ using namespace std;
 class IndexFactory
 {
 public:
-    static AbstractIndex* getIndex(string index_name){
+    static unique_ptr<AbstractIndex> getIndex(string index_name){
         if(index_name.compare("Full-Scan"))
-            return new FullScan();
-        return new FullScan();
+            return make_unique<FullScan>();
+        return make_unique<FullScan>();
     }
 };
 #endif
