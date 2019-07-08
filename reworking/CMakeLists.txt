@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 2.8.9)
 project(MultidimensionalAdaptiveIndex)
 set (CMAKE_CXX_STANDARD 14)
-add_definitions("-Wall")
+add_definitions("-O3 -Wall")
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/src)
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
@@ -19,3 +21,5 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             )
 
 add_executable(main ${SOURCES})
+
+add_executable(generator ${CMAKE_SOURCE_DIR}/src/generator.cpp)
