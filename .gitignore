@@ -20,5 +20,6 @@ runs/**
 MonetDB/generatecsv
 src/util/define.h
 
-reworking/src/datasets/**
+reworking/src/data/datasets/**
+reworking/build/**
 .vscode/**
