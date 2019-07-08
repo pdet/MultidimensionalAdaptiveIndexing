@@ -1,7 +1,7 @@
 #ifndef INDEX_FACTORY
 #define INDEX_FACTORY
 
-#include "indexes/indexes.cpp"
+#include "indexes.cpp"
 #include <iostream>
 #include <string>
 

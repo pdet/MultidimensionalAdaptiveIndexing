@@ -1,4 +1,4 @@
-#include "index_factory.cpp"
+#include "indexes/index_factory.cpp"
 #include <string>
 #include <iostream>
 
