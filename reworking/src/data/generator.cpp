@@ -9,9 +9,9 @@
 #include <vector>
 #include <unordered_map>
 
-#define FEATUREVECTORS_FILE "datasets/chr22_feature.vectors"
-#define GENES_FILE "datasets/genes.txt"
-#define POWER_DATASET_FILE "datasets/DEBS2012-ChallengeData.txt"
+#define FEATUREVECTORS_FILE "data/datasets/chr22_feature.vectors"
+#define GENES_FILE "data/datasets/genes.txt"
+#define POWER_DATASET_FILE "data/datasets/DEBS2012-ChallengeData.txt"
 
 #define DATA_FILE "data.sql"
 #define QUERY_FILE "queries.sql"

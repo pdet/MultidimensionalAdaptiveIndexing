@@ -22,4 +22,4 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
 
 add_executable(main ${SOURCES})
 
-add_executable(generator ${CMAKE_SOURCE_DIR}/src/generator.cpp)
+add_executable(generator ${CMAKE_SOURCE_DIR}/src/data/generator.cpp)
