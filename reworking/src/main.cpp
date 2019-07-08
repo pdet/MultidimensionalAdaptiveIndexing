@@ -1,4 +1,5 @@
 #include "indexes/index_factory.cpp"
+#include "data/data_reader.cpp"
 #include <string>
 #include <iostream>
 
@@ -35,5 +36,14 @@ int main(int argc, char** argv){
         }
 
     auto index = IndexFactory::getIndex(index_algorithm);
+
+    auto table = DataReader::read_table(data_path);
+    auto workload = DataReader::read_workload(workload_path);
+
+    index->initialize(table);
+    for(size_t i = 0; i < workload.size(); ++i){
+        index->adapt_index(workload.at(i));
+        index->range_query(workload.at(i));
+    }
     return 0;
 }
