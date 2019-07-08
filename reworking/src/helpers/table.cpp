@@ -14,7 +14,7 @@ private:
 public:
     vector<unique_ptr<Column>> columns;
 
-    Table(vector<vector<int64_t> > &columns_to_be_copied){
+    Table(vector<vector<float> > &columns_to_be_copied){
         number_of_columns = columns_to_be_copied.size();
         number_of_rows = columns_to_be_copied.at(0).size();
 
@@ -28,20 +28,23 @@ public:
 
     Table(size_t number_of_columns) : number_of_columns(number_of_columns){
         columns.resize(number_of_columns);
+        for(size_t i = 0; i < number_of_columns; ++i){
+            columns.at(i) = make_unique<Column>();
+        }
         number_of_rows = 0;
     }
 
     ~Table(){}
 
-    vector<int64_t> materialize_row(size_t row_index){
-        vector<int64_t> row(col_count());
+    vector<float> materialize_row(size_t row_index){
+        vector<float> row(col_count());
         for(size_t col = 0; col < col_count(); col++){
             row.at(col) = columns.at(col)->at(row_index);
         }
         return row;
     }
 
-    void append(vector<int64_t> row){
+    void append(vector<float> row){
         assert(row.size() == number_of_columns);
         for(size_t col = 0; col < row.size(); col++){
             columns.at(col)->append(row.at(col));
