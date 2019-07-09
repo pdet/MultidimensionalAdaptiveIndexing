@@ -10,17 +10,36 @@ public:
     ~FullScan(){}
 
     void initialize(const shared_ptr<Table> table_to_copy){
+        auto start = measurements->time();
+
+        // Simply copies the pointer of the table, since it does not change anything
         table = table_to_copy;
+
+        measurements->initialization_time = measurements->time() - start;;
     }
 
-    void adapt_index(const shared_ptr<Query> query){}
+    void adapt_index(const shared_ptr<Query> query){
+        // Zero adaptation for full scan
+        measurements->adaptation_time.push_back(
+            Measurements::difference(measurements->time(), measurements->time())
+        );
+    }
 
     unique_ptr<Table> range_query(const shared_ptr<Query> query){
+        auto start = measurements->time();
+
+        // Scan the table and returns a materialized view of the result.
         auto result = make_unique<Table>(table->col_count());
         for(size_t row_id = 0; row_id < table->row_count(); row_id++){
             if(condition_is_true(query, row_id))
                 result->append(table->materialize_row(row_id));
         }
+
+        auto end = measurements->time();
+
+        measurements->query_time.push_back(
+            Measurements::difference(end, start)
+        );
         return result;
     }
 private:

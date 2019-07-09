@@ -7,10 +7,11 @@
 class Measurements
 {
     using time_point = std::__1::chrono::steady_clock::time_point;
+    using duration = std::__1::chrono::duration<double>;
 public:
-    time_point initialization_time;
-    std::vector<time_point> adaptation_time;
-    std::vector<time_point> query_time;
+    duration initialization_time;
+    std::vector<duration> adaptation_time;
+    std::vector<duration> query_time;
     std::vector<int64_t> index_height;
     std::vector<int64_t> number_of_nodes;
     std::vector<int64_t> memory_footprint;
@@ -20,6 +21,10 @@ public:
 
     time_point time(){
         return std::chrono::steady_clock::now();
+    }
+
+    static std::chrono::nanoseconds difference(time_point end, time_point start){
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
     }
 };
 #endif
