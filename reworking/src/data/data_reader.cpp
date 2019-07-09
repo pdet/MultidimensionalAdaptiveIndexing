@@ -46,8 +46,6 @@ class DataReader
                 exit(-1);
             }
 
-            file.close();
-
             auto workload = vector<shared_ptr<Query>>();
 
             string low_line;
@@ -66,6 +64,8 @@ class DataReader
                 );
 
             }
+
+            file.close();
 
             return workload;
         }
