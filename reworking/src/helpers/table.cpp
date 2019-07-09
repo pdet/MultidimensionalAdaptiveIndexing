@@ -52,6 +52,17 @@ public:
         number_of_rows++;
     }
 
+    void exchange(size_t index1, size_t index2){
+        for(size_t column_index = 0; column_index < number_of_columns; ++column_index){
+            auto value1 = columns.at(column_index)->at(index1);
+            auto value2 = columns.at(column_index)->at(index2);
+
+            auto tmp = value1;
+            columns.at(column_index)->assign(index1, value2);
+            columns.at(column_index)->assign(index2, tmp);
+        }
+    }
+
     size_t row_count(){
         return number_of_rows;
     }
