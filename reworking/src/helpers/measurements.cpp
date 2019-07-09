@@ -9,6 +9,7 @@ class Measurements
     using time_point = std::__1::chrono::steady_clock::time_point;
 public:
     time_point initialization_time;
+    std::vector<time_point> adaptation_time;
     std::vector<time_point> query_time;
     std::vector<int64_t> index_height;
     std::vector<int64_t> number_of_nodes;
