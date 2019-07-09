@@ -429,6 +429,13 @@ int main(int argc, char* argv[]) {
           myfile << " ";
       }
       myfile << "\n";
+
+      for(size_t col = 0; col < dimensions; ++col){
+        myfile << col;
+        if(col + 1 != dimensions)
+          myfile << " ";
+      }
+      myfile << "\n";
     }
     myfile.close();
   }
