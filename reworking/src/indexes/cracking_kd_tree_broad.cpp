@@ -1,59 +1,197 @@
 #ifndef CRACKING_KDTREE_BROAD
 #define CRACKING_KDTREE_BROAD
 
+#include "kd_tree/kd_tree.cpp"
+#include "full_scan.cpp"
 #include "abstract_index.cpp"
 
 class CrackingKDTreeBroad : public AbstractIndex
 {
+private:
+    unique_ptr<KDTree> index;
 public:
     CrackingKDTreeBroad(){}
     ~CrackingKDTreeBroad(){}
 
     void initialize(const shared_ptr<Table> table_to_copy){
+        // ******************
         auto start = measurements->time();
 
-        // Simply copies the pointer of the table, since it does not change anything
-        table = table_to_copy;
+        // Copy the entire table, as this is the cracking_table
+        table = make_unique<Table>(table_to_copy->col_count());
+        for (size_t col_index = 0; col_index < table_to_copy->col_count(); col_index++)
+            table->columns.at(col_index) = make_unique<Column>(
+                *(table_to_copy->columns.at(col_index).get())
+            );
 
-        measurements->initialization_time = measurements->time() - start;;
+        // Initialize KD-Tree as nullptr
+        index = make_unique<KDTree>(table->row_count());
+
+        measurements->initialization_time = measurements->time() - start;
+        // ******************
     }
 
     void adapt_index(const shared_ptr<Query> query){
-        // Zero adaptation for full scan
+        // ******************
+        auto start = measurements->time();
+
+        for(auto predicate : query->predicates){
+            insert(predicate->column, predicate->low);
+            insert(predicate->column, predicate->high);
+        }
+
+        auto end = measurements->time();
+        // ******************
         measurements->adaptation_time.push_back(
-            Measurements::difference(measurements->time(), measurements->time())
+            Measurements::difference(end, start)
         );
     }
 
     unique_ptr<Table> range_query(const shared_ptr<Query> query){
+        // ******************
         auto start = measurements->time();
+
+        // Search on the index the correct partitions
+        auto partitions = index->search(query);
 
         // Scan the table and returns a materialized view of the result.
         auto result = make_unique<Table>(table->col_count());
-        for(size_t row_id = 0; row_id < table->row_count(); row_id++){
-            if(condition_is_true(query, row_id))
-                result->append(table->materialize_row(row_id));
+        for (auto partition : partitions)
+        {
+            auto low = partition.first;
+            auto high = partition.second;
+            FullScan::scan_partition(table, query, low, high, move(result));
         }
 
         auto end = measurements->time();
-
+        // ******************
         measurements->query_time.push_back(
             Measurements::difference(end, start)
         );
+
+        // Before returning the result, update the statistics.
+        measurements->number_of_nodes.push_back(index->node_count());
+        measurements->index_height.push_back(index->max_height());
+        measurements->memory_footprint.push_back(index->memory_footprint());
+
         return result;
     }
 private:
-    bool condition_is_true(shared_ptr<Query> query, size_t row_index){
-        for(size_t predicate_index = 0; predicate_index < query->predicate_count(); predicate_index++){
-            auto column = query->predicates.at(predicate_index)->column;
-            auto low = query->predicates.at(predicate_index)->low;
-            auto high = query->predicates.at(predicate_index)->high;
 
-            auto value = table->columns.at(column)->at(row_index);
-            if(!(low <= value && value < high))
-                return false;
+    // Vectors to simplify the insertion algorithm
+    vector<unique_ptr<KDNode>> nodes_to_check;
+    vector<size_t> lower_limits, upper_limits;
+
+    void insert(size_t column, float key){
+        if(index->root == nullptr){
+            // First insertion
+            // Crack and insert into root
+            int64_t lower_limit = 0;
+            int64_t upper_limit = table->row_count() - 1;
+            int64_t position = table->CrackTable(lower_limit, upper_limit, key, column);
+
+            if (!(position < lower_limit || position >= upper_limit))
+                index->root = make_unique<KDNode>(column, key, position, position + 1);
+            return;
         }
-        return true;
+        // Search the partitions to crack based on column and key
+        nodes_to_check.resize(0);
+        lower_limits.resize(0);
+        upper_limits.resize(0);
+
+        nodes_to_check.push_back(make_unique<KDNode>(index->root));
+        lower_limits.push_back(0);
+        upper_limits.push_back(table->row_count() - 1);
+        while(!nodes_to_check.empty()){
+            unique_ptr<KDNode> current = move(nodes_to_check.back());
+            nodes_to_check.pop_back();
+
+            int64_t lower_limit = lower_limits.back();
+            lower_limits.pop_back();
+
+            int64_t upper_limit = upper_limits.back();
+            upper_limits.pop_back();
+
+            // Current node shares the same column
+            if(current->column == column){
+                // Current node is smaller than key to insert, then follow right
+                // Current:      (col, key)
+                //                         >
+                // New:                     (col, k)
+                if(current->key < key)
+                    follow_or_crack_right(move(current), column, key, upper_limit);
+                // Current node is greater than key to insert
+                // Current:       (col, key)
+                //              <
+                // New:   (col, k)
+                else if(current->key > key)
+                    follow_or_crack_left(move(current), column, key, lower_limit);
+                // Current node is equal to key to insert
+                // Current:      (col, key)
+                // New:          (col, key)
+                else
+                    continue;
+            }
+            // Does not have the same column, them follow both children
+            else{
+                follow_or_crack_right(move(current), column, key, upper_limit);
+                follow_or_crack_left(move(current), column, key, lower_limit);
+            }
+        }
+    }
+
+    void follow_or_crack_right(unique_ptr<KDNode> current, size_t column, float key, float upper_limit){
+        // If the right child is null, then we crack that partition
+        // Current:      (col, key)
+        //              /          \
+        // Child:                  null
+        if(current->right_child == nullptr){
+            auto position = table->CrackTable(
+                current->right_position, upper_limit,
+                column, key
+            );
+            if(!(position < current->right_position || position >= upper_limit)){
+                current->left_child = make_unique<KDNode>(
+                    column, key, position, position + 1
+                );
+            }
+        }
+        // If the right child exists, then we follow it
+        // Current:      (col, key)
+        //              /          \
+        // Child:                 (..., ...)
+        else{
+            nodes_to_check.push_back(current->right_child);
+            lower_limits.push_back(current->right_position);
+            upper_limits.push_back(upper_limit);
+        }
+    }
+
+    void follow_or_crack_left(unique_ptr<KDNode> current, size_t column, float key, float lower_limit){
+        // If the left child is null, then we crack that partition
+        // Current:      (col, key)
+        //              /          \
+        // Child:     null
+        if(current->left_child == nullptr){
+            auto position = table->CrackTable(
+                lower_limit, current->left_position,
+                column, key
+            );
+            if(!(position < lower_limit || position >= current->left_position)){
+                current->left_child = make_unique<KDNode>(
+                    column, key, position, position + 1
+                );
+            }
+        }
+        // If the left child exists, then we follow it
+        // Current:      (col, key)
+        //              /          \
+        // Child: (..., ...)
+        else{
+            nodes_to_check.push_back(current->left_child);
+            lower_limits.push_back(lower_limit);
+            upper_limits.push_back(current->left_position);
+        }
     }
 };
 #endif
