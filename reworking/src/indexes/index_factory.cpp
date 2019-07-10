@@ -4,6 +4,7 @@
 #include "indexes.cpp"
 #include <iostream>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -16,6 +17,13 @@ public:
         if(index_name.compare("Cracking-KDTree-Broad"))
             return make_unique<CrackingKDTreeBroad>();
         return make_unique<FullScan>();
+    }
+
+    static vector<unique_ptr<AbstractIndex>> allIndexes(){
+        vector<unique_ptr<AbstractIndex>> result;
+        result.push_back(make_unique<FullScan>());
+        result.push_back(make_unique<CrackingKDTreeBroad>());
+        return result;
     }
 };
 #endif
