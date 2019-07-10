@@ -79,7 +79,7 @@ public:
 private:
 
     // Vectors to simplify the insertion algorithm
-    vector<unique_ptr<KDNode>> nodes_to_check;
+    vector<shared_ptr<KDNode>> nodes_to_check;
     vector<size_t> lower_limits, upper_limits;
 
     void insert(size_t column, float key){
@@ -99,11 +99,11 @@ private:
         lower_limits.resize(0);
         upper_limits.resize(0);
 
-        nodes_to_check.push_back(make_unique<KDNode>(index->root));
+        nodes_to_check.push_back(index->root);
         lower_limits.push_back(0);
         upper_limits.push_back(table->row_count() - 1);
         while(!nodes_to_check.empty()){
-            unique_ptr<KDNode> current = move(nodes_to_check.back());
+            auto current = nodes_to_check.back();
             nodes_to_check.pop_back();
 
             int64_t lower_limit = lower_limits.back();
@@ -119,13 +119,13 @@ private:
                 //                         >
                 // New:                     (col, k)
                 if(current->key < key)
-                    follow_or_crack_right(move(current), column, key, upper_limit);
+                    follow_or_crack_right(current, column, key, upper_limit);
                 // Current node is greater than key to insert
                 // Current:       (col, key)
                 //              <
                 // New:   (col, k)
                 else if(current->key > key)
-                    follow_or_crack_left(move(current), column, key, lower_limit);
+                    follow_or_crack_left(current, column, key, lower_limit);
                 // Current node is equal to key to insert
                 // Current:      (col, key)
                 // New:          (col, key)
@@ -134,13 +134,13 @@ private:
             }
             // Does not have the same column, them follow both children
             else{
-                follow_or_crack_right(move(current), column, key, upper_limit);
-                follow_or_crack_left(move(current), column, key, lower_limit);
+                follow_or_crack_right(current, column, key, upper_limit);
+                follow_or_crack_left(current, column, key, lower_limit);
             }
         }
     }
 
-    void follow_or_crack_right(unique_ptr<KDNode> current, size_t column, float key, float upper_limit){
+    void follow_or_crack_right(shared_ptr<KDNode> current, size_t column, float key, float upper_limit){
         // If the right child is null, then we crack that partition
         // Current:      (col, key)
         //              /          \
@@ -167,7 +167,7 @@ private:
         }
     }
 
-    void follow_or_crack_left(unique_ptr<KDNode> current, size_t column, float key, float lower_limit){
+    void follow_or_crack_left(shared_ptr<KDNode> current, size_t column, float key, float lower_limit){
         // If the left child is null, then we crack that partition
         // Current:      (col, key)
         //              /          \
