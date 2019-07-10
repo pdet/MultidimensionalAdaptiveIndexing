@@ -4,6 +4,7 @@
 #include "column.cpp"
 #include <vector>
 #include <cstdint>
+#include <iostream>
 
 using namespace std;
 
@@ -61,6 +62,38 @@ public:
             columns.at(column_index)->assign(index1, value2);
             columns.at(column_index)->assign(index2, tmp);
         }
+    }
+
+    // Cracks table from position i = low until i == high
+    // on column (c) with key (element)
+    // Returns in which position the key would end
+    int64_t CrackTable(int64_t low, int64_t high, int64_t element, int64_t c)
+    {
+        int64_t x1 = low;
+        int64_t x2 = high;
+
+        while (x1 <= x2)
+        {
+            if (columns.at(c)->at(x1) < element)
+                x1++;
+            else
+            {
+                while (x2 >= x1 && (columns.at(c)->at(x2) >= element))
+                    x2--;
+                if (x1 < x2)
+                {
+                    exchange(x1, x2);
+                    x1++;
+                    x2--;
+                }
+            }
+        }
+        if (x1 < x2){
+            cout << "Not all elements were inspected!" << endl;
+            exit(-1);
+        }
+        x1--;
+        return x1;
     }
 
     size_t row_count(){
