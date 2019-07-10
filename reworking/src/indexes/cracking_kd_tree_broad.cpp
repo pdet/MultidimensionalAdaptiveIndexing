@@ -13,6 +13,10 @@ public:
     CrackingKDTreeBroad(){}
     ~CrackingKDTreeBroad(){}
 
+    string name(){
+        return "Cracking KD-Tree Broad";
+    }
+
     void initialize(const shared_ptr<Table> table_to_copy){
         // ******************
         auto start = measurements->time();
@@ -47,7 +51,7 @@ public:
         );
     }
 
-    unique_ptr<Table> range_query(const shared_ptr<Query> query){
+    shared_ptr<Table> range_query(const shared_ptr<Query> query){
         // ******************
         auto start = measurements->time();
 
@@ -55,12 +59,12 @@ public:
         auto partitions = index->search(query);
 
         // Scan the table and returns a materialized view of the result.
-        auto result = make_unique<Table>(table->col_count());
+        auto result = make_shared<Table>(table->col_count());
         for (auto partition : partitions)
         {
             auto low = partition.first;
             auto high = partition.second;
-            FullScan::scan_partition(table, query, low, high, move(result));
+            FullScan::scan_partition(table, query, low, high, result);
         }
 
         auto end = measurements->time();

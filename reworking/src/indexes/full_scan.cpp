@@ -9,6 +9,10 @@ public:
     FullScan(){}
     ~FullScan(){}
 
+    string name(){
+        return "Full Scan";
+    }
+
     void initialize(const shared_ptr<Table> table_to_copy){
         auto start = measurements->time();
 
@@ -25,25 +29,28 @@ public:
         );
     }
 
-    unique_ptr<Table> range_query(const shared_ptr<Query> query){
+    shared_ptr<Table> range_query(const shared_ptr<Query> query){
         auto start = measurements->time();
 
+
         // Scan the table and returns a materialized view of the result.
-        auto result = make_unique<Table>(table->col_count());
-        scan_partition(table, query, 0, table->row_count(), move(result));
+        auto result = make_shared<Table>(table->col_count());
+
+        scan_partition(table, query, 0, table->row_count(), result);
 
         auto end = measurements->time();
 
         measurements->query_time.push_back(
             Measurements::difference(end, start)
         );
+
         return result;
     }
 
     static void scan_partition(
         shared_ptr<Table> table, shared_ptr<Query> query,
         size_t low, size_t high,
-        unique_ptr<Table> table_to_store_results
+        shared_ptr<Table> table_to_store_results
     ){
         for(size_t row_id = low; row_id < high; row_id++)
             if(condition_is_true(table, query, row_id))
