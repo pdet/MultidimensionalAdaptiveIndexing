@@ -26,6 +26,13 @@ public:
 
     vector<pair<size_t, size_t>> search(shared_ptr<Query> query){
         partitions.resize(0);
+
+        if(root == nullptr){
+            partitions.push_back(
+                make_pair(0, row_count)
+            );
+            return partitions;
+        }
         nodes_to_check.resize(0);
         lower_limits.resize(0);
         upper_limits.resize(0);
@@ -37,10 +44,10 @@ public:
             auto current = nodes_to_check.back();
             nodes_to_check.pop_back();
 
-            int64_t lower_limit = lower_limits.back();
+            auto lower_limit = lower_limits.back();
             lower_limits.pop_back();
 
-            int64_t upper_limit = upper_limits.back();
+            auto upper_limit = upper_limits.back();
             upper_limits.pop_back();
 
             // If current's column is not in query follow both children
@@ -78,10 +85,6 @@ public:
             }
         }
         return partitions;
-    }
-
-    void insert(shared_ptr<Query> query){
-        // TODO: implement insertion using the entire query
     }
 
     size_t memory_footprint(){
@@ -139,13 +142,12 @@ private:
 
     // Checks if node's column is inside of query
     bool node_in_query(shared_ptr<KDNode> current, shared_ptr<Query> query){
-        bool inside = false;
         for(size_t i = 0; i < query->predicate_count(); i++)
         {
             if(current->column == query->predicates.at(i)->column)
-                inside = true;
+                return true;
         }
-        return inside;
+        return false;
     }
 
     // If the node's key is greater or equal to the high part of the query
@@ -158,7 +160,7 @@ private:
         for(size_t i = 0; i < query->predicate_count(); i++)
         {
             if(node->column == query->predicates.at(i)->column){
-                int64_t high = query->predicates.at(i)->high;
+                auto high = query->predicates.at(i)->high;
                 return high <= node->key;
             }
         }
@@ -175,7 +177,7 @@ private:
         for(size_t i = 0; i < query->predicate_count(); i++)
         {
             if(node->column == query->predicates.at(i)->column){
-                int64_t low = query->predicates.at(i)->low;
+                auto low = query->predicates.at(i)->low;
                 return node->key <= low;
             }
         }
