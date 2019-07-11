@@ -12,9 +12,9 @@ public:
     duration initialization_time;
     std::vector<duration> adaptation_time;
     std::vector<duration> query_time;
-    std::vector<int64_t> index_height;
-    std::vector<int64_t> number_of_nodes;
-    std::vector<int64_t> memory_footprint;
+    std::vector<size_t> index_height;
+    std::vector<size_t> number_of_nodes;
+    std::vector<size_t> memory_footprint;
 
     Measurements(){}
     ~Measurements(){}
