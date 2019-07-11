@@ -24,7 +24,8 @@ To be written
 * [X] Implement Full Scan
 * [X] Implement Testing procedures
 * [X] Implement Cracking KD-Tree Broad
-* [ ] Implement Cracking KD-Tree Narrow (Working on it)
+* [ ] Make both KD-Trees update their statistics (height, number of nodes, min_height)
+* [ ] Implement Cracking KD-Tree Narrow (Working on it) (Need to fix bugs and improve its speed)
 * [ ] Implement KD-Tree
 * [ ] Implement Quasii
 * [ ] Implement Full Index B-Tree
