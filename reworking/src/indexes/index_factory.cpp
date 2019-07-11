@@ -21,9 +21,12 @@ public:
 
     static vector<unique_ptr<AbstractIndex>> allIndexes(){
         vector<unique_ptr<AbstractIndex>> result;
-        result.push_back(make_unique<FullScan>());
         result.push_back(make_unique<CrackingKDTreeBroad>());
         return result;
+    }
+
+    static unique_ptr<AbstractIndex> baseline_index(){
+        return make_unique<FullScan>();
     }
 };
 #endif
