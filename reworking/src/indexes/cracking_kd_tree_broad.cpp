@@ -9,6 +9,7 @@ class CrackingKDTreeBroad : public AbstractIndex
 {
 private:
     unique_ptr<KDTree> index;
+    const size_t minimum_partition_size = 100;
 public:
     CrackingKDTreeBroad(){}
     ~CrackingKDTreeBroad(){}
@@ -22,11 +23,7 @@ public:
         auto start = measurements->time();
 
         // Copy the entire table, as this is the cracking_table
-        table = make_unique<Table>(table_to_copy->col_count());
-        for (size_t col_index = 0; col_index < table_to_copy->col_count(); col_index++)
-            table->columns.at(col_index) = make_unique<Column>(
-                *(table_to_copy->columns.at(col_index).get())
-            );
+        table = make_unique<Table>(table_to_copy);
 
         // Initialize KD-Tree as nullptr
         index = make_unique<KDTree>(table->row_count());
@@ -90,9 +87,9 @@ private:
         if(index->root == nullptr){
             // First insertion
             // Crack and insert into root
-            int64_t lower_limit = 0;
-            int64_t upper_limit = table->row_count() - 1;
-            int64_t position = table->CrackTable(lower_limit, upper_limit, key, column);
+            size_t lower_limit = 0;
+            size_t upper_limit = table->row_count() - 1;
+            size_t position = table->CrackTable(lower_limit, upper_limit, key, column);
 
             if (!(position < lower_limit || position >= upper_limit))
                 index->root = make_unique<KDNode>(column, key, position, position + 1);
@@ -110,10 +107,10 @@ private:
             auto current = nodes_to_check.back();
             nodes_to_check.pop_back();
 
-            int64_t lower_limit = lower_limits.back();
+            auto lower_limit = lower_limits.back();
             lower_limits.pop_back();
 
-            int64_t upper_limit = upper_limits.back();
+            auto upper_limit = upper_limits.back();
             upper_limits.pop_back();
 
             // Current node shares the same column
@@ -150,12 +147,14 @@ private:
         //              /          \
         // Child:                  null
         if(current->right_child == nullptr){
+            if(upper_limit - current->right_position < minimum_partition_size)
+                return;
             auto position = table->CrackTable(
                 current->right_position, upper_limit,
-                column, key
+                key, column
             );
             if(!(position < current->right_position || position >= upper_limit)){
-                current->left_child = make_unique<KDNode>(
+                current->right_child = make_unique<KDNode>(
                     column, key, position, position + 1
                 );
             }
@@ -177,9 +176,11 @@ private:
         //              /          \
         // Child:     null
         if(current->left_child == nullptr){
+            if(current->left_position - lower_limit < minimum_partition_size)
+                return;
             auto position = table->CrackTable(
                 lower_limit, current->left_position,
-                column, key
+                key, column
             );
             if(!(position < lower_limit || position >= current->left_position)){
                 current->left_child = make_unique<KDNode>(
