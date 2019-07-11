@@ -28,6 +28,7 @@ To be written
 * [ ] Implement KD-Tree
 * [ ] Implement Quasii
 * [ ] Implement Full Index B-Tree
+* [ ] Implement a Row-Store Table to check if they have difference
 
 ## Papers
 
