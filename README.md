@@ -22,9 +22,9 @@ To be written
 * [X] Data Generator [Benchmark](https://www2.informatik.hu-berlin.de/~sprengsz/mdrq/#gmrqb)
 * [X] Workload Generator [Benchmark](https://www2.informatik.hu-berlin.de/~sprengsz/mdrq/#gmrqb)
 * [X] Implement Full Scan
-* [ ] Implement Testing procedures
-* [ ] Implement Cracking KD-Tree Broad
-* [ ] Implement Cracking KD-Tree Narrow
+* [X] Implement Testing procedures
+* [X] Implement Cracking KD-Tree Broad
+* [ ] Implement Cracking KD-Tree Narrow (Working on it)
 * [ ] Implement KD-Tree
 * [ ] Implement Quasii
 * [ ] Implement Full Index B-Tree
