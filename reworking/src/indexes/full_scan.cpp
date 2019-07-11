@@ -36,7 +36,7 @@ public:
         // Scan the table and returns a materialized view of the result.
         auto result = make_shared<Table>(table->col_count());
 
-        scan_partition(table, query, 0, table->row_count(), result);
+        scan_partition(table, query, 0, table->row_count() - 1, result);
 
         auto end = measurements->time();
 
@@ -52,7 +52,7 @@ public:
         size_t low, size_t high,
         shared_ptr<Table> table_to_store_results
     ){
-        for(size_t row_id = low; row_id < high; row_id++)
+        for(size_t row_id = low; row_id <= high; row_id++)
             if(condition_is_true(table, query, row_id))
                 table_to_store_results->append(table->materialize_row(row_id));
     }
