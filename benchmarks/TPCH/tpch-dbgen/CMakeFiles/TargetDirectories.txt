@@ -1,4 +1,0 @@
-/home/matheus/Workspace/College/tpch-dbgen/CMakeFiles/rebuild_cache.dir
-/home/matheus/Workspace/College/tpch-dbgen/CMakeFiles/edit_cache.dir
-/home/matheus/Workspace/College/tpch-dbgen/CMakeFiles/qgen.dir
-/home/matheus/Workspace/College/tpch-dbgen/CMakeFiles/dbgen.dir
