@@ -35,6 +35,22 @@ public:
         number_of_rows = 0;
     }
 
+    Table(shared_ptr<Table> table_to_copy){
+        number_of_rows = table_to_copy->row_count();
+        number_of_columns = table_to_copy->col_count();
+
+        // Allocate the columns
+        columns.resize(number_of_columns);
+        for(size_t i = 0; i < number_of_columns; ++i){
+            columns.at(i) = make_unique<Column>();
+        }
+        // Copy the columns from one table to the other
+        for (size_t col_index = 0; col_index < table_to_copy->col_count(); col_index++)
+            columns.at(col_index) = make_unique<Column>(
+                *(table_to_copy->columns.at(col_index).get())
+            );
+    }
+
     ~Table(){}
 
     vector<float> materialize_row(size_t row_index){
@@ -67,10 +83,10 @@ public:
     // Cracks table from position i = low until i == high
     // on column (c) with key (element)
     // Returns in which position the key would end
-    int64_t CrackTable(int64_t low, int64_t high, int64_t element, int64_t c)
+    size_t CrackTable(size_t low, size_t high, float element, size_t c)
     {
-        int64_t x1 = low;
-        int64_t x2 = high;
+        size_t x1 = low;
+        size_t x2 = high;
 
         while (x1 <= x2)
         {
