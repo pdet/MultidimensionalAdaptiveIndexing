@@ -88,6 +88,18 @@ public:
         return partitions;
     }
 
+    shared_ptr<KDNode> create_node(size_t column, float key, size_t position){
+        auto node = make_unique<KDNode>(
+                    column, key, position, position + 1
+                );
+        number_of_nodes++;
+        return node;
+    }
+
+    size_t get_node_count(){
+        return number_of_nodes;
+    }
+
     size_t get_max_height(){
         if(root == nullptr)
             return 0;
@@ -163,6 +175,8 @@ public:
     }
 
 private:
+
+    size_t number_of_nodes = 0;
 
     vector<pair<size_t, size_t>> partitions;
     vector<shared_ptr<KDNode>> nodes_to_check;

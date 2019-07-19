@@ -9,7 +9,6 @@ class CrackingKDTreeNarrow : public AbstractIndex
 {
 private:
     unique_ptr<KDTree> index;
-    size_t number_of_nodes = 0;
     const size_t minimum_partition_size = 100;
 public:
     CrackingKDTreeNarrow(){}
@@ -69,10 +68,10 @@ public:
         );
 
         // Before returning the result, update the statistics.
-        measurements->number_of_nodes.push_back(number_of_nodes);
+        measurements->number_of_nodes.push_back(index->get_node_count());
         measurements->max_height.push_back(index->get_max_height());
         measurements->min_height.push_back(index->get_min_height());
-        measurements->memory_footprint.push_back(number_of_nodes * sizeof(KDNode));
+        measurements->memory_footprint.push_back(index->get_node_count() * sizeof(KDNode));
 
         return result;
     }
@@ -96,25 +95,22 @@ private:
                 auto position = table->CrackTable(lower_limit, upper_limit, key, column);
                 if (!(position < lower_limit || position >= upper_limit)){
                     if(to_be_root){
-                        index->root = make_shared<KDNode>(column, key, position, position + 1);
+                        index->root = index->create_node(column, key, position);
                         lower_limit = position + 1;
                         current = index->root;
                         to_be_root = false;
                         add_to_right = true;
-                        number_of_nodes++;
                     }
                     else if(add_to_right){
-                        current->right_child = make_shared<KDNode>(column, key, position, position + 1);
+                        current->right_child = index->create_node(column, key, position);
                         upper_limit = position;
                         current = current->right_child;
                         add_to_right = !add_to_right;
-                        number_of_nodes++;
                     }else{
-                        current->left_child = make_shared<KDNode>(column, key, position, position + 1);
+                        current->left_child = index->create_node(column, key, position);
                         lower_limit = position + 1;
                         current = current->left_child;
                         add_to_right = !add_to_right;
-                        number_of_nodes++;
                     }
                 }
 
@@ -122,25 +118,22 @@ private:
                 position = table->CrackTable(lower_limit, upper_limit, key, column);
                 if (!(position < lower_limit || position >= upper_limit)){
                     if(to_be_root){
-                        index->root = make_shared<KDNode>(column, key, position, position + 1);
+                        index->root = index->create_node(column, key, position);
                         upper_limit= position;
                         current = index->root;
                         to_be_root = false;
                         add_to_right = false;
-                        number_of_nodes++;
                     }
                     else if(add_to_right){
-                        current->right_child = make_shared<KDNode>(column, key, position, position + 1);
+                        current->right_child = index->create_node(column, key, position);
                         upper_limit = position;
                         current = current->right_child;
                         add_to_right = !add_to_right;
-                        number_of_nodes++;
                     }else{
-                        current->left_child = make_shared<KDNode>(column, key, position, position + 1);
+                        current->left_child = index->create_node(column, key, position);
                         lower_limit = position + 1;
                         current = current->left_child;
                         add_to_right = !add_to_right;
-                        number_of_nodes++;
                     }
                 }
             }
@@ -235,15 +228,13 @@ private:
                 auto position = table->CrackTable(lower_limit, upper_limit, key, column);
                 if (!(position < lower_limit || position >= upper_limit)){
                     if(add_to_left){
-                        current->left_child = make_shared<KDNode>(column, key, position, position + 1);
+                        current->left_child = index->create_node(column, key, position);
                         lower_limit = position + 1;
                         current = current->left_child;
-                        number_of_nodes++;
                     }else{
-                        current->right_child = make_shared<KDNode>(column, key, position, position + 1);
+                        current->right_child = index->create_node(column, key, position);
                         upper_limit = position;
                         current = current->right_child;
-                        number_of_nodes++;
                     }
                     add_to_left = !add_to_left;
                 }
@@ -254,15 +245,13 @@ private:
                 position = table->CrackTable(lower_limit, upper_limit, key, column);
                 if (!(position < lower_limit || position >= upper_limit)){
                     if(add_to_left){
-                        current->left_child = make_shared<KDNode>(column, key, position, position + 1);
+                        current->left_child = index->create_node(column, key, position);
                         lower_limit = position + 1;
                         current = current->left_child;
-                        number_of_nodes++;
                     }else{
-                        current->right_child = make_shared<KDNode>(column, key, position, position + 1);
+                        current->right_child = index->create_node(column, key, position);
                         upper_limit = position;
                         current = current->right_child;
-                        number_of_nodes++;
                     }
                     add_to_left = !add_to_left;
                 }
@@ -305,15 +294,13 @@ private:
                 auto position = table->CrackTable(lower_limit, upper_limit, key, column);
                 if (!(position < lower_limit || position >= upper_limit)){
                     if(add_to_right){
-                        current->right_child = make_shared<KDNode>(column, key, position, position + 1);
+                        current->right_child = index->create_node(column, key, position);
                         upper_limit = position;
                         current = current->right_child;
-                        number_of_nodes++;
                     }else{
-                        current->left_child = make_shared<KDNode>(column, key, position, position + 1);
+                        current->left_child = index->create_node(column, key, position);
                         lower_limit = position + 1;
                         current = current->left_child;
-                        number_of_nodes++;
                     }
                     add_to_right = !add_to_right;
                 }
@@ -324,15 +311,13 @@ private:
                 position = table->CrackTable(lower_limit, upper_limit, key, column);
                 if (!(position < lower_limit || position >= upper_limit)){
                     if(add_to_right){
-                        current->right_child = make_shared<KDNode>(column, key, position, position + 1);
+                        current->right_child = index->create_node(column, key, position);
                         upper_limit = position;
                         current = current->right_child;
-                        number_of_nodes++;
                     }else{
-                        current->left_child = make_shared<KDNode>(column, key, position, position + 1);
+                        current->left_child = index->create_node(column, key, position);
                         lower_limit = position + 1;
                         current = current->left_child;
-                        number_of_nodes++;
                     }
                     add_to_right = !add_to_right;
                 }

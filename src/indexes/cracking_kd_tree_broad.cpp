@@ -9,7 +9,6 @@ class CrackingKDTreeBroad : public AbstractIndex
 {
 private:
     unique_ptr<KDTree> index;
-    size_t number_of_nodes = 0;
     const size_t minimum_partition_size = 100;
 public:
     CrackingKDTreeBroad(){}
@@ -72,10 +71,10 @@ public:
         );
 
         // Before returning the result, update the statistics.
-        measurements->number_of_nodes.push_back(number_of_nodes);
+        measurements->number_of_nodes.push_back(index->get_node_count());
         measurements->max_height.push_back(index->get_max_height());
         measurements->min_height.push_back(index->get_min_height());
-        measurements->memory_footprint.push_back(number_of_nodes * sizeof(KDNode));
+        measurements->memory_footprint.push_back(index->get_node_count() * sizeof(KDNode));
 
         return result;
     }
@@ -94,8 +93,7 @@ private:
             size_t position = table->CrackTable(lower_limit, upper_limit, key, column);
 
             if (!(position < lower_limit || position >= upper_limit)){
-                index->root = make_unique<KDNode>(column, key, position, position + 1);
-                number_of_nodes++;
+                index->root = index->create_node(column, key, position);
             }
             return;
         }
@@ -158,10 +156,9 @@ private:
                 key, column
             );
             if(!(position < current->right_position || position >= upper_limit)){
-                current->right_child = make_unique<KDNode>(
-                    column, key, position, position + 1
+                current->right_child = index->create_node(
+                    column, key, position
                 );
-                number_of_nodes++;
             }
         }
         // If the right child exists, then we follow it
@@ -188,10 +185,9 @@ private:
                 key, column
             );
             if(!(position < lower_limit || position >= current->left_position)){
-                current->left_child = make_unique<KDNode>(
-                    column, key, position, position + 1
+                current->left_child = index->create_node(
+                    column, key, position
                 );
-                number_of_nodes++;
             }
         }
         // If the left child exists, then we follow it
