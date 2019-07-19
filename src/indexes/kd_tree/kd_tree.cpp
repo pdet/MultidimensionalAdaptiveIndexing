@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <utility>
 #include <vector>
+#include <limits>
 
 using namespace std;
 
@@ -87,22 +88,81 @@ public:
         return partitions;
     }
 
-    size_t memory_footprint(){
-        return number_of_nodes * sizeof(KDNode);
+    size_t get_max_height(){
+        if(root == nullptr)
+            return 0;
+        vector<shared_ptr<KDNode>> nodes;
+        vector<size_t> heights;
+
+        size_t max_height = 0;
+
+        nodes.push_back(root);
+        heights.push_back(1);
+
+        while(!nodes.empty()){
+            auto node = nodes.back();
+            nodes.pop_back();
+
+            auto height = heights.back();
+            heights.pop_back();
+
+            if(node->left_child != nullptr){
+                nodes.push_back(node->left_child);
+                heights.push_back(height + 1);
+            }
+
+            if(node->right_child != nullptr){
+                nodes.push_back(node->right_child);
+                heights.push_back(height + 1);
+            }
+
+            if(node->left_child == nullptr && node->right_child == nullptr){
+                if(max_height < height)
+                    max_height = height;
+            }
+        }
+
+        return max_height;
     }
 
-    size_t node_count(){
-        return number_of_nodes;
-    }
+    size_t get_min_height(){
+        if(root == nullptr)
+            return 0;
+        vector<shared_ptr<KDNode>> nodes;
+        vector<size_t> heights;
 
-    size_t max_height(){
-        return height;
+        size_t min_height = numeric_limits<size_t>::max();
+
+        nodes.push_back(root);
+        heights.push_back(1);
+
+        while(!nodes.empty()){
+            auto node = nodes.back();
+            nodes.pop_back();
+
+            auto height = heights.back();
+            heights.pop_back();
+
+            if(node->left_child != nullptr){
+                nodes.push_back(node->left_child);
+                heights.push_back(height + 1);
+            }
+
+            if(node->right_child != nullptr){
+                nodes.push_back(node->right_child);
+                heights.push_back(height + 1);
+            }
+
+            if(node->left_child == nullptr && node->right_child == nullptr){
+                if(min_height > height)
+                    min_height = height;
+            }
+        }
+
+        return min_height;
     }
 
 private:
-
-    size_t number_of_nodes;
-    size_t height;
 
     vector<pair<size_t, size_t>> partitions;
     vector<shared_ptr<KDNode>> nodes_to_check;

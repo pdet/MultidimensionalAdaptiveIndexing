@@ -12,7 +12,8 @@ public:
     duration initialization_time;
     std::vector<duration> adaptation_time;
     std::vector<duration> query_time;
-    std::vector<size_t> index_height;
+    std::vector<size_t> max_height;
+    std::vector<size_t> min_height;
     std::vector<size_t> number_of_nodes;
     std::vector<size_t> memory_footprint;
 

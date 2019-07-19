@@ -23,7 +23,7 @@ public:
 
     static vector<unique_ptr<AbstractIndex>> allIndexes(){
         vector<unique_ptr<AbstractIndex>> result;
-        // result.push_back(make_unique<CrackingKDTreeBroad>());
+        result.push_back(make_unique<CrackingKDTreeBroad>());
         result.push_back(make_unique<CrackingKDTreeNarrow>());
         return result;
     }

@@ -24,9 +24,9 @@ To be written
 * [X] Implement Full Scan
 * [X] Implement Testing procedures
 * [X] Implement Cracking KD-Tree Broad
-* [ ] Make both KD-Trees update their statistics (height, number of nodes, min_height)
+* [X] Make both KD-Trees update their statistics (height, number of nodes, min_height)
 * [ ] Implement Cracking KD-Tree Narrow (Working on it) (Need to fix bugs and improve its speed)
-* [ ] Implement KD-Tree
+* [ ] Implement KD-Tree (and its variations on selecting the pivot)
 * [ ] Implement Quasii
 * [ ] Implement Full Index B-Tree
 * [ ] Implement a Row-Store Table to check if they have difference
