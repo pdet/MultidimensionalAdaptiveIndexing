@@ -17,8 +17,8 @@ public:
     }
     virtual ~AbstractIndex(){}
     virtual void initialize(const shared_ptr<Table> table_to_copy) = 0;
-    virtual void adapt_index(const shared_ptr<Query> query) = 0;
-    virtual shared_ptr<Table> range_query(const shared_ptr<Query> query) = 0;
+    virtual void adapt_index(Query& query) = 0;
+    virtual shared_ptr<Table> range_query(Query& query) = 0;
     virtual string name() = 0;
 };
 #endif

@@ -32,13 +32,13 @@ public:
         // ******************
     }
 
-    void adapt_index(const shared_ptr<Query> query){
+    void adapt_index(Query& query){
         // ******************
         auto start = measurements->time();
 
-        for(auto predicate : query->predicates){
-            insert(predicate->column, predicate->low);
-            insert(predicate->column, predicate->high);
+        for(auto predicate : query.predicates){
+            insert(predicate.column, predicate.low);
+            insert(predicate.column, predicate.high);
         }
 
         auto end = measurements->time();
@@ -48,7 +48,7 @@ public:
         );
     }
 
-    shared_ptr<Table> range_query(const shared_ptr<Query> query){
+    shared_ptr<Table> range_query(Query& query){
         // ******************
         auto start = measurements->time();
 

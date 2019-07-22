@@ -39,14 +39,14 @@ class DataReader
             return table;
         }
 
-        static vector<shared_ptr<Query>> read_workload(const string workload_path){
+        static vector<Query> read_workload(const string workload_path){
             ifstream file(workload_path.c_str(), ios::in);
             if(!file.is_open()){
                 cout << "Error *opening* workload file\n";
                 exit(-1);
             }
 
-            auto workload = vector<shared_ptr<Query>>();
+            auto workload = vector<Query>();
 
             string low_line;
             string high_line;
@@ -60,7 +60,7 @@ class DataReader
                 auto cols = split(col_line, ' ');
 
                 workload.push_back(
-                    make_shared<Query>(lows, highs, cols)
+                    Query(lows, highs, cols)
                 );
 
             }

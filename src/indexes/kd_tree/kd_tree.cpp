@@ -25,7 +25,7 @@ public:
     }
     ~KDTree(){}
 
-    vector<pair<size_t, size_t>> search(shared_ptr<Query> query){
+    vector<pair<size_t, size_t>> search(Query& query){
         partitions.resize(0);
 
         if(root == nullptr){
@@ -215,10 +215,10 @@ private:
     }
 
     // Checks if node's column is inside of query
-    bool node_in_query(shared_ptr<KDNode> current, shared_ptr<Query> query){
-        for(size_t i = 0; i < query->predicate_count(); i++)
+    bool node_in_query(shared_ptr<KDNode> current, Query& query){
+        for(size_t i = 0; i < query.predicate_count(); i++)
         {
-            if(current->column == query->predicates.at(i)->column)
+            if(current->column == query.predicates.at(i).column)
                 return true;
         }
         return false;
@@ -230,11 +230,11 @@ private:
     // Data:  |----------!--------|
     // Query:      |-----|
     //            low   high
-    bool node_greater_equal_query(shared_ptr<KDNode> node, shared_ptr<Query> query){
-        for(size_t i = 0; i < query->predicate_count(); i++)
+    bool node_greater_equal_query(shared_ptr<KDNode> node, Query& query){
+        for(size_t i = 0; i < query.predicate_count(); i++)
         {
-            if(node->column == query->predicates.at(i)->column){
-                auto high = query->predicates.at(i)->high;
+            if(node->column == query.predicates.at(i).column){
+                auto high = query.predicates.at(i).high;
                 return high <= node->key;
             }
         }
@@ -247,11 +247,11 @@ private:
     // Data:  |----------!--------|
     // Query:            |-----|
     //                  low   high
-    bool node_less_equal_query(shared_ptr<KDNode> node, shared_ptr<Query> query){
-        for(size_t i = 0; i < query->predicate_count(); i++)
+    bool node_less_equal_query(shared_ptr<KDNode> node, Query& query){
+        for(size_t i = 0; i < query.predicate_count(); i++)
         {
-            if(node->column == query->predicates.at(i)->column){
-                auto low = query->predicates.at(i)->low;
+            if(node->column == query.predicates.at(i).column){
+                auto low = query.predicates.at(i).low;
                 return node->key <= low;
             }
         }

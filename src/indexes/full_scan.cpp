@@ -22,14 +22,14 @@ public:
         measurements->initialization_time = measurements->time() - start;;
     }
 
-    void adapt_index(const shared_ptr<Query> query){
+    void adapt_index(Query& query){
         // Zero adaptation for full scan
         measurements->adaptation_time.push_back(
             Measurements::difference(measurements->time(), measurements->time())
         );
     }
 
-    shared_ptr<Table> range_query(const shared_ptr<Query> query){
+    shared_ptr<Table> range_query(Query& query){
         auto start = measurements->time();
 
 
@@ -48,7 +48,7 @@ public:
     }
 
     static void scan_partition(
-        shared_ptr<Table> table, shared_ptr<Query> query,
+        shared_ptr<Table> table, Query& query,
         size_t low, size_t high,
         shared_ptr<Table> table_to_store_results
     ){
@@ -57,11 +57,11 @@ public:
                 table_to_store_results->append(table->materialize_row(row_id));
     }
 private:
-    bool static condition_is_true(shared_ptr<Table> table, shared_ptr<Query> query, size_t row_index){
-        for(size_t predicate_index = 0; predicate_index < query->predicate_count(); predicate_index++){
-            auto column = query->predicates.at(predicate_index)->column;
-            auto low = query->predicates.at(predicate_index)->low;
-            auto high = query->predicates.at(predicate_index)->high;
+    bool static condition_is_true(shared_ptr<Table> table, Query& query, size_t row_index){
+        for(auto predicate : query.predicates){
+            auto column = predicate.column;
+            auto low = predicate.low;
+            auto high = predicate.high;
 
             auto value = table->columns.at(column)->at(row_index);
             if(!(low <= value && value < high))
