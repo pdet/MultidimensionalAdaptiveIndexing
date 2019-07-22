@@ -20,18 +20,21 @@ public:
         //     return make_unique<CrackingKDTreeNarrow>();
         if(index_name.compare("KDTree-Median"))
             return make_unique<MedianKDTree>();
+        if(index_name.compare("KDTree-Average"))
+            return make_unique<AverageKDTree>();
         return make_unique<FullScan>();
     }
 
-    static vector<unique_ptr<AbstractIndex>> allIndexes(){
-        vector<unique_ptr<AbstractIndex>> indexes;
-        indexes.push_back(make_unique<CrackingKDTreeBroad>());
+    static vector<shared_ptr<AbstractIndex>> allIndexes(){
+        vector<shared_ptr<AbstractIndex>> indexes;
+        // indexes.push_back(make_unique<CrackingKDTreeBroad>());
         // indexes.push_back(make_unique<CrackingKDTreeNarrow>());
-        indexes.push_back(make_unique<MedianKDTree>());
+        // indexes.push_back(make_unique<MedianKDTree>());
+        indexes.push_back(make_unique<AverageKDTree>());
         return indexes;
     }
 
-    static unique_ptr<AbstractIndex> baseline_index(){
+    static shared_ptr<AbstractIndex> baseline_index(){
         return make_unique<FullScan>();
     }
 };
