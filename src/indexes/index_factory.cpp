@@ -18,14 +18,17 @@ public:
             return make_unique<CrackingKDTreeBroad>();
         // if(index_name.compare("Cracking-KDTree-Narrow"))
         //     return make_unique<CrackingKDTreeNarrow>();
+        if(index_name.compare("KDTree-Median"))
+            return make_unique<MedianKDTree>();
         return make_unique<FullScan>();
     }
 
     static vector<unique_ptr<AbstractIndex>> allIndexes(){
-        vector<unique_ptr<AbstractIndex>> result;
-        result.push_back(make_unique<CrackingKDTreeBroad>());
-        // result.push_back(make_unique<CrackingKDTreeNarrow>());
-        return result;
+        vector<unique_ptr<AbstractIndex>> indexes;
+        indexes.push_back(make_unique<CrackingKDTreeBroad>());
+        // indexes.push_back(make_unique<CrackingKDTreeNarrow>());
+        indexes.push_back(make_unique<MedianKDTree>());
+        return indexes;
     }
 
     static unique_ptr<AbstractIndex> baseline_index(){

@@ -17,6 +17,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/full_scan.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_broad.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_narrow.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/median_kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/indexes.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_node.cpp
@@ -33,6 +34,8 @@ set(TEST_SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/abstract_index.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/full_scan.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_broad.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_narrow.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/median_kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/indexes.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_node.cpp
