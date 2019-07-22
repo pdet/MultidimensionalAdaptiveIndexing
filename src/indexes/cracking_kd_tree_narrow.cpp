@@ -54,7 +54,7 @@ public:
         // Copy the entire table, as this is the cracking_table
         table = make_unique<Table>(table_to_copy);
 
-        // Initialize KD-Tree as nullptr
+        // Initialize KD-Tree
         index = make_unique<KDTree>(table->row_count());
 
         measurements->initialization_time = measurements->time() - start;
