@@ -1,4 +1,4 @@
-#include "../indexes/index_factory.cpp"
+#include "index_factory.hpp"
 #include "../data/data_reader.cpp"
 #include <string>
 #include <vector>

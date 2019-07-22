@@ -1,7 +1,8 @@
 #ifndef DATA_READER
 #define DATA_READER
 
-#include "../helpers/helpers.cpp"
+#include "table.hpp"
+#include "query.hpp"
 #include <fstream>
 #include <string>
 #include <iostream>

@@ -1,30 +1,20 @@
-#ifndef COLUMN
-#define COLUMN
-
 #include <vector>
+#include "column.hpp"
 
-class Column{
-private:
-    std::vector<float> data;
+Column::Column(std::vector<float> column_to_copy){
+    data = column_to_copy;
+}
 
-public:
-    Column(std::vector<float> column_to_copy){
-        data = column_to_copy;
-    }
+Column::Column(){}
 
-    Column(){}
+void Column::append(float value){
+    data.push_back(value);
+}
 
-    void append(float value){
-        data.push_back(value);
-    }
+float Column::at(size_t index){
+    return data.at(index);
+}
 
-    float at(size_t index){
-        return data.at(index);
-    }
-
-    void assign(size_t index, float value){
-        data.at(index) = value;
-    }
-};
-
-#endif
+void Column::assign(size_t index, float value){
+    data.at(index) = value;
+}

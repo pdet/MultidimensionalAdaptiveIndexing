@@ -1,7 +1,13 @@
-#ifndef INDEX_FACTORY
-#define INDEX_FACTORY
+#ifndef INDEX_FACTORY_H
+#define INDEX_FACTORY_H
 
-#include "indexes.cpp"
+#include "abstract_index.hpp"
+#include "full_scan.hpp"
+#include "cracking_kd_tree_broad.hpp"
+#include "cracking_kd_tree_narrow.hpp"
+#include "median_kd_tree.hpp"
+#include "average_kd_tree.hpp"
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -38,4 +44,4 @@ public:
         return make_unique<FullScan>();
     }
 };
-#endif
+#endif // INDEX_FACTORY_H

@@ -1,20 +1,11 @@
-#ifndef PREDICATE
-#define PREDICATE
-
 #include <cstdint>
 #include <cstddef>
+#include "predicate.hpp"
 
-class Predicate
-{
-public:
-    float low;
-    float high;
-    size_t column;
+Predicate::Predicate(float low, float high, size_t column)
+    : low(low), high(high), column(column){}
 
-    Predicate(float low, float high, size_t column)
-        : low(low), high(high), column(column){}
-    Predicate() : low(0), high(0), column(0){}
-    ~Predicate(){}
-};
+Predicate::Predicate() : low(0), high(0), column(0){}
 
-#endif
+Predicate::~Predicate(){}
+

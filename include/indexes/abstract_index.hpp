@@ -1,7 +1,9 @@
-#ifndef ABSTRACT_INDEX
-#define ABSTRACT_INDEX
+#ifndef ABSTRACT_INDEX_H
+#define ABSTRACT_INDEX_H
 
-#include "../helpers/helpers.cpp"
+#include "../helpers/table.hpp"
+#include "../helpers/measurements.hpp"
+#include "../helpers/query.hpp"
 #include <vector>
 
 class AbstractIndex
@@ -21,4 +23,4 @@ public:
     virtual shared_ptr<Table> range_query(Query& query) = 0;
     virtual string name() = 0;
 };
-#endif
+#endif // ABSTRACT_INDEX_H
