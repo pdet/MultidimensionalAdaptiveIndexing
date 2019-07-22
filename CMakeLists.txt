@@ -23,8 +23,12 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_node.cpp
             )
 
-add_executable(main ${SOURCES} ${CMAKE_SOURCE_DIR}/src/main.cpp)
+add_library(MDAI_lib ${SOURCES})
 
-add_executable(test_algorithms ${SOURCES} ${CMAKE_SOURCE_DIR}/src/test/test.cpp)
+add_executable(main ${CMAKE_SOURCE_DIR}/src/main.cpp)
+target_link_libraries(main MDAI_lib)
+
+add_executable(test_algorithms ${CMAKE_SOURCE_DIR}/src/test/test.cpp)
+target_link_libraries(test_algorithms MDAI_lib)
 
 add_executable(generator ${CMAKE_SOURCE_DIR}/src/data/generator.cpp)
