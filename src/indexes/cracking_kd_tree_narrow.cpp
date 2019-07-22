@@ -5,6 +5,35 @@
 #include "full_scan.cpp"
 #include "abstract_index.cpp"
 
+// Query Shell that enables Query Breaking
+class QueryShell{
+    public:
+        vector<bool> crack_left;
+        vector<bool> crack_right;
+        Query shell_query;
+
+        QueryShell(Query& query){
+            shell_query = Query(query);
+            auto n_predicates = query.predicate_count();
+            crack_left.resize(n_predicates, true);
+            crack_right.resize(n_predicates, true);
+        }
+
+        QueryShell(){
+            shell_query = Query();
+            crack_left.resize(0);
+            crack_right.resize(0);
+        }
+
+        QueryShell(const QueryShell& shell){
+            shell_query = Query(shell.shell_query);
+            crack_left = shell.crack_left;
+            crack_right = shell.crack_right;
+        }
+
+        ~QueryShell(){}
+};
+
 class CrackingKDTreeNarrow : public AbstractIndex
 {
 private:
@@ -32,11 +61,12 @@ public:
         // ******************
     }
 
-    void adapt_index(const shared_ptr<Query> query){
+    void adapt_index(Query& query){
         // ******************
         auto start = measurements->time();
 
-        insert(query);
+        auto shell = QueryShell(query);
+        insert(shell);
 
         auto end = measurements->time();
         // ******************
@@ -45,7 +75,7 @@ public:
         );
     }
 
-    shared_ptr<Table> range_query(const shared_ptr<Query> query){
+    shared_ptr<Table> range_query(Query& query){
         // ******************
         auto start = measurements->time();
 
@@ -80,73 +110,23 @@ private:
     // Vectors to simplify the insertion algorithm
     vector<shared_ptr<KDNode>> nodes_to_check;
     vector<size_t> lower_limits, upper_limits;
+    vector<QueryShell> queries;
 
-    void insert(shared_ptr<Query> query){
+    void insert(QueryShell& query){
         if(index->root == nullptr){
-            auto lower_limit = 0;
-            auto upper_limit = table->row_count() - 1;
-            bool add_to_right = true;
-            bool to_be_root = true;
-
-            shared_ptr<KDNode> current;
-            for(auto predicate : query->predicates){
-                auto key = predicate->low;
-                auto column = predicate->column;
-                auto position = table->CrackTable(lower_limit, upper_limit, key, column);
-                if (!(position < lower_limit || position >= upper_limit)){
-                    if(to_be_root){
-                        index->root = index->create_node(column, key, position);
-                        lower_limit = position + 1;
-                        current = index->root;
-                        to_be_root = false;
-                        add_to_right = true;
-                    }
-                    else if(add_to_right){
-                        current->right_child = index->create_node(column, key, position);
-                        upper_limit = position;
-                        current = current->right_child;
-                        add_to_right = !add_to_right;
-                    }else{
-                        current->left_child = index->create_node(column, key, position);
-                        lower_limit = position + 1;
-                        current = current->left_child;
-                        add_to_right = !add_to_right;
-                    }
-                }
-
-                key = predicate->high;
-                position = table->CrackTable(lower_limit, upper_limit, key, column);
-                if (!(position < lower_limit || position >= upper_limit)){
-                    if(to_be_root){
-                        index->root = index->create_node(column, key, position);
-                        upper_limit= position;
-                        current = index->root;
-                        to_be_root = false;
-                        add_to_right = false;
-                    }
-                    else if(add_to_right){
-                        current->right_child = index->create_node(column, key, position);
-                        upper_limit = position;
-                        current = current->right_child;
-                        add_to_right = !add_to_right;
-                    }else{
-                        current->left_child = index->create_node(column, key, position);
-                        lower_limit = position + 1;
-                        current = current->left_child;
-                        add_to_right = !add_to_right;
-                    }
-                }
-            }
+            index->root = insert_new_nodes(query, 0, table->row_count() - 1);
             return;
         }
 
         nodes_to_check.resize(0);
         lower_limits.resize(0);
         upper_limits.resize(0);
+        queries.resize(0);
 
         nodes_to_check.push_back(index->root);
         lower_limits.push_back(0);
         upper_limits.push_back(table->row_count() - 1);
+        queries.push_back(QueryShell(query));
         while(!nodes_to_check.empty()){
             auto current = nodes_to_check.back();
             nodes_to_check.pop_back();
@@ -157,10 +137,13 @@ private:
             auto upper_limit = upper_limits.back();
             upper_limits.pop_back();
 
+            auto current_query = queries.back();
+            queries.pop_back();
+
             // If current's column is not in query follow both children
-            if(!node_in_query(current, query)){
-                insert_or_follow_left(current, lower_limit, upper_limit, query);
-                insert_or_follow_right(current, lower_limit, upper_limit, query);
+            if(!node_in_query(current, current_query)){
+                insert_or_follow_left(current, lower_limit, upper_limit, current_query);
+                insert_or_follow_right(current, lower_limit, upper_limit, current_query);
             }
             // If the node's key is greater or equal to the high part of the query
             // Then follow the left child
@@ -168,7 +151,7 @@ private:
             // Data:  |----------!--------|
             // Query:      |-----|
             //            low   high
-            else if (node_greater_equal_query(current, query)){
+            else if (node_greater_equal_query(current, current_query)){
                 insert_or_follow_left(current, lower_limit, upper_limit, query);
             }
             // If the node's key is smaller to the low part of the query
@@ -177,7 +160,7 @@ private:
             // Data:  |----------!--------|
             // Query:            |-----|
             //                  low   high
-            else if (node_less_equal_query(current, query)){
+            else if (node_less_equal_query(current, current_query)){
                 insert_or_follow_right(current, lower_limit, upper_limit, query);
             }
             // If the node's key is inside the query
@@ -187,149 +170,149 @@ private:
             // Query:         |-----|
             //               low   high
             else{
-                insert_or_follow_left(current, lower_limit, upper_limit, query);
-                insert_or_follow_right(current, lower_limit, upper_limit, query);
+                auto query_left = break_query_left(current_query, current);
+                auto query_right = break_query_right(current_query, current);
+                insert_or_follow_left(current, lower_limit, upper_limit, query_left);
+                insert_or_follow_right(current, lower_limit, upper_limit, query_right);
             }
         }
+    }
+
+    QueryShell break_query_left(QueryShell& query, shared_ptr<KDNode> node){
+        auto query_left = QueryShell(query);
+        for(size_t i = 0; i < query.shell_query.predicate_count(); ++i){
+            if(query.shell_query.predicates.at(i).column == node->column){
+                query_left.crack_right.at(i) = false;
+                query_left.shell_query.predicates.at(i).high = node->key;
+            }
+        }
+        return query_left;
+    }
+
+    QueryShell break_query_right(QueryShell& query, shared_ptr<KDNode> node){
+        auto query_right = QueryShell(query);
+        for(size_t i = 0; i < query.shell_query.predicate_count(); ++i){
+            if(query.shell_query.predicates.at(i).column == node->column){
+                query_right.crack_left.at(i) = false;
+                query_right.shell_query.predicates.at(i).low = node->key;
+            }
+        }
+        return query_right;
     }
 
     // Checks the left child
     // If it is null then we reached a partition
     // Otherwise, we follow it
-    void insert_or_follow_left(shared_ptr<KDNode> current, size_t lower_limit, size_t upper_limit, shared_ptr<Query> query){
+    void insert_or_follow_left(shared_ptr<KDNode> current, size_t lower_limit, size_t upper_limit, QueryShell& query){
         if (current->left_child != nullptr)
         {
             nodes_to_check.push_back(current->left_child);
             lower_limits.push_back(lower_limit);
             upper_limits.push_back(current->left_position);
+            queries.push_back(query);
         }
         else
         {
-            bool add_to_left = true;
-            // For each predicate in query
-            //  Crack the from low to upper based on its key and column
-            //  if the cracking was successful
-            //      if(add_to_left)
-            //          add node to left
-            //          upper_limit = node->upper_position
-            //          current = new node
-            //      else
-            //          add node to right
-            //          lower_limit = node->left_position
-            //          current = new node
-            //
-            //      flip add_to_left
-
-            for(auto predicate : query->predicates){
-                auto key = predicate->low;
-                auto column = predicate->column;
-                if(upper_limit - lower_limit < minimum_partition_size)
-                    return;
-                auto position = table->CrackTable(lower_limit, upper_limit, key, column);
-                if (!(position < lower_limit || position >= upper_limit)){
-                    if(add_to_left){
-                        current->left_child = index->create_node(column, key, position);
-                        lower_limit = position + 1;
-                        current = current->left_child;
-                    }else{
-                        current->right_child = index->create_node(column, key, position);
-                        upper_limit = position;
-                        current = current->right_child;
-                    }
-                    add_to_left = !add_to_left;
-                }
-
-                key = predicate->high;
-                if(upper_limit - lower_limit < minimum_partition_size)
-                    return;
-                position = table->CrackTable(lower_limit, upper_limit, key, column);
-                if (!(position < lower_limit || position >= upper_limit)){
-                    if(add_to_left){
-                        current->left_child = index->create_node(column, key, position);
-                        lower_limit = position + 1;
-                        current = current->left_child;
-                    }else{
-                        current->right_child = index->create_node(column, key, position);
-                        upper_limit = position;
-                        current = current->right_child;
-                    }
-                    add_to_left = !add_to_left;
-                }
-            }
+            current->left_child = insert_new_nodes(query, lower_limit, upper_limit);
         }
     }
 
     // Checks the right child
     // If it is null then we reached a partition
     // Otherwise, we follow it
-    void insert_or_follow_right(shared_ptr<KDNode> current, size_t lower_limit, size_t upper_limit, shared_ptr<Query> query){
+    void insert_or_follow_right(shared_ptr<KDNode> current, size_t lower_limit, size_t upper_limit, QueryShell& query){
         if (current->right_child != nullptr)
         {
             nodes_to_check.push_back(current->right_child);
             lower_limits.push_back(current->right_position);
             upper_limits.push_back(upper_limit);
+            queries.push_back(query);
         }
         else
         {
-            bool add_to_right = true;
-            // For each predicate in query
-            //  Crack the from low to upper based on its key and column
-            //  if the cracking was successful
-            //      if(add_to_right)
-            //          add node to right
-            //          upper_limit = node->lower_position
-            //          current = new node
-            //      else
-            //          add node to left
-            //          lower_limit = node->right_position
-            //          current = new node
-            //
-            //      flip add_to_right
-
-            for(auto predicate : query->predicates){
-                auto key = predicate->low;
-                auto column = predicate->column;
-                if(upper_limit - lower_limit < minimum_partition_size)
-                    return;
-                auto position = table->CrackTable(lower_limit, upper_limit, key, column);
-                if (!(position < lower_limit || position >= upper_limit)){
-                    if(add_to_right){
-                        current->right_child = index->create_node(column, key, position);
-                        upper_limit = position;
-                        current = current->right_child;
-                    }else{
-                        current->left_child = index->create_node(column, key, position);
-                        lower_limit = position + 1;
-                        current = current->left_child;
-                    }
-                    add_to_right = !add_to_right;
-                }
-
-                key = predicate->high;
-                if(upper_limit - lower_limit < minimum_partition_size)
-                    return;
-                position = table->CrackTable(lower_limit, upper_limit, key, column);
-                if (!(position < lower_limit || position >= upper_limit)){
-                    if(add_to_right){
-                        current->right_child = index->create_node(column, key, position);
-                        upper_limit = position;
-                        current = current->right_child;
-                    }else{
-                        current->left_child = index->create_node(column, key, position);
-                        lower_limit = position + 1;
-                        current = current->left_child;
-                    }
-                    add_to_right = !add_to_right;
-                }
-            }
+            current->right_child = insert_new_nodes(query, lower_limit, upper_limit);
         }
     }
 
+    shared_ptr<KDNode> insert_new_nodes(QueryShell& query_shell, size_t lower_limit, size_t upper_limit){
+        if(upper_limit - lower_limit < minimum_partition_size)
+            return nullptr;
+
+        shared_ptr<KDNode> current = nullptr;
+        size_t i = 0;
+        for(; i < query_shell.shell_query.predicate_count(); ++i){
+            auto predicate = query_shell.shell_query.predicates.at(i);
+            auto key = predicate.low;
+            auto column = predicate.column;
+            auto should_crack_low = query_shell.crack_left.at(i);
+            if(should_crack_low){
+                auto position = table->CrackTable(lower_limit, upper_limit, key, column);
+                if (!(position < lower_limit || position >= upper_limit)){
+                    if(upper_limit - position + 1 < minimum_partition_size)
+                        return nullptr;
+                    current = index->create_node(column, key, position);
+                    lower_limit = position + 1;
+                    query_shell.crack_left.at(i) = false;
+                    break;
+                }
+            }
+
+            auto should_crack_high = query_shell.crack_right.at(i);
+            key = predicate.high;
+            if(should_crack_high){
+                auto position = table->CrackTable(lower_limit, upper_limit, key, column);
+                if (!(position < lower_limit || position >= upper_limit)){
+                    if(position - lower_limit < minimum_partition_size)
+                        return nullptr;
+                    current = index->create_node(column, key, position);
+                    upper_limit = position;
+                    query_shell.crack_right.at(i) = false;
+                    ++i;
+                    break;
+                }
+            }
+        }
+
+
+        shared_ptr<KDNode> first = current;
+
+        for(; i < query_shell.shell_query.predicate_count(); ++i){
+            auto predicate = query_shell.shell_query.predicates.at(i);
+            auto key = predicate.low;
+            auto column = predicate.column;
+            auto should_crack_low = query_shell.crack_left.at(i);
+            if(should_crack_low){
+                auto position = table->CrackTable(lower_limit, upper_limit, key, column);
+                if (!(position < lower_limit || position >= upper_limit)){
+                    if(upper_limit - position + 1 < minimum_partition_size)
+                        return first;
+                    current->right_child = index->create_node(column, key, position);
+                    upper_limit = position;
+                    current = current->right_child;
+                }
+            }
+
+            auto should_crack_high = query_shell.crack_right.at(i);
+            key = predicate.high;
+            if(should_crack_high){
+                auto position = table->CrackTable(lower_limit, upper_limit, key, column);
+                if (!(position < lower_limit || position >= upper_limit)){
+                    if(position - lower_limit < minimum_partition_size)
+                        return first;
+                    current->left_child = index->create_node(column, key, position);
+                    lower_limit = position + 1;
+                    current = current->left_child;
+                }
+            }
+        }
+        return first;
+    }
+
     // Checks if node's column is inside of query
-    bool node_in_query(shared_ptr<KDNode> current, shared_ptr<Query> query){
-        for(size_t i = 0; i < query->predicate_count(); i++)
+    bool node_in_query(shared_ptr<KDNode> current, QueryShell& shell){
+        for(size_t i = 0; i < shell.shell_query.predicate_count(); i++)
         {
-            if(current->column == query->predicates.at(i)->column)
+            if(current->column == shell.shell_query.predicates.at(i).column)
                 return true;
         }
         return false;
@@ -341,11 +324,14 @@ private:
     // Data:  |----------!--------|
     // Query:      |-----|
     //            low   high
-    bool node_greater_equal_query(shared_ptr<KDNode> node, shared_ptr<Query> query){
-        for(size_t i = 0; i < query->predicate_count(); i++)
+    bool node_greater_equal_query(shared_ptr<KDNode> node, QueryShell& query){
+        for(size_t i = 0; i < query.shell_query.predicate_count(); i++)
         {
-            if(node->column == query->predicates.at(i)->column){
-                auto high = query->predicates.at(i)->high;
+            if(node->column == query.shell_query.predicates.at(i).column){
+                auto high = query.shell_query.predicates.at(i).high;
+                if(node->key == high){
+                    query.crack_right.at(i) = false;
+                }
                 return high <= node->key;
             }
         }
@@ -358,11 +344,14 @@ private:
     // Data:  |----------!--------|
     // Query:            |-----|
     //                  low   high
-    bool node_less_equal_query(shared_ptr<KDNode> node, shared_ptr<Query> query){
-        for(size_t i = 0; i < query->predicate_count(); i++)
+    bool node_less_equal_query(shared_ptr<KDNode> node, QueryShell& query){
+        for(size_t i = 0; i < query.shell_query.predicate_count(); i++)
         {
-            if(node->column == query->predicates.at(i)->column){
-                auto low = query->predicates.at(i)->low;
+            if(node->column == query.shell_query.predicates.at(i).column){
+                auto low = query.shell_query.predicates.at(i).low;
+                if(node->key == low){
+                    query.crack_left.at(i) = false;
+                }
                 return node->key <= low;
             }
         }

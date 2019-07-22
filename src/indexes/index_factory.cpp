@@ -16,15 +16,15 @@ public:
             return make_unique<FullScan>();
         if(index_name.compare("Cracking-KDTree-Broad"))
             return make_unique<CrackingKDTreeBroad>();
-        if(index_name.compare("Cracking-KDTree-Narrow"))
-            return make_unique<CrackingKDTreeNarrow>();
+        // if(index_name.compare("Cracking-KDTree-Narrow"))
+        //     return make_unique<CrackingKDTreeNarrow>();
         return make_unique<FullScan>();
     }
 
     static vector<unique_ptr<AbstractIndex>> allIndexes(){
         vector<unique_ptr<AbstractIndex>> result;
-        // result.push_back(make_unique<CrackingKDTreeBroad>());
-        result.push_back(make_unique<CrackingKDTreeNarrow>());
+        result.push_back(make_unique<CrackingKDTreeBroad>());
+        // result.push_back(make_unique<CrackingKDTreeNarrow>());
         return result;
     }
 
