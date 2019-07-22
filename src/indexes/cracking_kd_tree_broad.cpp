@@ -91,7 +91,7 @@ private:
             size_t lower_limit = 0;
             size_t upper_limit = table->row_count() - 1;
             size_t position = table->CrackTable(lower_limit, upper_limit, key, column);
-
+            position--;
             if (!(position < lower_limit || position >= upper_limit)){
                 index->root = index->create_node(column, key, position);
             }
@@ -155,6 +155,7 @@ private:
                 current->right_position, upper_limit,
                 key, column
             );
+            position--;
             if(!(position < current->right_position || position >= upper_limit)){
                 current->right_child = index->create_node(
                     column, key, position
@@ -184,6 +185,7 @@ private:
                 lower_limit, current->left_position,
                 key, column
             );
+            position--;
             if(!(position < lower_limit || position >= current->left_position)){
                 current->left_child = index->create_node(
                     column, key, position

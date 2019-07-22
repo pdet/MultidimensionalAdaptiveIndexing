@@ -82,7 +82,9 @@ public:
 
     // Cracks table from position i = low until i == high
     // on column (c) with key (element)
-    // Returns in which position the key would end
+    // Returns in which position the list is greater or equal to key
+    // In case of repetition, returns the first one, and all the others come
+    // right after it
     size_t CrackTable(size_t low, size_t high, float element, size_t c)
     {
         size_t x1 = low;
@@ -104,11 +106,6 @@ public:
                 }
             }
         }
-        if (x1 < x2){
-            cout << "Not all elements were inspected!" << endl;
-            exit(-1);
-        }
-        x1--;
         return x1;
     }
 
