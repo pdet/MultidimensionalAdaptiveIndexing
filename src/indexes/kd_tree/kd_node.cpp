@@ -11,4 +11,17 @@ KDNode::KDNode(size_t column, float key, size_t left_position, size_t right_posi
     left_child = nullptr;
     right_child = nullptr;
 }
+
+KDNode::KDNode(const KDNode &node)
+    : KDNode(node.column, node.key, node.left_position, node.right_position){}
+
+KDNode::KDNode(){
+    key = 0;
+    column = 0;
+    left_position = 0;
+    right_position = 0;
+    left_child = nullptr;
+    right_child = nullptr;
+}
+
 KDNode::~KDNode(){}

@@ -32,7 +32,7 @@ int main(){
         }
     }
 
-    cout << "Running baseline..." << endl;
+    cout << "   '-Baseline (" << baseline->name() << ")" << endl;
 
     vector<size_t> baseline_results(workload.size());
 

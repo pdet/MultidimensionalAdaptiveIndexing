@@ -33,9 +33,9 @@ public:
 
     static vector<shared_ptr<AbstractIndex>> allIndexes(){
         vector<shared_ptr<AbstractIndex>> indexes;
-        // indexes.push_back(make_unique<CrackingKDTreeBroad>());
+        indexes.push_back(make_unique<CrackingKDTreeBroad>());
         // indexes.push_back(make_unique<CrackingKDTreeNarrow>());
-        // indexes.push_back(make_unique<MedianKDTree>());
+        indexes.push_back(make_unique<MedianKDTree>());
         indexes.push_back(make_unique<AverageKDTree>());
         return indexes;
     }

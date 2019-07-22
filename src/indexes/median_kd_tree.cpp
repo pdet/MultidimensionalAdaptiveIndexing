@@ -75,7 +75,7 @@ unique_ptr<KDTree> MedianKDTree::initialize_index(){
     upper_limits.resize(0);
     columns.resize(0);
 
-    nodes_to_check.push_back(index->root);
+    nodes_to_check.push_back(*index->root);
     lower_limits.push_back(0);
     upper_limits.push_back(table->row_count() - 1);
     columns.push_back(0);
@@ -93,32 +93,32 @@ unique_ptr<KDTree> MedianKDTree::initialize_index(){
         auto column = (columns.back() + 1) % table->col_count();
         columns.pop_back();
 
-        if(current->left_position - lower_limit > minimum_partition_size){
-            auto median_result = find_median(column, lower_limit, current->left_position);
+        if(current.left_position - lower_limit > minimum_partition_size){
+            auto median_result = find_median(column, lower_limit, current.left_position);
             auto median = median_result.first;
             auto position = median_result.second;
 
-            if(!(position < lower_limit || position >= current->left_position)){
-                current->left_child = index->create_node(column, median, position);
+            if(!(position < lower_limit || position >= current.left_position)){
+                current.left_child = index->create_node(column, median, position);
 
-                nodes_to_check.push_back(current->left_child);
+                nodes_to_check.push_back(*current.left_child);
                 columns.push_back(column);
                 lower_limits.push_back(lower_limit);
-                upper_limits.push_back(current->left_position);
+                upper_limits.push_back(current.left_position);
             }
         }
 
-        if(upper_limit - current->right_position > minimum_partition_size){
-            auto median_result = find_median(column, current->right_position, upper_limit);
+        if(upper_limit - current.right_position > minimum_partition_size){
+            auto median_result = find_median(column, current.right_position, upper_limit);
             auto median = median_result.first;
             auto position = median_result.second;
 
-            if(!(position < current->right_position || position >= upper_limit)){
-                current->right_child = index->create_node(column, median, position);
+            if(!(position < current.right_position || position >= upper_limit)){
+                current.right_child = index->create_node(column, median, position);
 
-                nodes_to_check.push_back(current->right_child);
+                nodes_to_check.push_back(*current.right_child);
                 columns.push_back(column);
-                lower_limits.push_back(current->right_position);
+                lower_limits.push_back(current.right_position);
                 upper_limits.push_back(upper_limit);
             }
         }

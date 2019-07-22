@@ -28,7 +28,7 @@ private:
     // Variables to help with initialization
     vector<size_t> columns;
     vector<size_t> lower_limits, upper_limits;
-    vector<shared_ptr<KDNode>> nodes_to_check;
+    vector<KDNode> nodes_to_check;
 
     unique_ptr<KDTree> initialize_index();
 

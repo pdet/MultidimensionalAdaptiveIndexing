@@ -67,7 +67,8 @@ shared_ptr<Table> CrackingKDTreeNarrow::range_query(Query& query){
 
 void CrackingKDTreeNarrow::insert(QueryShell& query){
     if(index->root == nullptr){
-        index->root = insert_new_nodes(query, 0, table->row_count() - 1);
+        auto node = insert_new_nodes(query, 0, table->row_count() - 1);
+        index->root = make_unique<KDNode>(*node);
         return;
     }
 
@@ -76,7 +77,7 @@ void CrackingKDTreeNarrow::insert(QueryShell& query){
     upper_limits.resize(0);
     queries.resize(0);
 
-    nodes_to_check.push_back(index->root);
+    nodes_to_check.push_back(*index->root);
     lower_limits.push_back(0);
     upper_limits.push_back(table->row_count() - 1);
     queries.push_back(QueryShell(query));
@@ -131,23 +132,23 @@ void CrackingKDTreeNarrow::insert(QueryShell& query){
     }
 }
 
-QueryShell CrackingKDTreeNarrow::break_query_left(QueryShell& query, shared_ptr<KDNode> node){
+QueryShell CrackingKDTreeNarrow::break_query_left(QueryShell& query, KDNode &node){
     auto query_left = QueryShell(query);
     for(size_t i = 0; i < query.shell_query.predicate_count(); ++i){
-        if(query.shell_query.predicates.at(i).column == node->column){
+        if(query.shell_query.predicates.at(i).column == node.column){
             query_left.crack_right.at(i) = false;
-            query_left.shell_query.predicates.at(i).high = node->key;
+            query_left.shell_query.predicates.at(i).high = node.key;
         }
     }
     return query_left;
 }
 
-QueryShell CrackingKDTreeNarrow::break_query_right(QueryShell& query, shared_ptr<KDNode> node){
+QueryShell CrackingKDTreeNarrow::break_query_right(QueryShell& query, KDNode &node){
     auto query_right = QueryShell(query);
     for(size_t i = 0; i < query.shell_query.predicate_count(); ++i){
-        if(query.shell_query.predicates.at(i).column == node->column){
+        if(query.shell_query.predicates.at(i).column == node.column){
             query_right.crack_left.at(i) = false;
-            query_right.shell_query.predicates.at(i).low = node->key;
+            query_right.shell_query.predicates.at(i).low = node.key;
         }
     }
     return query_right;
@@ -156,42 +157,42 @@ QueryShell CrackingKDTreeNarrow::break_query_right(QueryShell& query, shared_ptr
 // Checks the left child
 // If it is null then we reached a partition
 // Otherwise, we follow it
-void CrackingKDTreeNarrow::insert_or_follow_left(shared_ptr<KDNode> current, size_t lower_limit, size_t upper_limit, QueryShell& query){
-    if (current->left_child != nullptr)
+void CrackingKDTreeNarrow::insert_or_follow_left(KDNode &current, size_t lower_limit, size_t upper_limit, QueryShell& query){
+    if (current.left_child != nullptr)
     {
-        nodes_to_check.push_back(current->left_child);
+        nodes_to_check.push_back(*current.left_child);
         lower_limits.push_back(lower_limit);
-        upper_limits.push_back(current->left_position);
+        upper_limits.push_back(current.left_position);
         queries.push_back(query);
     }
     else
     {
-        current->left_child = insert_new_nodes(query, lower_limit, upper_limit);
+        current.left_child = insert_new_nodes(query, lower_limit, upper_limit);
     }
 }
 
 // Checks the right child
 // If it is null then we reached a partition
 // Otherwise, we follow it
-void CrackingKDTreeNarrow::insert_or_follow_right(shared_ptr<KDNode> current, size_t lower_limit, size_t upper_limit, QueryShell& query){
-    if (current->right_child != nullptr)
+void CrackingKDTreeNarrow::insert_or_follow_right(KDNode &current, size_t lower_limit, size_t upper_limit, QueryShell& query){
+    if (current.right_child != nullptr)
     {
-        nodes_to_check.push_back(current->right_child);
-        lower_limits.push_back(current->right_position);
+        nodes_to_check.push_back(*current.right_child);
+        lower_limits.push_back(current.right_position);
         upper_limits.push_back(upper_limit);
         queries.push_back(query);
     }
     else
     {
-        current->right_child = insert_new_nodes(query, lower_limit, upper_limit);
+        current.right_child = insert_new_nodes(query, lower_limit, upper_limit);
     }
 }
 
-shared_ptr<KDNode> CrackingKDTreeNarrow::insert_new_nodes(QueryShell& query_shell, size_t lower_limit, size_t upper_limit){
+unique_ptr<KDNode> CrackingKDTreeNarrow::insert_new_nodes(QueryShell& query_shell, size_t lower_limit, size_t upper_limit){
     if(upper_limit - lower_limit < minimum_partition_size)
         return nullptr;
 
-    shared_ptr<KDNode> current = nullptr;
+    unique_ptr<KDNode> current = nullptr;
     size_t i = 0;
     for(; i < query_shell.shell_query.predicate_count(); ++i){
         auto predicate = query_shell.shell_query.predicates.at(i);
@@ -227,7 +228,7 @@ shared_ptr<KDNode> CrackingKDTreeNarrow::insert_new_nodes(QueryShell& query_shel
     }
 
 
-    shared_ptr<KDNode> first = current;
+    auto first = make_unique<KDNode>(*current);
 
     for(; i < query_shell.shell_query.predicate_count(); ++i){
         auto predicate = query_shell.shell_query.predicates.at(i);
@@ -241,7 +242,7 @@ shared_ptr<KDNode> CrackingKDTreeNarrow::insert_new_nodes(QueryShell& query_shel
                     return first;
                 current->right_child = index->create_node(column, key, position);
                 upper_limit = position;
-                current = current->right_child;
+                current = make_unique<KDNode>(*current->right_child);
             }
         }
 
@@ -254,7 +255,7 @@ shared_ptr<KDNode> CrackingKDTreeNarrow::insert_new_nodes(QueryShell& query_shel
                     return first;
                 current->left_child = index->create_node(column, key, position);
                 lower_limit = position + 1;
-                current = current->left_child;
+                current = make_unique<KDNode>(*current->left_child);
             }
         }
     }
@@ -262,10 +263,10 @@ shared_ptr<KDNode> CrackingKDTreeNarrow::insert_new_nodes(QueryShell& query_shel
 }
 
 // Checks if node's column is inside of query
-bool CrackingKDTreeNarrow::node_in_query(shared_ptr<KDNode> current, QueryShell& shell){
+bool CrackingKDTreeNarrow::node_in_query(KDNode &current, QueryShell& shell){
     for(size_t i = 0; i < shell.shell_query.predicate_count(); i++)
     {
-        if(current->column == shell.shell_query.predicates.at(i).column)
+        if(current.column == shell.shell_query.predicates.at(i).column)
             return true;
     }
     return false;
@@ -277,15 +278,15 @@ bool CrackingKDTreeNarrow::node_in_query(shared_ptr<KDNode> current, QueryShell&
 // Data:  |----------!--------|
 // Query:      |-----|
 //            low   high
-bool CrackingKDTreeNarrow::node_greater_equal_query(shared_ptr<KDNode> node, QueryShell& query){
+bool CrackingKDTreeNarrow::node_greater_equal_query(KDNode &node, QueryShell& query){
     for(size_t i = 0; i < query.shell_query.predicate_count(); i++)
     {
-        if(node->column == query.shell_query.predicates.at(i).column){
+        if(node.column == query.shell_query.predicates.at(i).column){
             auto high = query.shell_query.predicates.at(i).high;
-            if(node->key == high){
+            if(node.key == high){
                 query.crack_right.at(i) = false;
             }
-            return high <= node->key;
+            return high <= node.key;
         }
     }
     return false;
@@ -297,15 +298,15 @@ bool CrackingKDTreeNarrow::node_greater_equal_query(shared_ptr<KDNode> node, Que
 // Data:  |----------!--------|
 // Query:            |-----|
 //                  low   high
-bool CrackingKDTreeNarrow::node_less_equal_query(shared_ptr<KDNode> node, QueryShell& query){
+bool CrackingKDTreeNarrow::node_less_equal_query(KDNode &node, QueryShell& query){
     for(size_t i = 0; i < query.shell_query.predicate_count(); i++)
     {
-        if(node->column == query.shell_query.predicates.at(i).column){
+        if(node.column == query.shell_query.predicates.at(i).column){
             auto low = query.shell_query.predicates.at(i).low;
-            if(node->key == low){
+            if(node.key == low){
                 query.crack_left.at(i) = false;
             }
-            return node->key <= low;
+            return node.key <= low;
         }
     }
     return false;

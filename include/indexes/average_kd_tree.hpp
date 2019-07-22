@@ -22,14 +22,13 @@ public:
     shared_ptr<Table> range_query(Query& query);
 
 private:
-
     unique_ptr<KDTree> index;
     const size_t minimum_partition_size = 100;
 
     // Variables to help with initialization
     vector<size_t> columns;
     vector<size_t> lower_limits, upper_limits;
-    vector<shared_ptr<KDNode>> nodes_to_check;
+    vector<KDNode> nodes_to_check;
 
     unique_ptr<KDTree> initialize_index();
 

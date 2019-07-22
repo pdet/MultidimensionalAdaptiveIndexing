@@ -27,7 +27,7 @@ vector<pair<size_t, size_t>> KDTree::search(Query& query){
     lower_limits.resize(0);
     upper_limits.resize(0);
 
-    nodes_to_check.push_back(root);
+    nodes_to_check.push_back(*root);
     lower_limits.push_back(0);
     upper_limits.push_back(row_count - 1);
     while(!nodes_to_check.empty()){
@@ -77,7 +77,7 @@ vector<pair<size_t, size_t>> KDTree::search(Query& query){
     return partitions;
 }
 
-shared_ptr<KDNode> KDTree::create_node(size_t column, float key, size_t position){
+unique_ptr<KDNode> KDTree::create_node(size_t column, float key, size_t position){
     auto node = make_unique<KDNode>(
                 column, key, position, position + 1
             );
@@ -92,12 +92,12 @@ size_t KDTree::get_node_count(){
 size_t KDTree::get_max_height(){
     if(root == nullptr)
         return 0;
-    vector<shared_ptr<KDNode>> nodes;
+    vector<KDNode> nodes;
     vector<size_t> heights;
 
     size_t max_height = 0;
 
-    nodes.push_back(root);
+    nodes.push_back(*root);
     heights.push_back(1);
 
     while(!nodes.empty()){
@@ -107,17 +107,17 @@ size_t KDTree::get_max_height(){
         auto height = heights.back();
         heights.pop_back();
 
-        if(node->left_child != nullptr){
-            nodes.push_back(node->left_child);
+        if(node.left_child != nullptr){
+            nodes.push_back(*node.left_child);
             heights.push_back(height + 1);
         }
 
-        if(node->right_child != nullptr){
-            nodes.push_back(node->right_child);
+        if(node.right_child != nullptr){
+            nodes.push_back(*node.right_child);
             heights.push_back(height + 1);
         }
 
-        if(node->left_child == nullptr && node->right_child == nullptr){
+        if(node.left_child == nullptr && node.right_child == nullptr){
             if(max_height < height)
                 max_height = height;
         }
@@ -129,12 +129,12 @@ size_t KDTree::get_max_height(){
 size_t KDTree::get_min_height(){
     if(root == nullptr)
         return 0;
-    vector<shared_ptr<KDNode>> nodes;
+    vector<KDNode> nodes;
     vector<size_t> heights;
 
     size_t min_height = numeric_limits<size_t>::max();
 
-    nodes.push_back(root);
+    nodes.push_back(*root);
     heights.push_back(1);
 
     while(!nodes.empty()){
@@ -144,17 +144,17 @@ size_t KDTree::get_min_height(){
         auto height = heights.back();
         heights.pop_back();
 
-        if(node->left_child != nullptr){
-            nodes.push_back(node->left_child);
+        if(node.left_child != nullptr){
+            nodes.push_back(*node.left_child);
             heights.push_back(height + 1);
         }
 
-        if(node->right_child != nullptr){
-            nodes.push_back(node->right_child);
+        if(node.right_child != nullptr){
+            nodes.push_back(*node.right_child);
             heights.push_back(height + 1);
         }
 
-        if(node->left_child == nullptr && node->right_child == nullptr){
+        if(node.left_child == nullptr && node.right_child == nullptr){
             if(min_height > height)
                 min_height = height;
         }
@@ -166,40 +166,40 @@ size_t KDTree::get_min_height(){
 // Checks the left child
 // If it is null then we reached a partition
 // Otherwise, we follow it
-void KDTree::get_partition_or_follow_left(shared_ptr<KDNode> current, size_t lower_limit){
-    if (current->left_child == nullptr)
+void KDTree::get_partition_or_follow_left(KDNode &current, size_t lower_limit){
+    if (current.left_child == nullptr)
     {
-        partitions.push_back(make_pair(lower_limit, current->left_position));
+        partitions.push_back(make_pair(lower_limit, current.left_position));
     }
     else
     {
-        nodes_to_check.push_back(current->left_child);
+        nodes_to_check.push_back(*current.left_child);
         lower_limits.push_back(lower_limit);
-        upper_limits.push_back(current->left_position);
+        upper_limits.push_back(current.left_position);
     }
 }
 
 // Checks the right child
 // If it is null then we reached a partition
 // Otherwise, we follow it
-void KDTree::get_partition_or_follow_right(shared_ptr<KDNode> current, size_t upper_limit){
-    if (current->right_child == nullptr)
+void KDTree::get_partition_or_follow_right(KDNode &current, size_t upper_limit){
+    if (current.right_child == nullptr)
     {
-        partitions.push_back(make_pair(current->right_position, upper_limit));
+        partitions.push_back(make_pair(current.right_position, upper_limit));
     }
     else
     {
-        nodes_to_check.push_back(current->right_child);
-        lower_limits.push_back(current->right_position);
+        nodes_to_check.push_back(*current.right_child);
+        lower_limits.push_back(current.right_position);
         upper_limits.push_back(upper_limit);
     }
 }
 
 // Checks if node's column is inside of query
-bool KDTree::node_in_query(shared_ptr<KDNode> current, Query& query){
+bool KDTree::node_in_query(KDNode &current, Query& query){
     for(size_t i = 0; i < query.predicate_count(); i++)
     {
-        if(current->column == query.predicates.at(i).column)
+        if(current.column == query.predicates.at(i).column)
             return true;
     }
     return false;
@@ -211,12 +211,12 @@ bool KDTree::node_in_query(shared_ptr<KDNode> current, Query& query){
 // Data:  |----------!--------|
 // Query:      |-----|
 //            low   high
-bool KDTree::node_greater_equal_query(shared_ptr<KDNode> node, Query& query){
+bool KDTree::node_greater_equal_query(KDNode &node, Query& query){
     for(size_t i = 0; i < query.predicate_count(); i++)
     {
-        if(node->column == query.predicates.at(i).column){
+        if(node.column == query.predicates.at(i).column){
             auto high = query.predicates.at(i).high;
-            return high <= node->key;
+            return high <= node.key;
         }
     }
     return false;
@@ -228,12 +228,12 @@ bool KDTree::node_greater_equal_query(shared_ptr<KDNode> node, Query& query){
 // Data:  |----------!--------|
 // Query:            |-----|
 //                  low   high
-bool KDTree::node_less_equal_query(shared_ptr<KDNode> node, Query& query){
+bool KDTree::node_less_equal_query(KDNode &node, Query& query){
     for(size_t i = 0; i < query.predicate_count(); i++)
     {
-        if(node->column == query.predicates.at(i).column){
+        if(node.column == query.predicates.at(i).column){
             auto low = query.predicates.at(i).low;
-            return node->key <= low;
+            return node.key <= low;
         }
     }
     return false;

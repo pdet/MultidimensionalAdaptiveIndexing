@@ -54,30 +54,30 @@ private:
     const size_t minimum_partition_size = 100;
 
     // Vectors to simplify the insertion algorithm
-    vector<shared_ptr<KDNode>> nodes_to_check;
+    vector<KDNode> nodes_to_check;
     vector<size_t> lower_limits, upper_limits;
     vector<QueryShell> queries;
 
     void insert(QueryShell& query);
 
-    QueryShell break_query_left(QueryShell& query, shared_ptr<KDNode> node);
+    QueryShell break_query_left(QueryShell& query, KDNode &node);
 
-    QueryShell break_query_right(QueryShell& query, shared_ptr<KDNode> node);
+    QueryShell break_query_right(QueryShell& query, KDNode &node);
 
     // Checks the left child
     // If it is null then we reached a partition
     // Otherwise, we follow it
-    void insert_or_follow_left(shared_ptr<KDNode> current, size_t lower_limit, size_t upper_limit, QueryShell& query);
+    void insert_or_follow_left(KDNode &current, size_t lower_limit, size_t upper_limit, QueryShell& query);
 
     // Checks the right child
     // If it is null then we reached a partition
     // Otherwise, we follow it
-    void insert_or_follow_right(shared_ptr<KDNode> current, size_t lower_limit, size_t upper_limit, QueryShell& query);
+    void insert_or_follow_right(KDNode &current, size_t lower_limit, size_t upper_limit, QueryShell& query);
 
-    shared_ptr<KDNode> insert_new_nodes(QueryShell& query_shell, size_t lower_limit, size_t upper_limit);
+    unique_ptr<KDNode> insert_new_nodes(QueryShell& query_shell, size_t lower_limit, size_t upper_limit);
 
     // Checks if node's column is inside of query
-    bool node_in_query(shared_ptr<KDNode> current, QueryShell& shell);
+    bool node_in_query(KDNode &current, QueryShell& shell);
 
     // If the node's key is greater or equal to the high part of the query
     // Then follow the left child
@@ -85,7 +85,7 @@ private:
     // Data:  |----------!--------|
     // Query:      |-----|
     //            low   high
-    bool node_greater_equal_query(shared_ptr<KDNode> node, QueryShell& query);
+    bool node_greater_equal_query(KDNode &node, QueryShell& query);
 
     // If the node's key is smaller to the low part of the query
     // Then follow the right child
@@ -93,6 +93,6 @@ private:
     // Data:  |----------!--------|
     // Query:            |-----|
     //                  low   high
-    bool node_less_equal_query(shared_ptr<KDNode> node, QueryShell& query);
+    bool node_less_equal_query(KDNode &node, QueryShell& query);
 };
 #endif // CRACKING_KDTREE_NARROW_H
