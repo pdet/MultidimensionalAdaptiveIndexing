@@ -9,7 +9,7 @@ void AverageKDTree::initialize(const shared_ptr<Table> table_to_copy){
     // ******************
     auto start = measurements->time();
 
-    // Copy the entire table, as this is the cracking_table
+    // Copy the entire table
     table = make_unique<Table>(table_to_copy);
 
     // Initialize KD-Tree with average
