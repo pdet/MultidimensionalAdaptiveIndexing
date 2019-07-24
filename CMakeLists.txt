@@ -8,6 +8,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/include/helpers)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes/kd_tree)
+include_directories(${CMAKE_SOURCE_DIR}/include/indexes/quasii)
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/measurements.cpp
@@ -19,6 +20,8 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_narrow.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/median_kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/average_kd_tree.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/quasii/slice.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/quasii.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_node.cpp
             )

@@ -17,7 +17,7 @@ int main(){
 
     auto baseline = IndexFactory::baseline_index();
 
-    vector<vector<size_t>> result_sizes(algorithms.size());
+    vector<vector<size_t> > result_sizes(algorithms.size());
 
     cout << "Testing algorithms: " << endl;
 

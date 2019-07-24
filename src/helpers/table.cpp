@@ -99,6 +99,54 @@ size_t Table::CrackTable(size_t low, size_t high, float element, size_t c)
     return x1;
 }
 
+// Cracks table in three from position i = low until i == high
+// on column (c) with left key and right key
+// Returns a pair of positions indicating where each patition starts
+pair<size_t, size_t> Table::CrackTableInThree(size_t low, size_t high, float key_left, float key_right, size_t c)
+{
+    auto x1 = low;
+    auto x2 = high;
+    // "Eliminite" all the correct ones on the right side
+    while (x2 > x1 && columns.at(c)->at(x2)  >= key_right)
+        x2--;
+    auto x3 = x2;
+    // Fixes the middle partition and the last one
+    // Stop when find someone from the first partition
+    while (x3 > x1 && columns.at(c)->at(x3)  >= key_left)
+    {
+        if (columns.at(c)->at(x3) >= key_right)
+        {
+            exchange(x2, x3);
+            x2--;
+        }
+        x3--;
+    }
+    // X3 stops when it finds someone from the first partition
+    while (x1 < x3)
+    {
+        // Find element not from first partition
+        if (columns.at(c)->at(x1)  < key_left)
+            x1++;
+        else
+        {
+            exchange(x1, x3);
+            // Fixes the middle partition and the last one
+            // Stop when find someone from the first partition
+            while (x3 > x1 && columns.at(c)->at(x3)  >= key_left)
+            {
+                if (columns.at(c)->at(x3)  >= key_right)
+                {
+                    exchange(x2, x3);
+                    x2--;
+                }
+                x3--;
+            }
+        }
+    }
+
+    return make_pair(x1,x2);
+}
+
 size_t Table::row_count(){
     return number_of_rows;
 }

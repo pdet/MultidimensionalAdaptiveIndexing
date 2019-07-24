@@ -36,6 +36,11 @@ public:
     // right after it
     size_t CrackTable(size_t low, size_t high, float element, size_t c);
 
+    // Cracks table in three from position i = low until i == high
+    // on column (c) with left key and right key
+    // Returns a pair of positions indicating where each patition starts
+    pair<size_t, size_t> CrackTableInThree(size_t low, size_t high, float key_left, float key_right, size_t c);
+
     size_t row_count();
 
     size_t col_count();
