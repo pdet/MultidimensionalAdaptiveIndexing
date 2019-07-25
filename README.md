@@ -31,6 +31,7 @@ To be written
 * [ ] Implement Quasii
 * [ ] Implement Full Index B-Tree
 * [ ] Implement a Row-Store Table to check if they have difference
+* [ ] Check "Bitwise dimensional co-clustering for analytical workloads"
 
 ## Papers
 
