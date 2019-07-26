@@ -62,12 +62,20 @@ shared_ptr<Table> Quasii::range_query(Query& query){
     );
 
     // Before returning the result, update the statistics.
-    measurements->number_of_nodes.push_back(number_of_slices);
+    measurements->number_of_nodes.push_back(count_slices(slices));
     measurements->max_height.push_back(table->col_count());
     measurements->min_height.push_back(table->col_count());
-    measurements->memory_footprint.push_back(number_of_slices * sizeof(Slice));
+    measurements->memory_footprint.push_back(count_slices(slices) * sizeof(Slice));
 
     return result;
+}
+
+size_t Quasii::count_slices(vector<Slice> &slices){
+    size_t number_of_slices = slices.size();
+    for(auto slice : slices){
+        number_of_slices += count_slices(slice.children);
+    }
+    return number_of_slices;
 }
 
 vector<pair<size_t, size_t>> Quasii::search(Query& query){

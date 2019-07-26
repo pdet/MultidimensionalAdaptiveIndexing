@@ -24,13 +24,12 @@ public:
     shared_ptr<Table> range_query(Query& query);
 
 private:
-
-    size_t minimum_partition_size = 100;
-    size_t number_of_slices = 0;
     vector<Slice> slices;
 
     const size_t last_level_threshold = 2000;
     vector<size_t> dimensions_threshold;
+
+    size_t count_slices(vector<Slice> &slices);
 
     void adapt(Query& query);
 
