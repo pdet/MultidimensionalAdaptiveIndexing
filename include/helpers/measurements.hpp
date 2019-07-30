@@ -9,9 +9,9 @@ class Measurements
 {
     using time_point = std::__1::chrono::steady_clock::time_point;
 public:
-    long long initialization_time;
-    std::vector<long long> adaptation_time;
-    std::vector<long long> query_time;
+    double initialization_time;
+    std::vector<double> adaptation_time;
+    std::vector<double> query_time;
     std::vector<size_t> max_height;
     std::vector<size_t> min_height;
     std::vector<size_t> number_of_nodes;
@@ -22,7 +22,7 @@ public:
 
     time_point time();
 
-    static long long difference(time_point end, time_point start);
+    static double difference(time_point end, time_point start);
 
     double average_adaptation_time(){
         return average(adaptation_time);
@@ -32,7 +32,7 @@ public:
         return average(query_time);
     }
 
-    double average(std::vector<long long> v){
+    double average(std::vector<double> v){
         return std::accumulate(v.begin(), v.end(), 0.0)/(double)v.size();
     }
 };
