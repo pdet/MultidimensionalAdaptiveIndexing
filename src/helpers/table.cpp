@@ -106,7 +106,7 @@ pair<size_t, size_t> Table::CrackTableInThree(size_t low, size_t high, float key
 {
     auto x1 = low;
     auto x2 = high;
-    // "Eliminite" all the correct ones on the right side
+    // "Eliminate" all the correct ones on the right side
     while (x2 > x1 && columns.at(c)->at(x2)  >= key_right)
         x2--;
     auto x3 = x2;

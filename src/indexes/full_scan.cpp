@@ -9,7 +9,9 @@ void FullScan::initialize(const shared_ptr<Table> table_to_copy){
     // Simply copies the pointer of the table, since it does not change anything
     table = table_to_copy;
 
-    measurements->initialization_time = measurements->time() - start;;
+    auto end = measurements->time();
+
+    measurements->initialization_time = Measurements::difference(end, start);
 }
 
 void FullScan::adapt_index(Query& query){

@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <numeric>
 
 using namespace std;
 
@@ -52,9 +53,25 @@ int main(){
         }
     }
 
+    cout << "Number of wrongs:" << endl;
+
     for(size_t alg_index = 0; alg_index < algorithms.size(); ++alg_index){
             cout << algorithms.at(alg_index)->name() <<": " << number_of_different.at(alg_index) << endl;
     }
     cout << endl;
+
+    double sum = accumulate(baseline_results.begin(), baseline_results.end(), 0.0);
+    auto avg = sum / (double) baseline_results.size();
+    cout << "Average baseline result size: " << avg << endl;
+
+    cout << endl;
+
+    for(auto alg : algorithms){
+        cout << "----" << alg->name() << "----" << endl;
+        cout << "Initialization Time (microseconds): " << alg->measurements->initialization_time << endl;
+        cout << "Average Adaptation Time (microseconds): " << alg->measurements->average_adaptation_time() << endl;
+        cout << "Average Query Time (microseconds): " << alg->measurements->average_query_time() << endl;
+    }
+
     return 0;
 }

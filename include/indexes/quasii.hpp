@@ -44,7 +44,7 @@ private:
 
     void calculate_level_thresholds();
 
-    void build(vector<Slice> &Slices, Query &rangequeries);
+    void build(vector<Slice> &Slices, Query &query);
 
     vector<Slice> sliceArtificial(Slice &S);
 
@@ -52,6 +52,6 @@ private:
 
     vector<Slice> sliceThreeWay(Slice &S, float low, float high);
 
-    vector<Slice> refine(Slice &slice, Query &rangequeries);
+    vector<Slice> refine(Slice &slice, Predicate &predicate);
 };
 #endif // QUASII_H

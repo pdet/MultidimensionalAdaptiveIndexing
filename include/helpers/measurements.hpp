@@ -3,15 +3,15 @@
 
 #include <chrono>
 #include <vector>
+#include <numeric>
 
 class Measurements
 {
     using time_point = std::__1::chrono::steady_clock::time_point;
-    using duration = std::__1::chrono::duration<double>;
 public:
-    duration initialization_time;
-    std::vector<duration> adaptation_time;
-    std::vector<duration> query_time;
+    long long initialization_time;
+    std::vector<long long> adaptation_time;
+    std::vector<long long> query_time;
     std::vector<size_t> max_height;
     std::vector<size_t> min_height;
     std::vector<size_t> number_of_nodes;
@@ -22,6 +22,18 @@ public:
 
     time_point time();
 
-    static std::chrono::nanoseconds difference(time_point end, time_point start);
+    static long long difference(time_point end, time_point start);
+
+    double average_adaptation_time(){
+        return average(adaptation_time);
+    }
+
+    double average_query_time(){
+        return average(query_time);
+    }
+
+    double average(std::vector<long long> v){
+        return std::accumulate(v.begin(), v.end(), 0.0)/(double)v.size();
+    }
 };
 #endif // MEASUREMENTS_H

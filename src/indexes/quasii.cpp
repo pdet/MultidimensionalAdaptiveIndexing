@@ -22,7 +22,9 @@ void Quasii::initialize(const shared_ptr<Table> table_to_copy){
     // Calculate the thresholds
     calculate_level_thresholds();
 
-    measurements->initialization_time = measurements->time() - start;
+    auto end = measurements->time();
+
+    measurements->initialization_time = Measurements::difference(end, start);
     // ******************
 }
 
@@ -125,18 +127,18 @@ Predicate Quasii::predicate_on_column(size_t column, Query& query){
         if(column == predicate.column)
             return predicate;
     }
-    return Predicate();
+    assert(false);
 }
 
 // biggest who is less or equal to the key
 size_t Quasii::binarySearch(const vector<Slice> &S, float key){
-    auto  min = 0;
+    auto  min = (size_t) 0;
     auto  max = S.size() - 1;
 
     if(min == max)
         return min;
 
-    while (max >= min) {
+    while (max > min) {
         size_t mid = ((max+min)/2.0) + 0.5;
 
         if(S.at(mid).left_value ==  key){
@@ -189,26 +191,27 @@ struct less_than_offset
     }
 };
 
-void Quasii::build(vector<Slice> &Slices, Query &rangequeries){
+void Quasii::build(vector<Slice> &Slices, Query &query){
     vector<Slice> refined_slice_aux;
     auto dim = Slices.at(0).column;
-    auto low = rangequeries.predicates.at(dim).low;
-    auto high = rangequeries.predicates.at(dim).high;
+    auto predicate = predicate_on_column(dim, query);
+    auto low = predicate.low;
+    auto high = predicate.high;
     auto i = binarySearch(Slices, low);
     auto index_start = i;
     while (i < Slices.size() && Slices.at(i).left_value <= high){
-        vector<Slice> refined_slices = refine(Slices.at(i), rangequeries);
-        for (size_t j = 0; j < refined_slices.size(); j++ ){
-            if(refined_slices.at(j).intersects(low, high)){
-                if(refined_slices.at(j).column == table->col_count() - 1)
+        vector<Slice> refined_slices = refine(Slices.at(i), predicate);
+        for (auto r_s : refined_slices){
+            if(r_s.intersects(low, high)){
+                if(r_s.column == table->col_count() - 1)
                     continue;
                 else{
-                    if(refined_slices[j].children.size() == 0){
-                        refined_slices.at(j).children.push_back(
-                            Slice(refined_slices.at(j).column + 1, refined_slices.at(j).offset_begin,refined_slices.at(j).offset_end)
+                    if(r_s.children.size() == 0){
+                        r_s.children.push_back(
+                            Slice(r_s.column + 1, r_s.offset_begin,r_s.offset_end)
                         );
                     }
-                    build(refined_slices.at(j).children, rangequeries);
+                    build(r_s.children, query);
                 }
             }
         }
@@ -313,66 +316,37 @@ vector<Slice> Quasii::sliceThreeWay(Slice &S, float low, float high){
     return result;
 }
 
-// vector<Slice> Quasii::sliceThreeWay(Slice &S, float low, float high){
-//     vector<Slice> result;
-
-//     auto first_crack = table->CrackTable(S.offset_begin, S.offset_end, low, S.column);
-//     first_crack--;
-//     if(S.offset_begin < first_crack){
-//         result.push_back(
-//                 Slice(S.column, S.offset_begin, first_crack, S.left_value, low)
-//         );
-//         first_crack++;
-//     }
-
-//     auto second_crack = table->CrackTable(first_crack, S.offset_end, high, S.column);
-//     second_crack--;
-
-//     if(first_crack < second_crack){
-//         result.push_back(
-//                 Slice(S.column, first_crack, second_crack, low, high)
-//         );
-//         second_crack++;
-//     }
-//     if(second_crack < S.offset_end)
-//         result.push_back(
-//                 Slice(S.column, second_crack, S.offset_end, high, S.right_value)
-//         );
-
-//     return result;
-// }
-
-vector<Slice> Quasii::refine(Slice &slice, Query &rangequeries){
-    auto low = rangequeries.predicates.at(slice.column).low;
-    auto high = rangequeries.predicates.at(slice.column).high;
+vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
+    auto low = predicate.low;
+    auto high = predicate.high;
     vector<Slice> result_slices;
-    vector<Slice> refined_slice;
+    vector<Slice> refined_slices;
     if ((slice.offset_end - slice.offset_begin) <= dimensions_threshold.at(slice.column)){
-        refined_slice.push_back(slice);
-        return refined_slice;
+        refined_slices.push_back(slice);
+        return refined_slices;
     }
 
      if (slice.left_value <= low && high <= slice.right_value) // lower and high are within box
-         refined_slice = sliceThreeWay(slice, low, high);
+         refined_slices = sliceThreeWay(slice, low, high);
      else if (slice.left_value <= low && low < slice.right_value)
-         refined_slice = sliceTwoWay(slice, low);
+         refined_slices = sliceTwoWay(slice, low);
      else if (slice.left_value < high && high <= slice.right_value )
-         refined_slice = sliceTwoWay(slice, high);
+         refined_slices = sliceTwoWay(slice, high);
      else
-         refined_slice = sliceArtificial(slice);
+         refined_slices = sliceArtificial(slice);
      if(table->col_count() == 1){
 //      It is not necessary to refine the created slices because there is no children
 //      Otherwise, the creation cost may become too high, since the first column of slices will have a small threshold
 //      resulting in a lot of sliceArtificial calls.
-         return refined_slice;
+         return refined_slices;
      }
-     for (size_t i = 0; i < refined_slice.size(); i ++){
-         if(refined_slice.at(i).size() > dimensions_threshold.at(refined_slice.at(i).column) && refined_slice.at(i).intersects(low, high)){
-             vector<Slice> refined_slice_aux = sliceArtificial(refined_slice.at(i));
+     for (auto r_s : refined_slices){
+         if(r_s.size() > dimensions_threshold.at(r_s.column) && r_s.intersects(low, high)){
+             vector<Slice> refined_slice_aux = sliceArtificial(r_s);
             result_slices.insert(result_slices.end(), refined_slice_aux.begin(), refined_slice_aux.end());
          }
          else{
-             result_slices.push_back(refined_slice.at(i));
+             result_slices.push_back(r_s);
          }
      }
      return result_slices;

@@ -16,7 +16,9 @@ void MedianKDTree::initialize(const shared_ptr<Table> table_to_copy){
     // Initialize KD-Tree with medians
     index = initialize_index();
 
-    measurements->initialization_time = measurements->time() - start;
+    auto end = measurements->time();
+
+    measurements->initialization_time = Measurements::difference(end, start);
     // ******************
 }
 

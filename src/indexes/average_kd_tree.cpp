@@ -15,7 +15,9 @@ void AverageKDTree::initialize(const shared_ptr<Table> table_to_copy){
     // Initialize KD-Tree with average
     index = initialize_index();
 
-    measurements->initialization_time = measurements->time() - start;
+    auto end = measurements->time();
+
+    measurements->initialization_time = Measurements::difference(end, start);
     // ******************
 }
 

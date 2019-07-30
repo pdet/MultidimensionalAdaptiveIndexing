@@ -15,7 +15,9 @@ void CrackingKDTreeBroad::initialize(const shared_ptr<Table> table_to_copy){
     // Initialize KD-Tree
     index = make_unique<KDTree>(table->row_count());
 
-    measurements->initialization_time = measurements->time() - start;
+    auto end = measurements->time();
+
+    measurements->initialization_time = Measurements::difference(end, start);
     // ******************
 }
 

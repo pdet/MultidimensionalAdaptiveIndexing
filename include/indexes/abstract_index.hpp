@@ -11,9 +11,10 @@ class AbstractIndex
 protected:
     // Table with copy of the data
     shared_ptr<Table> table;
+public:
     // Class to keep track of the time/index measurements
     unique_ptr<Measurements> measurements;
-public:
+
     AbstractIndex(){
         measurements = make_unique<Measurements>();
     }
