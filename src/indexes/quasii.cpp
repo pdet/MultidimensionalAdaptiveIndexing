@@ -15,7 +15,7 @@ void Quasii::initialize(const shared_ptr<Table> table_to_copy){
     table = make_unique<Table>(table_to_copy);
 
     // Initialize with one Slice that covers all the data
-    slices.push_back(
+    first_level_slices.push_back(
         Slice(0, 0, table->row_count() - 1)
     );
 
@@ -32,7 +32,7 @@ void Quasii::adapt_index(Query& query){
     // ******************
     auto start = measurements->time();
 
-    build(slices, query);
+    build(first_level_slices, query);
 
     auto end = measurements->time();
     // ******************
@@ -64,10 +64,10 @@ shared_ptr<Table> Quasii::range_query(Query& query){
     );
 
     // Before returning the result, update the statistics.
-    measurements->number_of_nodes.push_back(count_slices(slices));
+    measurements->number_of_nodes.push_back(count_slices(first_level_slices));
     measurements->max_height.push_back(table->col_count());
     measurements->min_height.push_back(table->col_count());
-    measurements->memory_footprint.push_back(count_slices(slices) * sizeof(Slice));
+    measurements->memory_footprint.push_back(count_slices(first_level_slices) * sizeof(Slice));
 
     return result;
 }
@@ -84,16 +84,16 @@ vector<pair<size_t, size_t>> Quasii::search(Query& query){
     vector<pair<size_t, size_t>> partitions;
     vector<Slice> slices_to_check;
 
-    if(column_in_query(slices.at(0).column, query)){
-        auto predicate = predicate_on_column(slices.at(0).column, query);
-        auto i = binarySearch(slices, predicate.low);
+    if(column_in_query(first_level_slices.at(0).column, query)){
+        auto predicate = predicate_on_column(first_level_slices.at(0).column, query);
+        auto i = binarySearch(first_level_slices, predicate.low);
 
-        while(i < slices.size() && slices.at(i).left_value < predicate.high){
-            slices_to_check.push_back(slices.at(i));
+        while(i < first_level_slices.size() && first_level_slices.at(i).left_value < predicate.high){
+            slices_to_check.push_back(first_level_slices.at(i));
             ++i;
         }
     }else
-        for(auto slice : slices)
+        for(auto slice : first_level_slices)
             slices_to_check.push_back(slice);
 
     while (!slices_to_check.empty())
@@ -115,8 +115,11 @@ vector<pair<size_t, size_t>> Quasii::search(Query& query){
                     ++i;
                 }
             }else
-                for(auto slice : slice.children)
-                    slices_to_check.push_back(slice);
+                slices_to_check.insert(
+                    slices_to_check.end(),
+                    slice.children.begin(),
+                    slice.children.end()
+                );
         }
     }
     return partitions;
@@ -131,9 +134,9 @@ Predicate Quasii::predicate_on_column(size_t column, Query& query){
 }
 
 // biggest who is less or equal to the key
-size_t Quasii::binarySearch(const vector<Slice> &S, float key){
+size_t Quasii::binarySearch(const vector<Slice> &slice, float key){
     auto  min = (size_t) 0;
-    auto  max = S.size() - 1;
+    auto  max = slice.size() - 1;
 
     if(min == max)
         return min;
@@ -141,11 +144,11 @@ size_t Quasii::binarySearch(const vector<Slice> &S, float key){
     while (max > min) {
         size_t mid = ((max+min)/2.0) + 0.5;
 
-        if(S.at(mid).left_value ==  key){
+        if(slice.at(mid).left_value ==  key){
             return mid;
-        }else if(S.at(mid).left_value < key){
+        }else if(slice.at(mid).left_value < key){
             min = mid +1;
-        }else if(S.at(mid).left_value > key){
+        }else if(slice.at(mid).left_value > key){
             max = mid -1;
         }
 
@@ -171,8 +174,12 @@ void Quasii::calculate_level_thresholds(){
     dimensions_threshold.push_back(last_level_threshold);
     auto number_of_columns = static_cast<double>(table->col_count());
     auto number_of_rows = static_cast<double>(table->row_count());
-    auto r = ceil(pow((double)number_of_rows/last_level_threshold, (double) (1.0/number_of_columns)));
-
+    auto r = ceil(
+                pow(
+                    static_cast<double>(number_of_rows/last_level_threshold),
+                    static_cast<double>(1.0/number_of_columns)
+                )
+            );
 
     auto cur_thr = r * last_level_threshold;
     dimensions_threshold.push_back(cur_thr);
@@ -191,16 +198,16 @@ struct less_than_offset
     }
 };
 
-void Quasii::build(vector<Slice> &Slices, Query &query){
+void Quasii::build(vector<Slice> &slices, Query &query){
     vector<Slice> refined_slice_aux;
-    auto dim = Slices.at(0).column;
+    auto dim = slices.at(0).column;
     auto predicate = predicate_on_column(dim, query);
     auto low = predicate.low;
     auto high = predicate.high;
-    auto i = binarySearch(Slices, low);
+    auto i = binarySearch(slices, low);
     auto index_start = i;
-    while (i < Slices.size() && Slices.at(i).left_value <= high){
-        vector<Slice> refined_slices = refine(Slices.at(i), predicate);
+    while (i < slices.size() && slices.at(i).left_value <= high){
+        vector<Slice> refined_slices = refine(slices.at(i), predicate);
         for (auto &r_s : refined_slices){
             if(r_s.intersects(low, high)){
                 if(r_s.column == table->col_count() - 1)
@@ -219,98 +226,101 @@ void Quasii::build(vector<Slice> &Slices, Query &query){
         i++;
     }
 
-    Slices.erase(Slices.begin() + index_start, Slices.begin() + i);
+    slices.erase(slices.begin() + index_start, slices.begin() + i);
 
-    Slices.insert(Slices.end(), refined_slice_aux.begin(), refined_slice_aux.end());
-    sort(Slices.begin(), Slices.end(), less_than_offset());
+    slices.insert(slices.end(), refined_slice_aux.begin(), refined_slice_aux.end());
+    sort(slices.begin(), slices.end(), less_than_offset());
 }
 
-vector<Slice> Quasii::sliceArtificial(Slice &S){
+vector<Slice> Quasii::sliceArtificial(Slice &slice){
     vector<Slice> result;
     stack<Slice> slices_to_be_refined;
-    auto threshold = dimensions_threshold.at(S.column);
+    auto threshold = dimensions_threshold.at(slice.column);
 
     if(table->col_count() == 1){
-        if(S.size() > threshold)
-            return sliceTwoWay(S, (S.right_value + S.left_value)/2);
+        if(slice.size() > threshold)
+            return sliceTwoWay(slice, (slice.right_value + slice.left_value)/2);
         else
             return result;
     }
 
-    slices_to_be_refined.push(S);
+    slices_to_be_refined.push(slice);
 
     do{
-        Slice slice = slices_to_be_refined.top();
+        Slice slice_ = slices_to_be_refined.top();
         slices_to_be_refined.pop();
 
-        if(slice.size() > threshold){
+        if(slice_.size() < threshold)
+            result.push_back(slice_);
+        else{
             vector<Slice> slices_refined = sliceTwoWay(
-                slice, (S.right_value + S.left_value)/2
+                slice_, (slice_.right_value + slice_.left_value)/2.0
             );
-            for(size_t i = 0; i < slices_refined.size(); ++i){
-                if(slices_refined.at(i).equal(slice))
-                    result.push_back(slices_refined.at(i));
+            for(auto &s : slices_refined){
+                if(s.equal(slice))
+                    result.push_back(s);
                 else
-                    slices_to_be_refined.push(slices_refined.at(i));
+                    slices_to_be_refined.push(s);
             }
         }
-        else
-            result.push_back(slice);
+
     } while(!slices_to_be_refined.empty());
 
     return result;
 }
 
 // Same as Cracking-in-Two
-vector<Slice> Quasii::sliceTwoWay(Slice &S, float key){
+vector<Slice> Quasii::sliceTwoWay(Slice &slice, float key){
     vector<Slice> result;
 
-    auto pivot_index = table->CrackTable(S.offset_begin, S.offset_end, key, S.column);
+    auto pivot_index = table->CrackTable(slice.offset_begin, slice.offset_end, key, slice.column);
 
-    if(S.offset_begin < pivot_index - 1)
+    if(slice.offset_begin + 1 < pivot_index)
         result.push_back(
-                Slice(S.column, S.offset_begin, pivot_index - 1, S.left_value, key)
+                Slice(slice.column, slice.offset_begin, pivot_index - 1, slice.left_value, key)
         );
-    if(pivot_index < S.offset_end)
+    if(pivot_index < slice.offset_end)
         result.push_back(
-                Slice(S.column, pivot_index, S.offset_end, key, S.right_value)
+                Slice(slice.column, pivot_index, slice.offset_end, key, slice.right_value)
         );
 
     return result;
 }
 
 // Same as Cracking-in-Three
-vector<Slice> Quasii::sliceThreeWay(Slice &S, float low, float high){
+vector<Slice> Quasii::sliceThreeWay(Slice &slice, float low, float high){
     vector<Slice> result;
 
-    auto crack_result = table->CrackTableInThree(S.offset_begin, S.offset_end, low, high, S.column);
+    auto crack_result = table->CrackTableInThree(
+        slice.offset_begin, slice.offset_end, low, high, slice.column
+    );
     auto first_crack = crack_result.first;
     auto second_crack = crack_result.second;
 
     // Check if first partition is empty
-    if(S.offset_begin < first_crack){
+    if(slice.offset_begin < first_crack){
         result.push_back(
-            Slice(S.column, S.offset_begin, first_crack, S.left_value, low)
+            Slice(slice.column, slice.offset_begin, first_crack, slice.left_value, low)
         );
         first_crack++;
     }
     else{
         // First partition is empty, so fix the indexes to use on the middle one
-        first_crack = S.offset_begin;
+        first_crack = slice.offset_begin;
     }
 
     // Check if last partition is empty
-    if(second_crack + 1 < S.offset_end){
+    if(second_crack + 1 < slice.offset_end){
         result.push_back(
-            Slice(S.column, second_crack + 1, S.offset_end, high, S.right_value)
+            Slice(slice.column, second_crack + 1, slice.offset_end, high, slice.right_value)
         );
     }
     else{
-        second_crack = S.offset_end;
+        second_crack = slice.offset_end;
     }
 
     result.push_back(
-        Slice(S.column, first_crack, second_crack, low, high)
+        Slice(slice.column, first_crack, second_crack, low, high)
     );
 
     return result;

@@ -24,7 +24,7 @@ public:
     shared_ptr<Table> range_query(Query& query);
 
 private:
-    vector<Slice> slices;
+    vector<Slice> first_level_slices;
 
     const size_t last_level_threshold = 2000;
     vector<size_t> dimensions_threshold;
@@ -34,7 +34,7 @@ private:
     void adapt(Query& query);
 
     vector<pair<size_t, size_t> > search(Query& query);
-    size_t binarySearch(const vector<Slice> &S, float key);
+    size_t binarySearch(const vector<Slice> &slice, float key);
 
     size_t predicate_index(size_t column, Query &query);
 
@@ -44,13 +44,13 @@ private:
 
     void calculate_level_thresholds();
 
-    void build(vector<Slice> &Slices, Query &query);
+    void build(vector<Slice> &slices, Query &query);
 
-    vector<Slice> sliceArtificial(Slice &S);
+    vector<Slice> sliceArtificial(Slice &slice);
 
-    vector<Slice> sliceTwoWay(Slice &S, float key);
+    vector<Slice> sliceTwoWay(Slice &slice, float key);
 
-    vector<Slice> sliceThreeWay(Slice &S, float low, float high);
+    vector<Slice> sliceThreeWay(Slice &slice, float low, float high);
 
     vector<Slice> refine(Slice &slice, Predicate &predicate);
 };
