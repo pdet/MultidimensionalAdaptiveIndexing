@@ -68,9 +68,9 @@ int main(){
 
     for(auto alg : algorithms){
         cout << "----" << alg->name() << "----" << endl;
-        cout << "Initialization Time (microseconds): " << alg->measurements->initialization_time << endl;
-        cout << "Average Adaptation Time (microseconds): " << alg->measurements->average_adaptation_time() << endl;
-        cout << "Average Query Time (microseconds): " << alg->measurements->average_query_time() << endl;
+        cout << "Initialization Time (seconds): " << alg->measurements->initialization_time << endl;
+        cout << "Average Adaptation Time (seconds): " << alg->measurements->average_adaptation_time() << endl;
+        cout << "Average Query Time (seconds): " << alg->measurements->average_query_time() << endl;
     }
 
     return 0;
