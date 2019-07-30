@@ -201,7 +201,7 @@ void Quasii::build(vector<Slice> &Slices, Query &query){
     auto index_start = i;
     while (i < Slices.size() && Slices.at(i).left_value <= high){
         vector<Slice> refined_slices = refine(Slices.at(i), predicate);
-        for (auto r_s : refined_slices){
+        for (auto &r_s : refined_slices){
             if(r_s.intersects(low, high)){
                 if(r_s.column == table->col_count() - 1)
                     continue;
@@ -340,7 +340,7 @@ vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
 //      resulting in a lot of sliceArtificial calls.
          return refined_slices;
      }
-     for (auto r_s : refined_slices){
+     for (auto &r_s : refined_slices){
          if(r_s.size() > dimensions_threshold.at(r_s.column) && r_s.intersects(low, high)){
              vector<Slice> refined_slice_aux = sliceArtificial(r_s);
             result_slices.insert(result_slices.end(), refined_slice_aux.begin(), refined_slice_aux.end());
