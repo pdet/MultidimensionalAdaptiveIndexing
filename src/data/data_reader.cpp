@@ -14,7 +14,7 @@ using namespace std;
 class DataReader
 {
     public:
-        static shared_ptr<Table> read_table(const string data_path){
+        static shared_ptr<Table> read_table(const string &data_path){
             ifstream file(data_path.c_str(), ios::in);
             if(!file.is_open()){
                 cout << "Error *opening* data file\n";
@@ -40,7 +40,7 @@ class DataReader
             return table;
         }
 
-        static vector<Query> read_workload(const string workload_path){
+        static vector<Query> read_workload(const string &workload_path){
             ifstream file(workload_path.c_str(), ios::in);
             if(!file.is_open()){
                 cout << "Error *opening* workload file\n";
