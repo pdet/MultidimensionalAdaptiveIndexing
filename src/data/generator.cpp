@@ -29,6 +29,8 @@ int main(int argc, char* argv[]) {
 
   if(atoi(argv[3]) == 3)
     std::cout << "INFO: " << n_of_rows << " vectors, " << 19 << " dimensions." << std::endl;
+  else if(atoi(argv[3]) == 4)
+    std::cout << "INFO: " << n_of_rows << " vectors, " << 4 << " dimensions." << std::endl;
   else
     std::cout << "INFO: " << n_of_rows << " vectors, " << dimensions << " dimensions." << std::endl;
 
