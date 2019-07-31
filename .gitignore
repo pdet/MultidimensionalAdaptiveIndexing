@@ -1,12 +1,5 @@
-reworking/src/data/datasets/**
-reworking/build/**
 .vscode/**
-
-src/generator
-src/main
-src/test_algorithms
 src/data/datasets/**
-.DS_Store
-
-
 build/**
+bin/**
+.DS_Store
