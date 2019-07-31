@@ -66,6 +66,8 @@ int main(){
 
     cout << endl;
 
+    algorithms.push_back(baseline);
+
     for(auto alg : algorithms){
         cout << "----" << alg->name() << "----" << endl;
         cout << "Initialization Time (seconds): " << alg->measurements->initialization_time << endl;
