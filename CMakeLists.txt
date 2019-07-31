@@ -3,7 +3,7 @@ project(MultidimensionalAdaptiveIndex)
 set (CMAKE_CXX_STANDARD 14)
 add_definitions("-g -Wall")
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/src)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 include_directories(${CMAKE_SOURCE_DIR}/include/helpers)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes)

@@ -8,8 +8,8 @@
 using namespace std;
 
 int main(){
-    const string workload_path = "./test/queries.sql";
-    const string table_path = "./test/data.sql";
+    const string workload_path = "../src/test/queries.sql";
+    const string table_path = "../src/test/data.sql";
 
     auto table = DataReader::read_table(table_path);
     auto workload = DataReader::read_workload(workload_path);
