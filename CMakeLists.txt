@@ -10,6 +10,9 @@ include_directories(${CMAKE_SOURCE_DIR}/include/indexes)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes/kd_tree)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes/quasii)
 
+include_directories(/usr/include)
+link_directories(/usr/lib)
+
 set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/measurements.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/predicate.cpp
@@ -27,6 +30,8 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             )
 
 add_library(MDAI_lib ${SOURCES})
+
+target_link_libraries(MDAI_lib sqlite3)
 
 add_executable(main ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(main MDAI_lib)

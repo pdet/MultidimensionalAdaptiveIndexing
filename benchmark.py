@@ -16,6 +16,7 @@ class cd:
 
 BUILD_DIR = "../../build/"
 BIN_DIR = "../../bin/"
+CURRENT_DIR = os.getcwd()
 
 with open('config.json') as json_file:
     config = json.load(json_file)
@@ -46,10 +47,11 @@ with cd(BIN_DIR):
             "./main",
             "-w", "queries",
             "-d", "data",
-            "-i", algorithm
+            "-i", algorithm,
+            "-r", str(config['repetitions']),
+            "-s", CURRENT_DIR
         ])
 
 # Run make clean
 with cd(BUILD_DIR):
     subprocess.call(["make", "clean"])
-

@@ -122,10 +122,12 @@ algorithms = input_or_default(
     [5] - Standard Cracking/AVL using Space Filling Curves (To Be Implemented)
     [6] - BB-Tree (To Be Implemented)
     [7] - ELF (To Be Implemented)
-Please specify splitting by spaces [default: 0 1 2 3 4 5 6 7]: """,
-'0 1 2 3 4 5 6 7'
+Please specify splitting by spaces [default: 0]: """,
+'0'
 ).split(' ')
 algorithms = list(map(number_to_algorithm, OrderedDict.fromkeys(algorithms)))
+
+repetitions = input_or_default("How many times each algorithm should run [default: 3]?", "3")
 
 # Create runs dir
 if not os.path.exists('./runs/'):
@@ -152,7 +154,8 @@ config = {
     'number_of_tuples': number_of_tuples,
     'algorithms': algorithms,
     'query_type': query_type,
-    'selectivity': selectivity
+    'selectivity': selectivity,
+    'repetitions': repetitions
 }
 
 # Create config file
@@ -173,6 +176,7 @@ Benchmark
 '- Number of Queries: {number_of_queries}
 '- Selectivity: {selectivity}
 '- Algorithms: {algorithms}
+'- Repetitions: {repetitions}
 
 You can find your experiment in:
 -runs/{experiment_name}

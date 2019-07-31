@@ -36,6 +36,12 @@ shared_ptr<Table> FullScan::range_query(Query& query){
         Measurements::difference(end, start)
     );
 
+    // Before returning the result, update the statistics.
+    measurements->number_of_nodes.push_back(0);
+    measurements->max_height.push_back(0);
+    measurements->min_height.push_back(0);
+    measurements->memory_footprint.push_back(0);
+
     return result;
 }
 

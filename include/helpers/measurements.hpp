@@ -4,6 +4,7 @@
 #include <chrono>
 #include <vector>
 #include <numeric>
+#include <sqlite3.h>
 
 class Measurements
 {
@@ -35,5 +36,21 @@ public:
     double average(std::vector<double> v){
         return std::accumulate(v.begin(), v.end(), 0.0)/(double)v.size();
     }
+
+    void save_to_sql(std::string db_name, int repetition, std::string alg_name);
+
+    std::string quotes(std::string s);
+
+private:
+
+    sqlite3 *db;
+    char *zErrMsg = 0;
+    int rc;
+
+    void create_table();
+
+    void insert(size_t repetition, std::string alg_name);
+
+    static int callback(void *NotUsed, int argc, char **argv, char **azColName);
 };
 #endif // MEASUREMENTS_H
