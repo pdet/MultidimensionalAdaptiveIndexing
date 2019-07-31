@@ -12,10 +12,10 @@ int main(int argc, char** argv){
     string workload_path = "workload";
     string data_path = "data";
     string index_algorithm = "Full Scan";
-    string sqlite_path = "results_db";
+    string sqlite_path = "results";
 
     int c;
-    while ((c = getopt (argc, argv, "w:d:i:s:")) != -1)
+    while ((c = getopt (argc, argv, "w:d:i:")) != -1)
         switch (c)
         {
         case 'w':
@@ -27,11 +27,8 @@ int main(int argc, char** argv){
         case 'i':
             index_algorithm = optarg;
             break;
-        case 's':
-            sqlite_path = optarg;
-            break;
         default:
-            cout << "Usage: -w <workload_path> -d <data_path> -i <algorithm> -s <sqlite_database_path>";
+            cout << "Usage: -w <workload_path> -d <data_path> -i <algorithm>";
             return -1;
         }
 
