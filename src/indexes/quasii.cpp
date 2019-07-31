@@ -141,7 +141,7 @@ size_t Quasii::binarySearch(const vector<Slice> &slice, float key){
     if(min == max)
         return min;
 
-    while (max > min) {
+    while (max >= min && max > 0) {
         size_t mid = ((max+min)/2.0) + 0.5;
 
         if(slice.at(mid).left_value ==  key){

@@ -80,13 +80,13 @@ size_t Table::CrackTable(size_t low, size_t high, float element, size_t c)
     size_t x1 = low;
     size_t x2 = high;
 
-    while (x1 < x2)
+    while (x1 <= x2 && x2 > 0)
     {
         if (columns.at(c)->at(x1) < element)
             x1++;
         else
         {
-            while (x2 > x1 && (columns.at(c)->at(x2) >= element))
+            while (x2 > 0 && x2 >= x1 && (columns.at(c)->at(x2) >= element))
                 x2--;
             if (x1 < x2)
             {
