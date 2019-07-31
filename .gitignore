@@ -2,4 +2,5 @@
 src/data/datasets/**
 build/**
 bin/**
+runs/**
 .DS_Store
