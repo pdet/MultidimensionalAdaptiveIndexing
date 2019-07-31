@@ -56,8 +56,13 @@ bool FullScan::condition_is_true(shared_ptr<Table> table, Query& query, size_t r
         auto high = predicate.high;
 
         auto value = table->columns.at(column)->at(row_index);
-        if(!(low <= value && value < high))
-            return false;
+        if(low != high){
+            if(!(low <= value && value < high))
+                return false;
+        }else{
+            if(low != value)
+                return false;
+        }
     }
     return true;
 }

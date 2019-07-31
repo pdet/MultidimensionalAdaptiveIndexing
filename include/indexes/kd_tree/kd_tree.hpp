@@ -56,6 +56,7 @@ private:
 
     // If the node's key is greater or equal to the high part of the query
     // Then follow the left child
+    // This behavior changes if low == high in query, which means it is a equality
     //                  Key
     // Data:  |----------!--------|
     // Query:      |-----|

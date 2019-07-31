@@ -207,6 +207,7 @@ bool KDTree::node_in_query(KDNode &current, Query& query){
 
 // If the node's key is greater or equal to the high part of the query
 // Then follow the left child
+// This behavior changes if low == high in query, which means it is a equality
 //                  Key
 // Data:  |----------!--------|
 // Query:      |-----|
@@ -216,7 +217,11 @@ bool KDTree::node_greater_equal_query(KDNode &node, Query& query){
     {
         if(node.column == query.predicates.at(i).column){
             auto high = query.predicates.at(i).high;
-            return high <= node.key;
+            auto low = query.predicates.at(i).low;
+            if(low != high)
+                return high <= node.key;
+            else
+                return high < node.key;
         }
     }
     return false;
