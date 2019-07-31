@@ -232,6 +232,55 @@ void Quasii::build(vector<Slice> &slices, Query &query){
     sort(slices.begin(), slices.end(), less_than_offset());
 }
 
+
+vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
+    auto low = predicate.low;
+    auto high = predicate.high;
+    vector<Slice> result_slices;
+    vector<Slice> refined_slices;
+    if ((slice.offset_end - slice.offset_begin) <= dimensions_threshold.at(slice.column)){
+        refined_slices.push_back(slice);
+        return refined_slices;
+    }
+
+    // If it is an equality query
+    if(low == high){
+        // We crack it only if is not in one of the edges
+        if (slice.left_value < low && low < slice.right_value)
+            refined_slices = sliceTwoWay(slice, low);
+        else
+            refined_slices.push_back(slice);
+            return refined_slices;
+    }
+    else{
+        if (slice.left_value <= low && high <= slice.right_value) // lower and high are within box
+            refined_slices = sliceThreeWay(slice, low, high);
+        else if (slice.left_value <= low && low < slice.right_value)
+            refined_slices = sliceTwoWay(slice, low);
+        else if (slice.left_value < high && high <= slice.right_value )
+            refined_slices = sliceTwoWay(slice, high);
+        else
+            refined_slices = sliceArtificial(slice);
+    }
+    if(table->col_count() == 1){
+//      It is not necessary to refine the created slices because there is no children
+//      Otherwise, the creation cost may become too high, since the first column of slices will have a small threshold
+//      resulting in a lot of sliceArtificial calls.
+        return refined_slices;
+    }
+    for (auto &r_s : refined_slices){
+        if(r_s.size() > dimensions_threshold.at(r_s.column) && r_s.intersects(low, high)){
+            vector<Slice> refined_slice_aux = sliceArtificial(r_s);
+        result_slices.insert(result_slices.end(), refined_slice_aux.begin(), refined_slice_aux.end());
+        }
+        else{
+            result_slices.push_back(r_s);
+        }
+    }
+    return result_slices;
+
+}
+
 vector<Slice> Quasii::sliceArtificial(Slice &slice){
     vector<Slice> result;
     stack<Slice> slices_to_be_refined;
@@ -324,41 +373,4 @@ vector<Slice> Quasii::sliceThreeWay(Slice &slice, float low, float high){
     );
 
     return result;
-}
-
-vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
-    auto low = predicate.low;
-    auto high = predicate.high;
-    vector<Slice> result_slices;
-    vector<Slice> refined_slices;
-    if ((slice.offset_end - slice.offset_begin) <= dimensions_threshold.at(slice.column)){
-        refined_slices.push_back(slice);
-        return refined_slices;
-    }
-
-     if (slice.left_value <= low && high <= slice.right_value) // lower and high are within box
-         refined_slices = sliceThreeWay(slice, low, high);
-     else if (slice.left_value <= low && low < slice.right_value)
-         refined_slices = sliceTwoWay(slice, low);
-     else if (slice.left_value < high && high <= slice.right_value )
-         refined_slices = sliceTwoWay(slice, high);
-     else
-         refined_slices = sliceArtificial(slice);
-     if(table->col_count() == 1){
-//      It is not necessary to refine the created slices because there is no children
-//      Otherwise, the creation cost may become too high, since the first column of slices will have a small threshold
-//      resulting in a lot of sliceArtificial calls.
-         return refined_slices;
-     }
-     for (auto &r_s : refined_slices){
-         if(r_s.size() > dimensions_threshold.at(r_s.column) && r_s.intersects(low, high)){
-             vector<Slice> refined_slice_aux = sliceArtificial(r_s);
-            result_slices.insert(result_slices.end(), refined_slice_aux.begin(), refined_slice_aux.end());
-         }
-         else{
-             result_slices.push_back(r_s);
-         }
-     }
-     return result_slices;
-
 }
