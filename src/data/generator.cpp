@@ -209,7 +209,9 @@ int main(int argc, char* argv[]) {
   }
 
   // random insertion order
-  std::random_shuffle(data_points.begin(), data_points.end());
+  std::random_device rd;
+  std::mt19937 g(rd());
+  std::shuffle(data_points.begin(), data_points.end(), g);
 
   // Generate queries
   std::vector<std::vector<float> > lb_queries(number_of_queries, std::vector<float>(dimensions, std::numeric_limits<float>::min()));
