@@ -14,6 +14,14 @@ class Benchmarks:
     GMRQB = 3
     Power = 4
 
+algs_hash = {
+    '0': "Cracking KD-Tree Broad",
+    '1': "Quasii",
+    '2': "KDTree-Median",
+    '3': "KDTree-Average",
+    '4': "Full-Scan"
+}
+
 
 def input_or_default(message, default):
     got = input(message)
@@ -36,31 +44,12 @@ def benchmark_string(benchmark):
     exit('Error: Benchmark not identified')
 
 def number_to_algorithm(n):
-    if n == '0':
-        return "Cracking KD-Tree Broad"
-    if n == '1':
-        return "Quasii"
-    if n == '3':
-        return "KDTree-Median"
-    if n == '4':
-        return "KDTree-Average"
-    if n == '5':
-        return "Full-Scan"
-    # if n == '1':
-    #     return "Cracking KD-Tree Narrow"
-    # if n == '3':
-    #     return "Sideways Cracking"
-    # if n == '4':
-    #     return "Standard Cracking with AVL"
-    # if n == '5':
-    #     return "Standard Cracking/AVL using Space Filling Curves"
-    # if n == '6':
-    #     return "BB-Tree"
-    # if n == '7':
-    #     return "ELF"
+    if(n in algs_hash):
+        return algs_hash[n]
     raise Exception(
         f"""Cannot translate algorithm.
-        Received: {n}"""
+        Received: {n}
+        Available: {algs_hash}"""
     )
 
 ########## WIZARD START ##########
@@ -119,15 +108,8 @@ else:
 
 # Which algorithms to execute
 algorithms = input_or_default(
-"""*- Which Algorithms do you want to compare?
-    [0] - Cracking KD-Tree Broad
-    [1] - Cracking KD-Tree Narrow (To Be Implemented)
-    [2] - Quasii
-    [3] - Sideways Cracking (To Be Implemented)
-    [4] - Standard Cracking with AVL (To Be Implemented)
-    [5] - Standard Cracking/AVL using Space Filling Curves (To Be Implemented)
-    [6] - BB-Tree (To Be Implemented)
-    [7] - ELF (To Be Implemented)
+f"""*- Which Algorithms do you want to compare?
+    {algs_hash}
 Please specify splitting by spaces [default: 0]: """,
 '0'
 ).split(' ')
