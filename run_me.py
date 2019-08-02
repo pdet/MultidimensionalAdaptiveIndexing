@@ -39,22 +39,28 @@ def number_to_algorithm(n):
     if n == '0':
         return "Cracking KD-Tree Broad"
     if n == '1':
-        return "Cracking KD-Tree Narrow"
-    if n == '2':
         return "Quasii"
     if n == '3':
-        return "Sideways Cracking"
+        return "KDTree-Median"
     if n == '4':
-        return "Standard Cracking with AVL"
+        return "KDTree-Average"
     if n == '5':
-        return "Standard Cracking/AVL using Space Filling Curves"
-    if n == '6':
-        return "BB-Tree"
-    if n == '7':
-        return "ELF"
+        return "Full-Scan"
+    # if n == '1':
+    #     return "Cracking KD-Tree Narrow"
+    # if n == '3':
+    #     return "Sideways Cracking"
+    # if n == '4':
+    #     return "Standard Cracking with AVL"
+    # if n == '5':
+    #     return "Standard Cracking/AVL using Space Filling Curves"
+    # if n == '6':
+    #     return "BB-Tree"
+    # if n == '7':
+    #     return "ELF"
     raise Exception(
         f"""Cannot translate algorithm.
-        Received: {n}, should be between 0 and 7 """
+        Received: {n}"""
     )
 
 ########## WIZARD START ##########
