@@ -1,14 +1,14 @@
 #ifndef MEASUREMENTS_H
 #define MEASUREMENTS_H
 
-#include <chrono>
+#include <sys/time.h>
 #include <vector>
 #include <numeric>
 #include <sqlite3.h>
+#include <string>
 
 class Measurements
 {
-    using time_point = std::__1::chrono::steady_clock::time_point;
 public:
     double initialization_time;
     std::vector<double> adaptation_time;
@@ -21,9 +21,9 @@ public:
     Measurements();
     ~Measurements();
 
-    time_point time();
+    double time();
 
-    static double difference(time_point end, time_point start);
+    static double difference(double  end, double  start);
 
     double average_adaptation_time(){
         return average(adaptation_time);

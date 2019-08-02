@@ -1,17 +1,18 @@
-#include <chrono>
-#include <vector>
 #include "measurements.hpp"
 #include <iostream>
+#include <vector>
 
 Measurements::Measurements(){}
 Measurements::~Measurements(){}
 
-Measurements::time_point Measurements::time(){
-    return std::chrono::steady_clock::now();
+double Measurements::time(){
+    struct timeval time;
+    gettimeofday(&time, NULL);
+    return time.tv_sec + time.tv_usec/1e6;
 }
 
-double Measurements::difference(Measurements::time_point end, Measurements::time_point start){
-    return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()/1000000.0;
+double Measurements::difference(double end, double start){
+    return end - start;
 }
 
 void Measurements::save_to_sql(std::string db_name, int repetition, std::string alg_name){
