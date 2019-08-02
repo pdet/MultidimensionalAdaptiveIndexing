@@ -5,8 +5,11 @@
 #include <cstdint>
 #include <utility>
 #include <vector>
+#include <memory>
 
 using namespace std;
+
+class KDNode;
 
 class KDNode
 {

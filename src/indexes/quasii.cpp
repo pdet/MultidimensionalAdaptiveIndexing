@@ -248,9 +248,10 @@ vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
         // We crack it only if is not in one of the edges
         if (slice.left_value < low && low < slice.right_value)
             refined_slices = sliceTwoWay(slice, low);
-        else
+        else{
             refined_slices.push_back(slice);
             return refined_slices;
+	}
     }
     else{
         if (slice.left_value <= low && high <= slice.right_value) // lower and high are within box
