@@ -56,12 +56,13 @@ void Measurements::create_table(){
 }
 
 void Measurements::insert(size_t repetition, const std::string alg_name){
+   double init_time = initialization_time; 
     for(size_t i = 0; i < adaptation_time.size(); ++i){
         auto sql = "INSERT INTO RESULTS "\
                    "(NAME, INITIALIZATION_TIME, ADAPTATION_TIME, QUERY_TIME, MIN_HEIGHT, MAX_HEIGHT, NUMBER_OF_NODES, MEMORY_FOOTPRINT, REPETITION) "\
                    "VALUES "\
                    "(" + quotes(alg_name) + ", " \
-                   + quotes(std::to_string(initialization_time)) + ", " \
+                   + quotes(std::to_string(init_time)) + ", " \
                    + quotes(std::to_string(adaptation_time.at(i))) + ", " \
                    + quotes(std::to_string(query_time.at(i))) + ", " \
                    + quotes(std::to_string(min_height.at(i))) + ", " \
@@ -71,6 +72,7 @@ void Measurements::insert(size_t repetition, const std::string alg_name){
                    + quotes(std::to_string(repetition)) +\
                    + ")";
 
+	init_time = 0;
         // std::cout << sql << std::endl;
 
         rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
