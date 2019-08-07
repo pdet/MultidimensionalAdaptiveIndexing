@@ -15,7 +15,11 @@ In this stand-alone implementation, we present various MDAI approaches and compa
 
 ## How to run
 
-To be written
+Run the following command on the root of the project, it will guide you through selecting the experiment and algorithms to run. Then it will provide instructions on what to do next.
+
+```
+python3 run_me.py
+```
 
 ## To Do
 
@@ -28,8 +32,9 @@ To be written
 * [ ] Implement Cracking KD-Tree Narrow (Need to fix bugs and improve its speed)
 * [X] Implement KD-Tree with median
 * [X] Implement KD-Tree with average
-* [ ] Implement Quasii
+* [X] Implement Quasii
 * [ ] Implement Full Index B-Tree
+* [ ] Implement Regular Cracking using B-Tree
 * [ ] Implement a Row-Store Table to check if they have difference
 * [ ] Check "Bitwise dimensional co-clustering for analytical workloads"
 
