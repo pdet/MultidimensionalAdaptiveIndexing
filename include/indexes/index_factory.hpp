@@ -19,19 +19,19 @@ class IndexFactory
 {
 public:
     static unique_ptr<AbstractIndex> getIndex(string index_name){
-        if(index_name.compare("Full-Scan"))
+        if(index_name == "Full-Scan")
             return make_unique<FullScan>();
-        if(index_name.compare("Cracking-KDTree-Broad"))
+        if(index_name == "Cracking KD-Tree Broad")
             return make_unique<CrackingKDTreeBroad>();
-        // if(index_name.compare("Cracking-KDTree-Narrow"))
+        // if(index_name == "Cracking KD-Tree Narrow")
         //     return make_unique<CrackingKDTreeNarrow>();
-        if(index_name.compare("KDTree-Median"))
+        if(index_name == "KDTree-Median")
             return make_unique<MedianKDTree>();
-        if(index_name.compare("KDTree-Average"))
+        if(index_name == "KDTree-Average")
             return make_unique<AverageKDTree>();
-        if(index_name.compare("Quasii"))
+        if(index_name == "Quasii")
             return make_unique<Quasii>();
-        return make_unique<FullScan>();
+        assert(false);
     }
 
     static vector<shared_ptr<AbstractIndex>> allIndexes(){
