@@ -23,9 +23,13 @@ public:
 
     Table(shared_ptr<Table> table_to_copy);
 
+    Table(const Table &other);
+
     ~Table();
 
     vector<float> materialize_row(size_t row_index);
+
+    void append_column(Column col);
 
     void append(vector<float> row);
 
@@ -43,9 +47,9 @@ public:
     // Returns a pair of positions indicating where each patition starts
     pair<size_t, size_t> CrackTableInThree(size_t low, size_t high, float key_left, float key_right, size_t c);
 
-    size_t row_count();
+    size_t row_count() const;
 
-    size_t col_count();
+    size_t col_count() const;
 };
 
 #endif // TABLE_H

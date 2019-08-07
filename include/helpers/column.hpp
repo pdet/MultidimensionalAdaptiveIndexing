@@ -12,6 +12,8 @@ public:
 
     Column();
 
+    Column(const Column &other);
+
     void append(float value);
 
     float at(size_t index);

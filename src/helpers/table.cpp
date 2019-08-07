@@ -41,7 +41,27 @@ Table::Table(shared_ptr<Table> table_to_copy){
         );
 }
 
+Table::Table(const Table &other){
+    number_of_rows = other.row_count();
+    number_of_columns = other.col_count();
+
+    // Allocate the columns
+    columns.resize(number_of_columns);
+    for(size_t i = 0; i < number_of_columns; ++i){
+        columns.at(i) = make_unique<Column>();
+    }
+    // Copy the columns from one table to the other
+    for (size_t col_index = 0; col_index < other.col_count(); col_index++)
+        columns.at(col_index) = make_unique<Column>(
+            *(other.columns.at(col_index).get())
+        );
+}
+
 Table::~Table(){}
+void Table::append_column(Column col){
+    columns.push_back(make_unique<Column>(col));
+    number_of_columns++;
+}
 
 vector<float> Table::materialize_row(size_t row_index){
     vector<float> row(col_count());
@@ -147,10 +167,10 @@ pair<size_t, size_t> Table::CrackTableInThree(size_t low, size_t high, float key
     return make_pair(x1,x2);
 }
 
-size_t Table::row_count(){
+size_t Table::row_count() const{
     return number_of_rows;
 }
 
-size_t Table::col_count(){
+size_t Table::col_count() const{
     return number_of_columns;
 }
