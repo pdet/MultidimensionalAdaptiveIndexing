@@ -58,11 +58,16 @@ shared_ptr<Table> CrackingKDTreeNarrow::range_query(Query& query){
         Measurements::difference(end, start)
     );
 
+    size_t n_tuples_scanned = 0;
+    for(auto &partition : partitions)
+        n_tuples_scanned += partition.second - partition.first;
+
     // Before returning the result, update the statistics.
     measurements->number_of_nodes.push_back(index->get_node_count());
     measurements->max_height.push_back(index->get_max_height());
     measurements->min_height.push_back(index->get_min_height());
     measurements->memory_footprint.push_back(index->get_node_count() * sizeof(KDNode));
+    measurements->tuples_scanned.push_back(n_tuples_scanned);
 
     return result;
 }

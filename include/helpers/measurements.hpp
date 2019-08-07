@@ -17,6 +17,7 @@ public:
     std::vector<size_t> min_height;
     std::vector<size_t> number_of_nodes;
     std::vector<size_t> memory_footprint;
+    std::vector<size_t> tuples_scanned;
 
     Measurements();
     ~Measurements();

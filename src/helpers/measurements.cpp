@@ -41,6 +41,7 @@ void Measurements::create_table(){
       "MAX_HEIGHT               INT         NOT NULL," \
       "NUMBER_OF_NODES          INT         NOT NULL," \
       "MEMORY_FOOTPRINT         INT         NOT NULL," \
+      "TUPLES_SCANNED           INT         NOT NULL," \
       "REPETITION               INT         NOT NULL" \
       ");";
 
@@ -56,10 +57,10 @@ void Measurements::create_table(){
 }
 
 void Measurements::insert(size_t repetition, const std::string alg_name){
-   double init_time = initialization_time; 
+   double init_time = initialization_time;
     for(size_t i = 0; i < adaptation_time.size(); ++i){
         auto sql = "INSERT INTO RESULTS "\
-                   "(NAME, INITIALIZATION_TIME, ADAPTATION_TIME, QUERY_TIME, MIN_HEIGHT, MAX_HEIGHT, NUMBER_OF_NODES, MEMORY_FOOTPRINT, REPETITION) "\
+                   "(NAME, INITIALIZATION_TIME, ADAPTATION_TIME, QUERY_TIME, MIN_HEIGHT, MAX_HEIGHT, NUMBER_OF_NODES, MEMORY_FOOTPRINT, TUPLES_SCANNED, REPETITION) "\
                    "VALUES "\
                    "(" + quotes(alg_name) + ", " \
                    + quotes(std::to_string(init_time)) + ", " \
@@ -69,6 +70,7 @@ void Measurements::insert(size_t repetition, const std::string alg_name){
                    + quotes(std::to_string(max_height.at(i))) + ", " \
                    + quotes(std::to_string(number_of_nodes.at(i))) + ", " \
                    + quotes(std::to_string(memory_footprint.at(i))) + ", " \
+                   + quotes(std::to_string(tuples_scanned.at(i))) + ", " \
                    + quotes(std::to_string(repetition)) +\
                    + ")";
 

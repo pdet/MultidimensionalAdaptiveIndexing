@@ -41,6 +41,7 @@ shared_ptr<Table> FullScan::range_query(Query& query){
     measurements->max_height.push_back(0);
     measurements->min_height.push_back(0);
     measurements->memory_footprint.push_back(0);
+    measurements->tuples_scanned.push_back(table->row_count());
 
     return result;
 }

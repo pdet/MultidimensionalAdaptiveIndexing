@@ -63,11 +63,16 @@ shared_ptr<Table> Quasii::range_query(Query& query){
         Measurements::difference(end, start)
     );
 
+    size_t n_tuples_scanned = 0;
+    for(auto &partition : partitions)
+        n_tuples_scanned += partition.second - partition.first;
+
     // Before returning the result, update the statistics.
     measurements->number_of_nodes.push_back(count_slices(first_level_slices));
     measurements->max_height.push_back(table->col_count());
     measurements->min_height.push_back(table->col_count());
     measurements->memory_footprint.push_back(count_slices(first_level_slices) * sizeof(Slice));
+    measurements->tuples_scanned.push_back(n_tuples_scanned);
 
     return result;
 }
