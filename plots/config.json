@@ -1,8 +1,8 @@
 {
-    "benchmark": 0,
-    "number_of_attributes": 2,
+    "benchmark": 2,
+    "number_of_attributes": 5,
     "number_of_queries": 1000,
-    "number_of_tuples": 1000,
+    "number_of_tuples": 1000000,
     "algorithms": [
         "Cracking KD-Tree Broad",
         "Quasii",
@@ -12,5 +12,5 @@
     ],
     "query_type": 7,
     "selectivity": 0.001,
-    "repetitions": "1"
+    "repetitions": "3"
 }
