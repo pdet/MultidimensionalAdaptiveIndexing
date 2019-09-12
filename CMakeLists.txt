@@ -1,15 +1,18 @@
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.13)
 project(MultidimensionalAdaptiveIndex)
 set (CMAKE_CXX_STANDARD 14)
 add_definitions("-g -Wall")
 
+# Setting output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
+# Header files
 include_directories(${CMAKE_SOURCE_DIR}/include/helpers)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes/kd_tree)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes/quasii)
 
+# External libs
 include_directories(/usr/include)
 link_directories(/usr/lib)
 
@@ -37,7 +40,8 @@ target_link_libraries(MDAI_lib sqlite3)
 add_executable(main ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(main MDAI_lib)
 
-add_executable(test_algorithms ${CMAKE_SOURCE_DIR}/src/test/test.cpp)
-target_link_libraries(test_algorithms MDAI_lib)
-
 add_executable(generator ${CMAKE_SOURCE_DIR}/src/data/generator.cpp)
+
+add_subdirectory("test")
+
+
