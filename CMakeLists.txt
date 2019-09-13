@@ -11,6 +11,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include/helpers)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes/kd_tree)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes/quasii)
+include_directories(${CMAKE_SOURCE_DIR}/include/data)
 
 # External libs
 include_directories(/usr/include)
@@ -31,6 +32,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_node.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/standard_cracking.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/data_reader.cpp
             )
 
 add_library(MDAI_lib ${SOURCES})

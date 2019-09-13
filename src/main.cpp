@@ -1,5 +1,5 @@
 #include "index_factory.hpp"
-#include "data/data_reader.cpp"
+#include "data_reader.hpp"
 #include <string>
 #include <iostream>
 
