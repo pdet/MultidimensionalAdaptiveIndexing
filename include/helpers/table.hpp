@@ -21,7 +21,7 @@ public:
 
     Table(size_t number_of_columns);
 
-    Table(shared_ptr<Table> table_to_copy);
+    Table(Table *table_to_copy);
 
     Table(const Table &other);
 

@@ -32,11 +32,11 @@ TEST_CASE( "Check if all algorithms have the same results", "[SmallTest] [FullSc
 
     vector<size_t> baseline_results(workload.size());
 
-    baseline->initialize(table);
+    baseline->initialize(table.get());
     for(size_t j = 0; j < workload.size(); ++j){
         baseline->adapt_index(workload.at(j));
         auto result = baseline->range_query(workload.at(j));
-        baseline_results.at(j) = result->row_count();
+        baseline_results.at(j) = result.row_count();
     }
 
     vector<vector<size_t> > result_sizes(algorithms.size());
@@ -46,11 +46,11 @@ TEST_CASE( "Check if all algorithms have the same results", "[SmallTest] [FullSc
     for(size_t i = 0; i < algorithms.size(); ++i){
         auto algorithm = algorithms.at(i);
         INFO(algorithm->name());
-        algorithm->initialize(table);
+        algorithm->initialize(table.get());
         for(size_t j = 0; j < workload.size(); ++j){
             algorithm->adapt_index(workload.at(j));
             auto result = algorithm->range_query(workload.at(j));
-            result_sizes.at(i).push_back(result->row_count());
+            result_sizes.at(i).push_back(result.row_count());
         }
     }
 

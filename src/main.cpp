@@ -45,7 +45,7 @@ int main(int argc, char** argv){
         auto table = DataReader::read_table(data_path);
         auto workload = DataReader::read_workload(workload_path);
 
-        index->initialize(table);
+        index->initialize(table.get());
         for(size_t i = 0; i < workload.size(); ++i){
             index->adapt_index(workload.at(i));
             index->range_query(workload.at(i));

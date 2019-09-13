@@ -5,7 +5,7 @@
 
 using namespace std;
 
-shared_ptr<Table> DataReader::read_table(const string &data_path){
+unique_ptr<Table> DataReader::read_table(const string &data_path){
     ifstream file(data_path.c_str(), ios::in);
     if(!file.is_open()){
         cout << "Error *opening* data file\n";
@@ -18,7 +18,7 @@ shared_ptr<Table> DataReader::read_table(const string &data_path){
     }
 
     auto row = split(line, ' ');
-    auto table = make_shared<Table>(row.size());
+    auto table = make_unique<Table>(row.size());
     table->append(row);
 
     while(getline(file,line)){
