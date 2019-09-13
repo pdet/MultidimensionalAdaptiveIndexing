@@ -33,16 +33,17 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_node.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/standard_cracking.cpp
             ${CMAKE_SOURCE_DIR}/src/data/data_reader.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generator.cpp
             )
 
 add_library(MDAI_lib ${SOURCES})
-
 target_link_libraries(MDAI_lib sqlite3)
 
 add_executable(main ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(main MDAI_lib)
 
-add_executable(generator ${CMAKE_SOURCE_DIR}/src/data/generator.cpp)
+add_executable(generator ${CMAKE_SOURCE_DIR}/src/generator.cpp)
+target_link_libraries(generator MDAI_lib)
 
 add_subdirectory("test")
 
