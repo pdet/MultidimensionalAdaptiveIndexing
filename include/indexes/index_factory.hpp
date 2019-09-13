@@ -44,7 +44,7 @@ public:
         return indexes;
     }
 
-    static shared_ptr<AbstractIndex> baseline_index(){
+    static shared_ptr<AbstractIndex> baselineIndex(){
         return make_unique<FullScan>();
     }
 };
