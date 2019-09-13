@@ -16,7 +16,7 @@ int main(){
 
     auto algorithms = IndexFactory::allIndexes();
 
-    auto baseline = IndexFactory::baseline_index();
+    auto baseline = IndexFactory::baselineIndex();
 
     vector<vector<size_t> > result_sizes(algorithms.size());
 

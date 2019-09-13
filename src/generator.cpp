@@ -107,7 +107,8 @@ int main(int argc, char* argv[]) {
     else
         std::cout << "INFO: " << n_of_rows << " vectors, " << dimensions << " dimensions." << std::endl;
    
-    auto generator = Generator(n_of_rows,
+    auto generator = Generator(
+            n_of_rows,
             dimensions,
             workload,
             selectivity,
