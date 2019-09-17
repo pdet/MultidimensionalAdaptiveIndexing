@@ -3,6 +3,9 @@ project(MultidimensionalAdaptiveIndex)
 set (CMAKE_CXX_STANDARD 14)
 add_definitions("-g -Wall")
 
+#Find Packages
+find_package (SQLite3)
+
 # Setting output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
@@ -12,10 +15,13 @@ include_directories(${CMAKE_SOURCE_DIR}/include/indexes)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes/kd_tree)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes/quasii)
 include_directories(${CMAKE_SOURCE_DIR}/include/data)
+include_directories(${SQLite3_INCLUDE_DIRS})
 
 # External libs
 include_directories(/usr/include)
 link_directories(/usr/lib)
+
+
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/measurements.cpp
@@ -37,7 +43,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             )
 
 add_library(MDAI_lib ${SOURCES})
-target_link_libraries(MDAI_lib sqlite3)
+target_link_libraries (MDAI_lib ${SQLite3_LIBRARIES})
 
 add_executable(main ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(main MDAI_lib)
