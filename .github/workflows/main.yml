@@ -1,0 +1,16 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - run: |
+        mkdir build
+        cmake -B build .
+        cmake --build build -j $(nproc)
+        bin/tests
