@@ -10,7 +10,5 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: |
-        mkdir build
-        cmake -B build .
-        cmake --build build -j $(nproc)
+        cmake -DCMAKE_BUILD_TYPE=Release && make
         bin/tests
