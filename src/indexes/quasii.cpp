@@ -7,7 +7,7 @@
 Quasii::Quasii(){}
 Quasii::~Quasii(){}
 
-void Quasii::initialize(const shared_ptr<Table> table_to_copy){
+void Quasii::initialize(Table *table_to_copy){
     // ******************
     auto start = measurements->time();
 
@@ -41,7 +41,7 @@ void Quasii::adapt_index(Query& query){
     );
 }
 
-shared_ptr<Table> Quasii::range_query(Query& query){
+Table Quasii::range_query(Query& query){
     // ******************
     auto start = measurements->time();
 
@@ -49,12 +49,12 @@ shared_ptr<Table> Quasii::range_query(Query& query){
     auto partitions = search(query);
 
     // Scan the table and returns a materialized view of the result.
-    auto result = make_shared<Table>(table->col_count());
+    auto result = Table(table->col_count());
     for (auto partition : partitions)
     {
         auto low = partition.first;
         auto high = partition.second;
-        FullScan::scan_partition(table, query, low, high, result);
+        FullScan::scan_partition(table.get(), query, low, high, &result);
     }
 
     auto end = measurements->time();

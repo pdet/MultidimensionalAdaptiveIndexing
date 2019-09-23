@@ -7,7 +7,7 @@
 //#include "cracking_kd_tree_narrow.hpp"
 #include "median_kd_tree.hpp"
 #include "average_kd_tree.hpp"
-//#include "quasii.hpp"
+#include "quasii.hpp"
 
 #include <iostream>
 #include <string>
@@ -29,8 +29,8 @@ public:
             return make_unique<MedianKDTree>();
         if(index_name == "KDTree-Average")
             return make_unique<AverageKDTree>();
-       // if(index_name == "Quasii")
-       //     return make_unique<Quasii>();
+        if(index_name == "Quasii")
+            return make_unique<Quasii>();
         assert(false);
     }
 
@@ -40,7 +40,7 @@ public:
         // indexes.push_back(make_unique<CrackingKDTreeNarrow>());
         indexes.push_back(make_unique<MedianKDTree>());
         indexes.push_back(make_unique<AverageKDTree>());
-        // indexes.push_back(make_unique<Quasii>());
+        indexes.push_back(make_unique<Quasii>());
         return indexes;
     }
 
