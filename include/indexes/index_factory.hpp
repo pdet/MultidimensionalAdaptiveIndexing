@@ -3,7 +3,7 @@
 
 #include "abstract_index.hpp"
 #include "full_scan.hpp"
-//#include "cracking_kd_tree_broad.hpp"
+#include "cracking_kd_tree_broad.hpp"
 //#include "cracking_kd_tree_narrow.hpp"
 //#include "median_kd_tree.hpp"
 //#include "average_kd_tree.hpp"
@@ -21,8 +21,8 @@ public:
     static unique_ptr<AbstractIndex> getIndex(string index_name){
         if(index_name == "Full-Scan")
             return make_unique<FullScan>();
-       // if(index_name == "Cracking KD-Tree Broad")
-       //     return make_unique<CrackingKDTreeBroad>();
+        if(index_name == "Cracking KD-Tree Broad")
+            return make_unique<CrackingKDTreeBroad>();
        // // if(index_name == "Cracking KD-Tree Narrow")
        // //     return make_unique<CrackingKDTreeNarrow>();
        // if(index_name == "KDTree-Median")
@@ -36,7 +36,7 @@ public:
 
     static vector<shared_ptr<AbstractIndex>> allIndexes(){
         vector<shared_ptr<AbstractIndex>> indexes;
-        //indexes.push_back(make_unique<CrackingKDTreeBroad>());
+        indexes.push_back(make_unique<CrackingKDTreeBroad>());
         // indexes.push_back(make_unique<CrackingKDTreeNarrow>());
         //indexes.push_back(make_unique<MedianKDTree>());
         //indexes.push_back(make_unique<AverageKDTree>());

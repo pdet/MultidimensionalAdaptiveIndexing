@@ -38,21 +38,21 @@ private:
     size_t number_of_nodes = 0;
 
     vector<pair<size_t, size_t>> partitions;
-    vector<KDNode> nodes_to_check;
+    vector<KDNode*> nodes_to_check;
     vector<size_t> lower_limits, upper_limits;
 
     // Checks the left child
     // If it is null then we reached a partition
     // Otherwise, we follow it
-    void get_partition_or_follow_left(KDNode &current, size_t lower_limit);
+    void get_partition_or_follow_left(KDNode *current, size_t lower_limit);
 
     // Checks the right child
     // If it is null then we reached a partition
     // Otherwise, we follow it
-    void get_partition_or_follow_right(KDNode &current, size_t upper_limit);
+    void get_partition_or_follow_right(KDNode *current, size_t upper_limit);
 
     // Checks if node's column is inside of query
-    bool node_in_query(KDNode &current, Query& query);
+    bool node_in_query(KDNode *current, Query& query);
 
     // If the node's key is greater or equal to the high part of the query
     // Then follow the left child
@@ -61,7 +61,7 @@ private:
     // Data:  |----------!--------|
     // Query:      |-----|
     //            low   high
-    bool node_greater_equal_query(KDNode &node, Query& query);
+    bool node_greater_equal_query(KDNode *node, Query& query);
 
     // If the node's key is smaller to the low part of the query
     // Then follow the right child
@@ -69,7 +69,7 @@ private:
     // Data:  |----------!--------|
     // Query:            |-----|
     //                  low   high
-    bool node_less_equal_query(KDNode &node, Query& query);
+    bool node_less_equal_query(KDNode *node, Query& query);
 };
 
 #endif // KDTREE
