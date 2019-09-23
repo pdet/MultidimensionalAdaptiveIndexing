@@ -13,15 +13,15 @@ public:
     Quasii();
     ~Quasii();
 
-    string name(){
+    string name() override{
         return "Quasii";
     }
 
-    void initialize(const shared_ptr<Table> table_to_copy);
+    void initialize(Table *table_to_copy) override;
 
-    void adapt_index(Query& query);
+    void adapt_index(Query& query) override;
 
-    shared_ptr<Table> range_query(Query& query);
+    Table range_query(Query& query) override;
 
 private:
     vector<Slice> first_level_slices;

@@ -5,7 +5,7 @@
 CrackingKDTreeBroad::CrackingKDTreeBroad(){}
 CrackingKDTreeBroad::~CrackingKDTreeBroad(){}
 
-void CrackingKDTreeBroad::initialize(const shared_ptr<Table> table_to_copy){
+void CrackingKDTreeBroad::initialize(Table *table_to_copy){
     // ******************
     auto start = measurements->time();
 
@@ -37,7 +37,7 @@ void CrackingKDTreeBroad::adapt_index(Query& query){
     );
 }
 
-shared_ptr<Table> CrackingKDTreeBroad::range_query(Query& query){
+Table CrackingKDTreeBroad::range_query(Query& query){
     // ******************
     auto start = measurements->time();
 
@@ -45,12 +45,12 @@ shared_ptr<Table> CrackingKDTreeBroad::range_query(Query& query){
     auto partitions = index->search(query);
 
     // Scan the table and returns a materialized view of the result.
-    auto result = make_shared<Table>(table->col_count());
+    auto result = Table(table->col_count());
     for (auto partition : partitions)
     {
         auto low = partition.first;
         auto high = partition.second;
-        FullScan::scan_partition(table, query, low, high, result);
+        FullScan::scan_partition(table.get(), query, low, high, &result);
     }
 
     auto end = measurements->time();
@@ -91,7 +91,7 @@ void CrackingKDTreeBroad::insert(size_t column, float key){
     lower_limits.resize(0);
     upper_limits.resize(0);
 
-    nodes_to_check.push_back(*index->root);
+    nodes_to_check.push_back(index->root.get());
     lower_limits.push_back(0);
     upper_limits.push_back(table->row_count() - 1);
     while(!nodes_to_check.empty()){
@@ -105,18 +105,18 @@ void CrackingKDTreeBroad::insert(size_t column, float key){
         upper_limits.pop_back();
 
         // Current node shares the same column
-        if(current.column == column){
+        if(current->column == column){
             // Current node is smaller than key to insert, then follow right
             // Current:      (col, key)
             //                         >
             // New:                     (col, k)
-            if(current.key < key)
+            if(current->key < key)
                 follow_or_crack_right(current, column, key, upper_limit);
             // Current node is greater than key to insert
             // Current:       (col, key)
             //              <
             // New:   (col, k)
-            else if(current.key > key)
+            else if(current->key > key)
                 follow_or_crack_left(current, column, key, lower_limit);
             // Current node is equal to key to insert
             // Current:      (col, key)
@@ -132,21 +132,21 @@ void CrackingKDTreeBroad::insert(size_t column, float key){
     }
 }
 
-void CrackingKDTreeBroad::follow_or_crack_right(KDNode &current, size_t column, float key, float upper_limit){
+void CrackingKDTreeBroad::follow_or_crack_right(KDNode *current, size_t column, float key, float upper_limit){
     // If the right child is null, then we crack that partition
     // Current:      (col, key)
     //              /          \
     // Child:                  null
-    if(current.right_child == nullptr){
-        if(upper_limit - current.right_position < minimum_partition_size)
+    if(current->right_child == nullptr){
+        if(upper_limit - current->right_position < minimum_partition_size)
             return;
         auto position = table->CrackTable(
-            current.right_position, upper_limit,
+            current->right_position, upper_limit,
             key, column
         );
         position--;
-        if(!(position < current.right_position || position >= upper_limit)){
-            current.right_child = index->create_node(
+        if(!(position < current->right_position || position >= upper_limit)){
+            current->right_child = index->create_node(
                 column, key, position
             );
         }
@@ -156,27 +156,27 @@ void CrackingKDTreeBroad::follow_or_crack_right(KDNode &current, size_t column, 
     //              /          \
     // Child:                 (..., ...)
     else{
-        nodes_to_check.push_back(*current.right_child);
-        lower_limits.push_back(current.right_position);
+        nodes_to_check.push_back(current->right_child.get());
+        lower_limits.push_back(current->right_position);
         upper_limits.push_back(upper_limit);
     }
 }
 
-void CrackingKDTreeBroad::follow_or_crack_left(KDNode &current, size_t column, float key, float lower_limit){
+void CrackingKDTreeBroad::follow_or_crack_left(KDNode *current, size_t column, float key, float lower_limit){
     // If the left child is null, then we crack that partition
     // Current:      (col, key)
     //              /          \
     // Child:     null
-    if(current.left_child == nullptr){
-        if(current.left_position - lower_limit < minimum_partition_size)
+    if(current->left_child == nullptr){
+        if(current->left_position - lower_limit < minimum_partition_size)
             return;
         auto position = table->CrackTable(
-            lower_limit, current.left_position,
+            lower_limit, current->left_position,
             key, column
         );
         position--;
-        if(!(position < lower_limit || position >= current.left_position)){
-            current.left_child = index->create_node(
+        if(!(position < lower_limit || position >= current->left_position)){
+            current->left_child = index->create_node(
                 column, key, position
             );
         }
@@ -186,8 +186,8 @@ void CrackingKDTreeBroad::follow_or_crack_left(KDNode &current, size_t column, f
     //              /          \
     // Child: (..., ...)
     else{
-        nodes_to_check.push_back(*current.left_child);
+        nodes_to_check.push_back(current->left_child.get());
         lower_limits.push_back(lower_limit);
-        upper_limits.push_back(current.left_position);
+        upper_limits.push_back(current->left_position);
     }
 }

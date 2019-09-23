@@ -5,7 +5,7 @@
 AverageKDTree::AverageKDTree(){}
 AverageKDTree::~AverageKDTree(){}
 
-void AverageKDTree::initialize(const shared_ptr<Table> table_to_copy){
+void AverageKDTree::initialize(Table *table_to_copy){
     // ******************
     auto start = measurements->time();
 
@@ -32,7 +32,7 @@ void AverageKDTree::adapt_index(Query& query){
     );
 }
 
-shared_ptr<Table> AverageKDTree::range_query(Query& query){
+Table AverageKDTree::range_query(Query& query){
     // ******************
     auto start = measurements->time();
 
@@ -40,12 +40,12 @@ shared_ptr<Table> AverageKDTree::range_query(Query& query){
     auto partitions = index->search(query);
 
     // Scan the table and returns a materialized view of the result.
-    auto result = make_shared<Table>(table->col_count());
+    auto result = Table(table->col_count());
     for (auto partition : partitions)
     {
         auto low = partition.first;
         auto high = partition.second;
-        FullScan::scan_partition(table, query, low, high, result);
+        FullScan::scan_partition(table.get(), query, low, high, &result);
     }
 
     auto end = measurements->time();
@@ -81,7 +81,7 @@ unique_ptr<KDTree> AverageKDTree::initialize_index(){
     upper_limits.resize(0);
     columns.resize(0);
 
-    nodes_to_check.push_back(*index->root);
+    nodes_to_check.push_back(index->root.get());
     lower_limits.push_back(0);
     upper_limits.push_back(table->row_count() - 1);
     columns.push_back(0);
@@ -99,32 +99,32 @@ unique_ptr<KDTree> AverageKDTree::initialize_index(){
         auto column = (columns.back() + 1) % table->col_count();
         columns.pop_back();
 
-        if(current.left_position - lower_limit > minimum_partition_size){
-            auto average_result = find_average(column, lower_limit, current.left_position);
+        if(current->left_position - lower_limit > minimum_partition_size){
+            auto average_result = find_average(column, lower_limit, current->left_position);
             auto average = average_result.first;
             auto position = average_result.second;
 
-            if(!(position < lower_limit || position >= current.left_position)){
-                current.left_child = index->create_node(column, average, position);
+            if(!(position < lower_limit || position >= current->left_position)){
+                current->left_child = index->create_node(column, average, position);
 
-                nodes_to_check.push_back(*current.left_child);
+                nodes_to_check.push_back(current->left_child.get());
                 columns.push_back(column);
                 lower_limits.push_back(lower_limit);
-                upper_limits.push_back(current.left_position);
+                upper_limits.push_back(current->left_position);
             }
         }
 
-        if(upper_limit - current.right_position > minimum_partition_size){
-            auto average_result = find_average(column, current.right_position, upper_limit);
+        if(upper_limit - current->right_position > minimum_partition_size){
+            auto average_result = find_average(column, current->right_position, upper_limit);
             auto average = average_result.first;
             auto position = average_result.second;
 
-            if(!(position < current.right_position || position >= upper_limit)){
-                current.right_child = index->create_node(column, average, position);
+            if(!(position < current->right_position || position >= upper_limit)){
+                current->right_child = index->create_node(column, average, position);
 
-                nodes_to_check.push_back(*current.right_child);
+                nodes_to_check.push_back(current->right_child.get());
                 columns.push_back(column);
-                lower_limits.push_back(current.right_position);
+                lower_limits.push_back(current->right_position);
                 upper_limits.push_back(upper_limit);
             }
         }

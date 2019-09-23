@@ -25,7 +25,7 @@ Table::Table(size_t number_of_columns) : number_of_columns(number_of_columns){
     number_of_rows = 0;
 }
 
-Table::Table(shared_ptr<Table> table_to_copy){
+Table::Table(Table *table_to_copy){
     number_of_rows = table_to_copy->row_count();
     number_of_columns = table_to_copy->col_count();
 

@@ -11,15 +11,15 @@ public:
     MedianKDTree();
     ~MedianKDTree();
 
-    string name(){
+    string name() override{
         return "Median KD-Tree";
     }
 
-    void initialize(const shared_ptr<Table> table_to_copy);
+    void initialize(Table *table_to_copy) override;
 
-    void adapt_index(Query& query);
+    void adapt_index(Query& query) override;
 
-    shared_ptr<Table> range_query(Query& query);
+    Table range_query(Query& query) override;
 
 private:
     unique_ptr<KDTree> index;
@@ -28,7 +28,7 @@ private:
     // Variables to help with initialization
     vector<size_t> columns;
     vector<size_t> lower_limits, upper_limits;
-    vector<KDNode> nodes_to_check;
+    vector<KDNode*> nodes_to_check;
 
     unique_ptr<KDTree> initialize_index();
 
