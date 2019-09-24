@@ -51,7 +51,7 @@ int main(int argc, char** argv){
             index->range_query(workload.at(i));
         }
 
-        index->measurements->save_to_sql(sqlite_path + "/results", repetition, index->name());
+        index->measurements->save_to_sql(sqlite_path, repetition, index->name());
     }
     return 0;
 }
