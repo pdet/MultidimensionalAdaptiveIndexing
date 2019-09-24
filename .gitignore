@@ -2,7 +2,7 @@
 src/data/datasets/**
 build/**
 bin/**
-runs/**
+experiments/**
 .DS_Store
 .idea/
 cmake-build-debug/
