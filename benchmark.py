@@ -1,7 +1,6 @@
 import os
 import subprocess
 import json
-import sqlite3
 from plotly.subplots import make_subplots
 import pandas as pd
 
@@ -22,8 +21,7 @@ class cd:
 class Plots:
     """Plots the results from the experiments"""
     def __init__(self, db_path, config_path):
-        self.conn = sqlite3.connect(db_path)
-        self.df = pd.read_sql_query("SELECT * FROM RESULTS;", self.conn)
+        self.df = pd.read_csv(db_path)
 
         with open(config_path) as json_file:
             self.config = json.load(json_file)

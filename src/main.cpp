@@ -12,7 +12,7 @@ int main(int argc, char** argv){
     string workload_path = "queries";
     string data_path = "data";
     string index_algorithm = "Full Scan";
-    string sqlite_path;
+    string csv_path;
     int number_of_repetitions = 3;
 
     int c;
@@ -32,7 +32,7 @@ int main(int argc, char** argv){
             number_of_repetitions = atoi(optarg);
             break;
         case 's':
-            sqlite_path = optarg;
+            csv_path = optarg;
             break;
         default:
             cout << "Usage: -w <workload_path> -d <data_path> -i <algorithm>";
@@ -51,7 +51,7 @@ int main(int argc, char** argv){
             index->range_query(workload.at(i));
         }
 
-        index->measurements->save_to_sql(sqlite_path, repetition, index->name());
+        index->measurements->save(csv_path, repetition, index->name());
     }
     return 0;
 }

@@ -1,6 +1,6 @@
 #include "measurements.hpp"
+#include <fstream>
 #include <iostream>
-#include <vector>
 
 Measurements::Measurements(){}
 Measurements::~Measurements(){}
@@ -15,86 +15,42 @@ double Measurements::difference(double end, double start){
     return end - start;
 }
 
-void Measurements::save_to_sql(std::string db_name, int repetition, std::string alg_name){
-    rc = sqlite3_open(db_name.c_str(), &db);
+void Measurements::save(std::string csv_name, int repetition, std::string alg_name){
+    bool file_exists = exists(csv_name);
+    std::fstream csv_file(csv_name, std::ios::out | std::ios::app);
 
-    if( rc ) {
-        std::cout << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
+    if( !csv_file.is_open() ) {
+        std::cout << "Can't open file: " << csv_name << std::endl;
         return;
     }
 
-    create_table();
-
-    insert(repetition, alg_name);
-
-    sqlite3_close(db);
-}
-
-void Measurements::create_table(){
-    /* Create SQL statement */
-   auto sql = "CREATE TABLE IF NOT EXISTS RESULTS("  \
-      "NAME                     TEXT        NOT NULL," \
-      "INITIALIZATION_TIME      FLOAT       NOT NULL," \
-      "ADAPTATION_TIME          FLOAT       NOT NULL," \
-      "QUERY_TIME               FLOAT       NOT NULL," \
-      "MIN_HEIGHT               INT         NOT NULL," \
-      "MAX_HEIGHT               INT         NOT NULL," \
-      "NUMBER_OF_NODES          INT         NOT NULL," \
-      "MEMORY_FOOTPRINT         INT         NOT NULL," \
-      "TUPLES_SCANNED           INT         NOT NULL," \
-      "REPETITION               INT         NOT NULL" \
-      ");";
-
-    // std::cout << sql << std::endl;
-
-   /* Execute SQL statement */
-   rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
-
-   if( rc != SQLITE_OK ){
-      fprintf(stderr, "SQL error: %s\n", zErrMsg);
-      sqlite3_free(zErrMsg);
-   }
-}
-
-void Measurements::insert(size_t repetition, const std::string alg_name){
-   double init_time = initialization_time;
-    for(size_t i = 0; i < adaptation_time.size(); ++i){
-        auto sql = "INSERT INTO RESULTS "\
-                   "(NAME, INITIALIZATION_TIME, ADAPTATION_TIME, QUERY_TIME, MIN_HEIGHT, MAX_HEIGHT, NUMBER_OF_NODES, MEMORY_FOOTPRINT, TUPLES_SCANNED, REPETITION) "\
-                   "VALUES "\
-                   "(" + quotes(alg_name) + ", " \
-                   + quotes(std::to_string(init_time)) + ", " \
-                   + quotes(std::to_string(adaptation_time.at(i))) + ", " \
-                   + quotes(std::to_string(query_time.at(i))) + ", " \
-                   + quotes(std::to_string(min_height.at(i))) + ", " \
-                   + quotes(std::to_string(max_height.at(i))) + ", " \
-                   + quotes(std::to_string(number_of_nodes.at(i))) + ", " \
-                   + quotes(std::to_string(memory_footprint.at(i))) + ", " \
-                   + quotes(std::to_string(tuples_scanned.at(i))) + ", " \
-                   + quotes(std::to_string(repetition)) +\
-                   + ")";
-
-	init_time = 0;
-        // std::cout << sql << std::endl;
-
-        rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
-
-        if( rc != SQLITE_OK ){
-            fprintf(stderr, "SQL error: %s\n", zErrMsg);
-            sqlite3_free(zErrMsg);
-        }
+    if(!file_exists){
+        // Create header of CSV
+        csv_file << "NAME,INITIALIZATION_TIME,ADAPTATION_TIME,QUERY_TIME,MIN_HEIGHT,MAX_HEIGHT,NUMBER_OF_NODES,MEMORY_FOOTPRINT,TUPLES_SCANNED,REPETITION\n";
     }
+
+    // Append the results
+    double init_time = initialization_time;
+    for(size_t i = 0; i < adaptation_time.size(); ++i){
+        auto line =  '"' + alg_name + "\", " \
+                   + std::to_string(init_time) + ", " \
+                   + std::to_string(adaptation_time.at(i)) + ", " \
+                   + std::to_string(query_time.at(i)) + ", " \
+                   + std::to_string(min_height.at(i)) + ", " \
+                   + std::to_string(max_height.at(i)) + ", " \
+                   + std::to_string(number_of_nodes.at(i)) + ", " \
+                   + std::to_string(memory_footprint.at(i)) + ", " \
+                   + std::to_string(tuples_scanned.at(i)) + ", " \
+                   + std::to_string(repetition);
+
+        init_time = 0;
+        csv_file << line << std::endl;
+    }
+
+    csv_file.close();
 }
 
-std::string Measurements::quotes(std::string s){
-    return "'" + s + "'";
-}
-
-int Measurements::callback(void *NotUsed, int argc, char **argv, char **azColName) {
-   int i;
-   for(i = 0; i<argc; i++) {
-      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-   }
-   printf("\n");
-   return 0;
+inline bool Measurements::exists (const std::string& name) {
+    std::ifstream f(name.c_str());
+    return f.good();
 }
