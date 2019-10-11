@@ -2,7 +2,6 @@ import os
 import subprocess
 import json
 import pandas as pd
-import glob
 import matplotlib.pyplot as plt
 from textwrap import wrap
 
@@ -22,11 +21,16 @@ class cd:
 
 class Plots:
     """Plots the results from the experiments"""
-    def __init__(self, db_path, config_path):
+    def __init__(self, db_path, config):
+        """Plots Constructor
+
+        Arguments:
+            - db_path (string): path to csv file
+            - config (dict): dictionary with configuration
+        """
         self.df = pd.read_csv(db_path)
 
-        with open(config_path) as json_file:
-            self.config = json.load(json_file)
+        self.config = config
 
     def average_each_query(self, list_of_values):
         """Each experiment can be ran multiple times,
@@ -86,7 +90,7 @@ class Plots:
                 {self.config['number_of_tuples']}-tuples\
                 {self.config['selectivity']}-selectivity"
         ax.set_title("\n".join(wrap(title, 30, break_long_words=False)))
-        fig.write_image(file_name)
+        fig.savefig(file_name, bbox_inches='tight')
 
     def per_query_plot(self, file_name):
         """Per query time
@@ -119,7 +123,7 @@ class Plots:
                 {self.config['number_of_tuples']}-tuples\
                 {self.config['selectivity']}-selectivity"
         ax.set_title("\n".join(wrap(title, 30, break_long_words=False)))
-        fig.write_image(file_name)
+        fig.savefig(file_name, bbox_inches='tight')
 
     def tuples_scanned(self, file_name):
         """Number of tuples scanned per query
@@ -150,35 +154,32 @@ class Plots:
                 {self.config['number_of_tuples']}-tuples\
                 {self.config['selectivity']}-selectivity"
         ax.set_title("\n".join(wrap(title, 30, break_long_words=False)))
-        fig.write_image(file_name)
+        fig.savefig(file_name, bbox_inches='tight')
 
 
 class Benchmark:
     """Executes the benchmark given by the config file"""
-    BUILD_DIR = "../../build/"
-    BIN_DIR = "../../bin/"
     CURRENT_DIR = os.getcwd()
 
     def __init__(
             self,
-            config_file,
+            config,
             build_dir="../../build",
             bin_dir="../../bin"
             ):
         """Benchmark Constructor
 
         Arguments:
-            - config_file (string): path to config file
+            - config (dict): dict with configuration
             - build_dir (string): path to MDAI build dir
             - bin_dir (string): path to MDAI bin dir
         """
-        with open(config_file) as json_file:
-            self.config = json.load(json_file)
 
+        self.config = config
         self.BUILD_DIR = build_dir
         self.BIN_DIR = bin_dir
 
-    def run(self, results_file="results"):
+    def run(self, results_file="results", compile_code=True):
         """Runs the benchmark, saves the results as CSV file in results_file
 
         Arguments:
@@ -188,9 +189,10 @@ class Benchmark:
             os.makedirs(self.BUILD_DIR)
 
         # Compile the code
-        with cd(self.BUILD_DIR):
-            subprocess.call(["cmake", ".."])
-            subprocess.call(["make"])
+        if(compile_code):
+            with cd(self.BUILD_DIR):
+                subprocess.call(["cmake", "-DCMAKE_BUILD_TYPE=Release", ".."])
+                subprocess.call(["make"])
 
         with cd(self.BIN_DIR):
             # Generate data.sql and queries.sql
@@ -215,18 +217,35 @@ class Benchmark:
                     "-s", self.CURRENT_DIR + "/" + results_file
                 ])
 
+    def clean(build_dir):
         # Run make clean
-        with cd(self.BUILD_DIR):
+        with cd(build_dir):
             subprocess.call(["make", "clean"])
 
 
 if __name__ == "__main__":
-    for config in glob.glob("mdai*.json"):
-        db_name = "results" + config.split(".json")[0]
-        benchmark = Benchmark(config)
-        benchmark.run(results_file=db_name)
+    BUILD_DIR = "../../build/"
+    BIN_DIR = "../../bin/"
 
-        plotter = Plots(db_name, config)
-        plotter.per_query_plot(db_name + "_per_query.png")
-        plotter.cum_sum_plot(db_name + "_cum_sum.png")
-        plotter.tuples_scanned(db_name + "_tuples_scanned.png")
+    with open("config.json") as json_file:
+        config = json.load(json_file)
+
+    compile_code = True
+
+    for exp in config['experiments']:
+        name = exp['name']
+        os.makedirs(name)
+        benchmark = Benchmark(exp, BUILD_DIR, BIN_DIR)
+        benchmark.run(
+                results_file=name + '/results.csv',
+                compile_code=compile_code
+        )
+        compile_code = False
+    Benchmark.clean(BUILD_DIR)
+
+    for exp in config['experiments']:
+        name = exp['name']
+        plotter = Plots(name + '/results.csv', exp)
+        plotter.per_query_plot(name + "/per_query.png")
+        plotter.cum_sum_plot(name + "/cum_sum.png")
+        plotter.tuples_scanned(name + "/tuples_scanned.png")
