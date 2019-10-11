@@ -37,6 +37,7 @@ TEST_CASE( "Check if all algorithms have the same results", "[SmallTest] [FullSc
         baseline->adapt_index(workload.at(j));
         auto result = baseline->range_query(workload.at(j));
         baseline_results.at(j) = result.row_count();
+        REQUIRE(baseline_results.at(j) > 0);
     }
 
     vector<vector<size_t> > result_sizes(algorithms.size());
