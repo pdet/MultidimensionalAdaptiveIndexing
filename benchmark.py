@@ -1,8 +1,10 @@
 import os
 import subprocess
 import json
-from plotly.subplots import make_subplots
 import pandas as pd
+import glob
+import matplotlib.pyplot as plt
+from textwrap import wrap
 
 
 class cd:
@@ -40,66 +42,84 @@ class Plots:
         return final
 
     def cum_sum_plot(self, file_name):
-        fig = make_subplots(rows=1, cols=1)
+        fig, ax = plt.subplots(nrows=1, ncols=1)
         algorithms = self.df['NAME'].unique()
+        avgs = {}
         for alg in algorithms:
             temp_df = self.df.loc[self.df['NAME'] == alg].copy()
             temp_df['TOTAL_TIME'] = temp_df['INITIALIZATION_TIME']
             temp_df['TOTAL_TIME'] += temp_df['ADAPTATION_TIME']
             temp_df['TOTAL_TIME'] += temp_df['QUERY_TIME']
             avg = self.average_each_query(list(temp_df['TOTAL_TIME']))
-            temp_df = pd.DataFrame({'TOTAL_TIME': avg})
-            fig.add_scatter(
-                y=temp_df['TOTAL_TIME'].cumsum(),
-                name=alg
+            avgs[alg] = avg
+
+        for alg in sorted(avgs, key=lambda x: avgs[x][-1], reverse=True):
+            temp_df = pd.DataFrame({'TOTAL_TIME': avgs[alg]})
+            ax.plot(
+                temp_df['TOTAL_TIME'].cumsum(),
+                label=alg
             )
-        fig.update_xaxes(title_text="Query Number")
-        fig.update_yaxes(title_text="Time (seconds)")
-        fig.update_layout(title_text=f"""Cumulative Sum
-                         {self.config['number_of_attributes']} column(s)
-                         {self.config['number_of_tuples']} tuples
-                         {self.config['selectivity']} selectivity""")
+        ax.set_xlabel("Query Number")
+        ax.set_ylabel("Time (seconds)")
+        ax.legend(bbox_to_anchor=(1.0, 1.0))
+        title = f"Cumulative Sum\
+                {self.config['number_of_attributes']}-column(s)\
+                {self.config['number_of_tuples']}-tuples\
+                {self.config['selectivity']}-selectivity"
+        ax.set_title("\n".join(wrap(title, 30, break_long_words=False)))
         fig.write_image(file_name)
 
     def per_query_plot(self, file_name):
-        fig = make_subplots(rows=1, cols=1)
+        fig, ax = plt.subplots(nrows=1, ncols=1)
         algorithms = self.df['NAME'].unique()
+        avgs = {}
         for alg in algorithms:
             temp_df = self.df.loc[self.df['NAME'] == alg].copy()
             temp_df['TOTAL_TIME'] = temp_df['INITIALIZATION_TIME']
             temp_df['TOTAL_TIME'] += temp_df['ADAPTATION_TIME']
             temp_df['TOTAL_TIME'] += temp_df['QUERY_TIME']
-            fig.add_scatter(
-                y=self.average_each_query(
-                    list(temp_df['TOTAL_TIME'])
-                ),
-                name=alg
+            avg = self.average_each_query(list(temp_df['TOTAL_TIME']))
+            avgs[alg] = avg
+
+        for alg in sorted(avgs, key=lambda x: avgs[x][-1], reverse=True):
+            ax.plot(
+                avgs[alg],
+                label=alg
             )
-        fig.update_xaxes(title_text="Query Number")
-        fig.update_yaxes(title_text="Time (seconds)")
-        fig.update_layout(title_text=f"""Per Query
-                         {self.config['number_of_attributes']} column(s)
-                         {self.config['number_of_tuples']} tuples
-                         {self.config['selectivity']} selectivity""")
+
+        ax.set_xlabel("Query Number")
+        ax.set_ylabel("Time (seconds)")
+        ax.legend(bbox_to_anchor=(1.0, 1.0))
+        title = f"Per Query Time\
+                {self.config['number_of_attributes']}-column(s)\
+                {self.config['number_of_tuples']}-tuples\
+                {self.config['selectivity']}-selectivity"
+        ax.set_title("\n".join(wrap(title, 30, break_long_words=False)))
         fig.write_image(file_name)
 
     def tuples_scanned(self, file_name):
-        fig = make_subplots(rows=1, cols=1)
+        fig, ax = plt.subplots(nrows=1, ncols=1)
         algorithms = self.df['NAME'].unique()
+        avgs = {}
         for alg in algorithms:
             temp_df = self.df.loc[self.df['NAME'] == alg].copy()
-            fig.add_scatter(
-                y=self.average_each_query(
-                    list(temp_df['TUPLES_SCANNED'])
-                ),
-                name=alg
+            avg = self.average_each_query(list(temp_df['TUPLES_SCANNED']))
+            avgs[alg] = avg
+
+        for alg in sorted(avgs, key=lambda x: avgs[x][-1], reverse=True):
+            ax.plot(
+                avgs[alg],
+                label=alg
             )
-        fig.update_xaxes(title_text="Query Number")
-        fig.update_yaxes(title_text="Number of Tuples Scanned")
-        fig.update_layout(title_text=f"""Per Query
-                         {self.config['number_of_attributes']} column(s)
-                         {self.config['number_of_tuples']} tuples
-                         {self.config['selectivity']} selectivity""")
+
+        ax.set_xlabel("Query Number")
+        ax.set_ylabel("Number of Tuples Scanned")
+        ax.legend(bbox_to_anchor=(1.0, 1.0))
+        title = f"Per Query Tuples Scanned\
+                {self.config['number_of_attributes']}-column(s)\
+                {self.config['number_of_tuples']}-tuples\
+                {self.config['selectivity']}-selectivity"
+        ax.set_title("\n".join(wrap(title, 30, break_long_words=False)))
         fig.write_image(file_name)
 
 
@@ -157,10 +177,13 @@ class Benchmark:
             subprocess.call(["make", "clean"])
 
 
-benchmark = Benchmark("config.json")
-benchmark.run()
+if __name__ == "__main__":
+    for config in glob.glob("mdai*.json"):
+        db_name = "results" + config.split(".json")[0]
+        benchmark = Benchmark(config)
+        benchmark.run(results_file=db_name)
 
-plotter = Plots("results", "config.json")
-plotter.per_query_plot("per_query.png")
-plotter.cum_sum_plot("cum_sum.png")
-plotter.tuples_scanned("tuples_scanned.png")
+        plotter = Plots(db_name, config)
+        plotter.per_query_plot(db_name + "_per_query.png")
+        plotter.cum_sum_plot(db_name + "_cum_sum.png")
+        plotter.tuples_scanned(db_name + "_tuples_scanned.png")
