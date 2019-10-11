@@ -29,6 +29,19 @@ class Plots:
             self.config = json.load(json_file)
 
     def average_each_query(self, list_of_values):
+        """Each experiment can be ran multiple times,
+        this method gathers the information from the config file,
+        and averages the given list.
+
+        Example:
+            list_of_values = [2, 3, 4, 5, 2, 3]
+            repetitions = 2
+
+            Result: [(2 + 4)/2, (3 + 2)/2, (4 + 3)/2]
+
+        Returns:
+            - List of floats
+        """
         repetitions = int(self.config['repetitions'])
         final = []
         length = len(list_of_values)/repetitions
@@ -42,6 +55,12 @@ class Plots:
         return final
 
     def cum_sum_plot(self, file_name):
+        """Cummulative sum of each query
+
+        Arguments:
+            - file_name (string): output file
+        """
+
         fig, ax = plt.subplots(nrows=1, ncols=1)
         algorithms = self.df['NAME'].unique()
         avgs = {}
@@ -70,6 +89,11 @@ class Plots:
         fig.write_image(file_name)
 
     def per_query_plot(self, file_name):
+        """Per query time
+
+        Arguments:
+            - file_name (string): output file
+        """
         fig, ax = plt.subplots(nrows=1, ncols=1)
         algorithms = self.df['NAME'].unique()
         avgs = {}
@@ -98,6 +122,12 @@ class Plots:
         fig.write_image(file_name)
 
     def tuples_scanned(self, file_name):
+        """Number of tuples scanned per query
+
+        Arguments:
+            - file_name (string): output file
+        """
+
         fig, ax = plt.subplots(nrows=1, ncols=1)
         algorithms = self.df['NAME'].unique()
         avgs = {}
@@ -124,6 +154,7 @@ class Plots:
 
 
 class Benchmark:
+    """Executes the benchmark given by the config file"""
     BUILD_DIR = "../../build/"
     BIN_DIR = "../../bin/"
     CURRENT_DIR = os.getcwd()
@@ -134,6 +165,13 @@ class Benchmark:
             build_dir="../../build",
             bin_dir="../../bin"
             ):
+        """Benchmark Constructor
+
+        Arguments:
+            - config_file (string): path to config file
+            - build_dir (string): path to MDAI build dir
+            - bin_dir (string): path to MDAI bin dir
+        """
         with open(config_file) as json_file:
             self.config = json.load(json_file)
 
@@ -141,6 +179,11 @@ class Benchmark:
         self.BIN_DIR = bin_dir
 
     def run(self, results_file="results"):
+        """Runs the benchmark, saves the results as CSV file in results_file
+
+        Arguments:
+            - results_file (string): file to save the results
+        """
         if not os.path.exists(self.BUILD_DIR):
             os.makedirs(self.BUILD_DIR)
 
