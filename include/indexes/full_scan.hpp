@@ -24,8 +24,5 @@ public:
         size_t low, size_t high,
         Table *table_to_store_results
     );
-
-private:
-    bool static condition_is_true(Table *table, Query& query, size_t row_index);
 };
 #endif // FULL_SCAN_H

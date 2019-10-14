@@ -1,4 +1,5 @@
 #include "full_scan.hpp"
+#include <vector>
 
 FullScan::FullScan(){}
 FullScan::~FullScan(){}
@@ -51,25 +52,59 @@ void FullScan::scan_partition(
     size_t low, size_t high,
     Table *table_to_store_results
 ){
-    for(size_t row_id = low; row_id <= high; row_id++)
-        if(condition_is_true(table, query, row_id))
-            table_to_store_results->append(table->materialize_row(row_id));
-}
+    std::vector<size_t> qualifying_rows;
+    qualifying_rows.reserve(high - low + 1);
 
-bool FullScan::condition_is_true(Table *table, Query& query, size_t row_index){
+    bool first = true;
+
     for(auto predicate : query.predicates){
         auto column = predicate.column;
-        auto low = predicate.low;
-        auto high = predicate.high;
+        auto low_pred = predicate.low;
+        auto high_pred = predicate.high;
+        // First time we have to fill the qualyfing rows
+        if(first){
 
-        auto value = table->columns.at(column)->at(row_index);
-        if(low != high){
-            if(!(low <= value && value < high))
-                return false;
-        }else{
-            if(low != value)
-                return false;
+            // If it is a range query
+            if(low_pred != high_pred){
+                for(size_t row_id = low; row_id <= high; row_id++){
+                    auto value = table->columns.at(column)->at(row_id);
+                    if(low_pred <= value && value < high_pred)
+                        qualifying_rows.push_back(row_id);
+                }
+            }
+            // If it is a point query
+            else{
+                for(size_t row_id = low; row_id <= high; row_id++){
+                    auto value = table->columns.at(column)->at(row_id);
+                    if(low_pred == value)
+                        qualifying_rows.push_back(row_id);
+                }
+            }
+            first = false;
+        }
+        else{
+            std::vector<size_t> temp_qualifying_rows;
+            temp_qualifying_rows.reserve(high - low + 1);
+            // If it is a range query
+            if(low_pred != high_pred){
+                for(auto row_id : qualifying_rows){
+                    auto value = table->columns.at(column)->at(row_id);
+                    if(low_pred <= value && value < high_pred)
+                        temp_qualifying_rows.push_back(row_id);
+                }
+            }
+            // If it is a point query
+            else{
+                for(auto row_id : qualifying_rows){
+                    auto value = table->columns.at(column)->at(row_id);
+                    if(low_pred == value)
+                        temp_qualifying_rows.push_back(row_id);
+                }
+            }
+            qualifying_rows = temp_qualifying_rows;
         }
     }
-    return true;
+
+    for(auto qualifying_row : qualifying_rows)
+        table_to_store_results->append(table->materialize_row(qualifying_row));
 }
