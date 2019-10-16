@@ -1,22 +1,17 @@
 #include <catch.hpp>
 #include "index_factory.hpp"
 #include "data_reader.hpp"
-#include "generator.hpp"
+#include "my_generator.hpp"
 
 TEST_CASE( "Check if all algorithms have the same results", "[SmallTest] [FullScan] [CrackingKDTreeBroad] [MedianKDTree] [AverageKDTree] [Quasii]" ) {
     const string workload_path = "queries.sql";
     const string table_path = "data.sql";
 
-    auto generator = Generator(
+    auto generator = MyGenerator(
             10000,  // n_of_rows
             5,      // dimensions
-            2,      // workload
             0.5,    // selectivity
-            10000,  // number_of_queries
-            7,      // query_type
-            "",     // POWER_DATASET_FILE
-            "",     // FEATUREVECTORS_FILE
-            ""      // GENES_FILE
+            10000   // number_of_queries
             );
 
     generator.generate(table_path, workload_path);
