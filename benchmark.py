@@ -74,17 +74,18 @@ class Plots:
             temp_df['TOTAL_TIME'] += temp_df['ADAPTATION_TIME']
             temp_df['TOTAL_TIME'] += temp_df['QUERY_TIME']
             avg = self.average_each_query(list(temp_df['TOTAL_TIME']))
-            avgs[alg] = avg
+            temp_df = pd.DataFrame({'TOTAL_TIME': avg})
+            avgs[alg] = list(temp_df['TOTAL_TIME'].cumsum())
 
-        for alg in sorted(avgs, key=lambda x: avgs[x][-1], reverse=True):
-            temp_df = pd.DataFrame({'TOTAL_TIME': avgs[alg]})
-            ax.plot(
-                temp_df['TOTAL_TIME'].cumsum(),
-                label=alg
-            )
+        sorted_avgs = sorted(avgs, key=lambda x: avgs[x][-1], reverse=True)
+        handles = []
+
+        for alg in sorted_avgs:
+            handle, = ax.plot(avgs[alg])
+            handles.append(handle)
         ax.set_xlabel("Query Number")
         ax.set_ylabel("Time (seconds)")
-        ax.legend(bbox_to_anchor=(1.0, 1.0))
+        ax.legend(handles, sorted_avgs, bbox_to_anchor=(1.0, 1.0))
         title = f"Cumulative Sum\
                 {self.config['number_of_attributes']}-column(s)\
                 {self.config['number_of_tuples']}-tuples\
