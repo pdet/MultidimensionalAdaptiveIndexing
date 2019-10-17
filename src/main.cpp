@@ -38,6 +38,7 @@ int main(int argc, char** argv){
             break;
         case 'p':
             config["minimum_partition_size"] = optarg;
+            break;
         default:
             cout << "Usage:\n";
             cout << "-w <workload_path>\n";
