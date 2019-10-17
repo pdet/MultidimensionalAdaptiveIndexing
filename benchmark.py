@@ -215,7 +215,8 @@ class Benchmark:
                     "-d", "data",
                     "-i", algorithm,
                     "-r", str(self.config['repetitions']),
-                    "-s", self.CURRENT_DIR + "/" + results_file
+                    "-s", self.CURRENT_DIR + "/" + results_file,
+                    "-p", str(self.config["minimum_partition_size"])
                 ])
 
     def clean(build_dir):

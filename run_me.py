@@ -223,6 +223,11 @@ class MDAIWizard:
             "3"
         )
 
+        min_partition_size = self.__input_or_default(
+            "*- What is the minimum partition size?",
+            "1000"
+        )
+
         n_conf = "config" + str(len(self.config['experiments']))
 
         config_name = self.__input_or_default(
@@ -240,7 +245,8 @@ class MDAIWizard:
             'algorithms': algorithms,
             'query_type': query_type,
             'selectivity': selectivity,
-            'repetitions': repetitions
+            'repetitions': repetitions,
+            'minimum_partition_size': min_partition_size
         }
 
         return config
