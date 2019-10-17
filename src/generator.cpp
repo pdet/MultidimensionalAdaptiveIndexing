@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "generator.hpp"
+#include "my_generator.hpp"
 
 #define FEATUREVECTORS_FILE "data/datasets/chr22_feature.vectors"
 #define GENES_FILE "data/datasets/genes.txt"
@@ -106,8 +107,18 @@ int main(int argc, char* argv[]) {
         std::cout << "INFO: " << n_of_rows << " vectors, " << 4 << " dimensions." << std::endl;
     else
         std::cout << "INFO: " << n_of_rows << " vectors, " << dimensions << " dimensions." << std::endl;
-   
-    auto generator = Generator(
+
+    if(workload > 4){
+        auto generator = MyGenerator(
+            n_of_rows,
+            dimensions,
+            selectivity,
+            number_of_queries
+        );
+        generator.generate(DATA_FILE, QUERY_FILE);
+    }else{
+        auto generator = Generator(
+
             n_of_rows,
             dimensions,
             workload,
@@ -117,9 +128,8 @@ int main(int argc, char* argv[]) {
             POWER_DATASET_FILE,
             FEATUREVECTORS_FILE,
             GENES_FILE
-            );
-
-    generator.generate(DATA_FILE, QUERY_FILE);
-
+        );
+        generator.generate(DATA_FILE, QUERY_FILE);
+    }
     return 0;
 }

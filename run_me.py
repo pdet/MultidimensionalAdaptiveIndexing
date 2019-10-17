@@ -13,6 +13,7 @@ class Benchmarks:
     UniformDistribution = 2
     GMRQB = 3
     Power = 4
+    Our_benchmark = 5
 
     def benchmark_string(benchmark):
         if benchmark == Benchmarks.Normal:
@@ -25,6 +26,8 @@ class Benchmarks:
             return 'GMRQB'
         if benchmark == Benchmarks.Power:
             return 'Power'
+        if benchmark == Benchmarks.Our_benchmark:
+            return 'Our Benchmark'
         exit('Error: Benchmark not identified')
 
 
@@ -143,6 +146,7 @@ class MDAIWizard:
             [2] - Uniform Distribution (Synthetic)
             [3] - GMRQB
             [4] - Power
+            [5] - Our Benchmark
             Please type a number:""",
             Benchmarks.Normal
         )
