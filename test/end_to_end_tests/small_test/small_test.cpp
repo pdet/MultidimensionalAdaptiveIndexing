@@ -4,8 +4,8 @@
 #include "my_generator.hpp"
 
 TEST_CASE( "Check if all algorithms have the same results", "[SmallTest] [FullScan] [CrackingKDTreeBroad] [MedianKDTree] [AverageKDTree] [Quasii]" ) {
-    const string workload_path = "queries.sql";
-    const string table_path = "data.sql";
+    const string workload_path = "small_test_queries";
+    const string table_path = "small_test_data";
 
     auto generator = MyGenerator(
             10000,  // n_of_rows
