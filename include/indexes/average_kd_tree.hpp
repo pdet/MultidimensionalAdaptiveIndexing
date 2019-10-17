@@ -4,11 +4,13 @@
 #include "kd_tree/kd_tree.hpp"
 #include "full_scan.hpp"
 #include "abstract_index.hpp"
+#include <string>
+#include <map>
 
 class AverageKDTree : public AbstractIndex
 {
 public:
-    AverageKDTree();
+    AverageKDTree(std::map<std::string, std::string> config);
     ~AverageKDTree();
 
     string name() override{
@@ -23,7 +25,7 @@ public:
 
 private:
     unique_ptr<KDTree> index;
-    const size_t minimum_partition_size = 100;
+    int64_t minimum_partition_size = 100;
 
     // Variables to help with initialization
     vector<size_t> columns;

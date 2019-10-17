@@ -1,7 +1,7 @@
 #include "full_scan.hpp"
 #include <vector>
 
-FullScan::FullScan(){}
+FullScan::FullScan(std::map<std::string, std::string> config){}
 FullScan::~FullScan(){}
 
 void FullScan::initialize(Table *table_to_copy){

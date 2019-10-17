@@ -4,11 +4,13 @@
 #include "kd_tree/kd_tree.hpp"
 #include "full_scan.hpp"
 #include "abstract_index.hpp"
+#include <map>
+#include <string>
 
 class CrackingKDTreeBroad : public AbstractIndex
 {
 public:
-    CrackingKDTreeBroad();
+    CrackingKDTreeBroad(std::map<std::string, std::string> config);
     ~CrackingKDTreeBroad();
 
     string name() override{
@@ -22,7 +24,7 @@ public:
     Table range_query(Query& query) override;
 private:
     unique_ptr<KDTree> index;
-    const size_t minimum_partition_size = 100;
+    int64_t minimum_partition_size = 100;
 
     // Vectors to simplify the insertion algorithm
     vector<KDNode*> nodes_to_check;

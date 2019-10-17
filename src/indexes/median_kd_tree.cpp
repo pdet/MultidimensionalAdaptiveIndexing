@@ -2,7 +2,12 @@
 #include "full_scan.hpp"
 #include "median_kd_tree.hpp"
 
-MedianKDTree::MedianKDTree(){}
+MedianKDTree::MedianKDTree(std::map<std::string, std::string> config){
+    if(config.find("minimum_partition_size") == config.end())
+        minimum_partition_size = 100;
+    else
+        minimum_partition_size = std::stoi(config["minimum_partition_size"]);
+}
 MedianKDTree::~MedianKDTree(){}
 
 

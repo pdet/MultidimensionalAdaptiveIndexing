@@ -4,11 +4,13 @@
 #include "kd_tree/kd_tree.hpp"
 #include "full_scan.hpp"
 #include "abstract_index.hpp"
+#include <map>
+#include <string>
 
 class MedianKDTree : public AbstractIndex
 {
 public:
-    MedianKDTree();
+    MedianKDTree(std::map<std::string, std::string> config);
     ~MedianKDTree();
 
     string name() override{
@@ -23,7 +25,7 @@ public:
 
 private:
     unique_ptr<KDTree> index;
-    const size_t minimum_partition_size = 100;
+    int64_t minimum_partition_size = 100;
 
     // Variables to help with initialization
     vector<size_t> columns;

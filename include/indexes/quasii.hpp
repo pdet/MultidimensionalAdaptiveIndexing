@@ -4,13 +4,15 @@
 #include "abstract_index.hpp"
 #include "full_scan.hpp"
 #include "slice.hpp"
+#include <map>
+#include <string>
 
 using namespace std;
 
 class Quasii : public AbstractIndex
 {
 public:
-    Quasii();
+    Quasii(std::map<std::string, std::string> config);
     ~Quasii();
 
     string name() override{
@@ -26,7 +28,7 @@ public:
 private:
     vector<Slice> first_level_slices;
 
-    const size_t last_level_threshold = 2000;
+    int64_t last_level_threshold = 2000;
     vector<size_t> dimensions_threshold;
 
     size_t count_slices(vector<Slice> &slices);

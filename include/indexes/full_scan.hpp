@@ -2,11 +2,13 @@
 #define FULL_SCAN_H
 
 #include "abstract_index.hpp"
+#include <string>
+#include <map>
 
 class FullScan : public AbstractIndex
 {
 public:
-    FullScan();
+    FullScan(std::map<std::string, std::string> config);
     ~FullScan();
 
     string name() override{

@@ -2,7 +2,12 @@
 #include "full_scan.hpp"
 #include "cracking_kd_tree_broad.hpp"
 
-CrackingKDTreeBroad::CrackingKDTreeBroad(){}
+CrackingKDTreeBroad::CrackingKDTreeBroad(std::map<std::string, std::string> config){
+    if(config.find("minimum_partition_size") == config.end())
+        minimum_partition_size = 100;
+    else
+        minimum_partition_size = std::stoi(config["minimum_partition_size"]);
+}
 CrackingKDTreeBroad::~CrackingKDTreeBroad(){}
 
 void CrackingKDTreeBroad::initialize(Table *table_to_copy){

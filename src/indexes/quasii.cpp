@@ -4,7 +4,12 @@
 #include <algorithm>
 #include <stack>
 
-Quasii::Quasii(){}
+Quasii::Quasii(std::map<std::string, std::string> config){
+    if(config.find("minimum_partition_size") == config.end())
+        last_level_threshold  = 100;
+    else
+        last_level_threshold  = std::stoi(config["minimum_partition_size"]);
+}
 Quasii::~Quasii(){}
 
 void Quasii::initialize(Table *table_to_copy){

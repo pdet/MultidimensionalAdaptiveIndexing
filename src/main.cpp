@@ -2,6 +2,7 @@
 #include "data_reader.hpp"
 #include <string>
 #include <iostream>
+#include <map>
 
 // For the command line parsing
 #include <ctype.h>
@@ -14,9 +15,10 @@ int main(int argc, char** argv){
     string index_algorithm = "Full Scan";
     string csv_path;
     int number_of_repetitions = 3;
+    map<string, string> config;
 
     int c;
-    while ((c = getopt (argc, argv, "w:d:i:r:s:")) != -1)
+    while ((c = getopt (argc, argv, "w:d:i:r:s:p:")) != -1)
         switch (c)
         {
         case 'w':
@@ -34,13 +36,21 @@ int main(int argc, char** argv){
         case 's':
             csv_path = optarg;
             break;
+        case 'p':
+            config["minimum_partition_size"] = optarg;
         default:
-            cout << "Usage: -w <workload_path> -d <data_path> -i <algorithm>";
+            cout << "Usage:\n";
+            cout << "-w <workload_path>\n";
+            cout << "-d <data_path>\n";
+            cout << "-i <algorithm>\n";
+            cout << "-r <number_of_repetitions>\n";
+            cout << "-s <csv_path>\n";
+            cout << "-p <minimum_partition_size>\n";
             return -1;
         }
 
     for(auto repetition = 0; repetition < number_of_repetitions; repetition++){
-        auto index = IndexFactory::getIndex(index_algorithm);
+        auto index = IndexFactory::getIndex(index_algorithm, config);
 
         auto table = DataReader::read_table(data_path);
         auto workload = DataReader::read_workload(workload_path);
