@@ -126,6 +126,32 @@ class Plots:
         ax.set_title("\n".join(wrap(title, 30, break_long_words=False)))
         fig.savefig(file_name, bbox_inches='tight')
 
+    def per_query_cost_breakdown(self, name):
+        """Per algorithm query cost breakdown
+        """
+        algorithms = self.df['NAME'].unique()
+        for alg in algorithms:
+            temp_df = self.df.loc[self.df['NAME'] == alg].copy()
+            temp_df['INITIALIZATION_TIME'] = self.average_each_query(
+                    list(temp_df['INITIALIZATION_TIME'])
+            )
+            temp_df['ADAPTATION_TIME'] = self.average_each_query(
+                    list(temp_df['ADAPTATION_TIME'])
+            )
+            temp_df['QUERY_TIME'] = self.average_each_query(
+                    list(temp_df['QUERY_TIME'])
+            )
+            fig = temp_df[
+                    ['INITIALIZATION_TIME', 'ADAPTATION_TIME', 'QUERY_TIME']
+                         ].plot.area()
+            title = f"Per Query Time Breakdown {alg}\
+                {self.config['number_of_attributes']}-column(s)\
+                {self.config['number_of_tuples']}-tuples\
+                {self.config['selectivity']}-selectivity"
+            fig = fig.get_figure()
+            fig.suptitle("\n".join(wrap(title, 30, break_long_words=False)))
+            fig.savefig(name + "/breakdown_" + alg, bbox_inches='tight')
+
     def tuples_scanned(self, file_name):
         """Number of tuples scanned per query
 
@@ -251,3 +277,4 @@ if __name__ == "__main__":
         plotter.per_query_plot(name + "/per_query.png")
         plotter.cum_sum_plot(name + "/cum_sum.png")
         plotter.tuples_scanned(name + "/tuples_scanned.png")
+        plotter.per_query_cost_breakdown(name)
