@@ -92,12 +92,12 @@ size_t KDTree::get_node_count(){
 size_t KDTree::get_max_height(){
     if(root == nullptr)
         return 0;
-    vector<KDNode> nodes;
+    vector<KDNode*> nodes;
     vector<size_t> heights;
 
     size_t max_height = 0;
 
-    nodes.push_back(*root);
+    nodes.push_back(root.get());
     heights.push_back(1);
 
     while(!nodes.empty()){
@@ -107,17 +107,17 @@ size_t KDTree::get_max_height(){
         auto height = heights.back();
         heights.pop_back();
 
-        if(node.left_child != nullptr){
-            nodes.push_back(*node.left_child);
+        if(node->left_child.get() != nullptr){
+            nodes.push_back(node->left_child.get());
             heights.push_back(height + 1);
         }
 
-        if(node.right_child != nullptr){
-            nodes.push_back(*node.right_child);
+        if(node->right_child.get() != nullptr){
+            nodes.push_back(node->right_child.get());
             heights.push_back(height + 1);
         }
 
-        if(node.left_child == nullptr && node.right_child == nullptr){
+        if(node->left_child.get() == nullptr && node->right_child.get() == nullptr){
             if(max_height < height)
                 max_height = height;
         }
@@ -129,12 +129,13 @@ size_t KDTree::get_max_height(){
 size_t KDTree::get_min_height(){
     if(root == nullptr)
         return 0;
-    vector<KDNode> nodes;
+
+    vector<KDNode*> nodes;
     vector<size_t> heights;
 
     size_t min_height = numeric_limits<size_t>::max();
 
-    nodes.push_back(*root);
+    nodes.push_back(root.get());
     heights.push_back(1);
 
     while(!nodes.empty()){
@@ -144,17 +145,17 @@ size_t KDTree::get_min_height(){
         auto height = heights.back();
         heights.pop_back();
 
-        if(node.left_child != nullptr){
-            nodes.push_back(*node.left_child);
+        if(node->left_child.get() != nullptr){
+            nodes.push_back(node->left_child.get());
             heights.push_back(height + 1);
         }
 
-        if(node.right_child != nullptr){
-            nodes.push_back(*node.right_child);
+        if(node->right_child.get() != nullptr){
+            nodes.push_back(node->right_child.get());
             heights.push_back(height + 1);
         }
 
-        if(node.left_child == nullptr && node.right_child == nullptr){
+        if(node->left_child.get() == nullptr && node->right_child.get() == nullptr){
             if(min_height > height)
                 min_height = height;
         }
