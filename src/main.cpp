@@ -53,6 +53,8 @@ int main(int argc, char** argv){
     for(auto repetition = 0; repetition < number_of_repetitions; repetition++){
         auto index = IndexFactory::getIndex(index_algorithm, config);
 
+        cout << index->name() << " Repetition: " << repetition << endl;
+
         auto table = DataReader::read_table(data_path);
         auto workload = DataReader::read_workload(workload_path);
 
