@@ -1,5 +1,5 @@
-#include <vector>
 #include "column.hpp"
+#include <vector>
 
 Column::Column(std::vector<float> column_to_copy){
     data = column_to_copy;

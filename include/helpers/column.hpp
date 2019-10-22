@@ -2,6 +2,7 @@
 #define COLUMN_H
 
 #include <vector>
+#include <cstdint>
 
 class Column{
 private:

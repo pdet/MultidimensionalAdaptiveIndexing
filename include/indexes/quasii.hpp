@@ -6,6 +6,7 @@
 #include "slice.hpp"
 #include <map>
 #include <string>
+#include <cstdint>
 
 using namespace std;
 

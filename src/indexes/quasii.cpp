@@ -98,7 +98,7 @@ vector<pair<int64_t, int64_t>> Quasii::search(Query& query){
         auto predicate = predicate_on_column(first_level_slices.at(0).column, query);
         auto i = binarySearch(first_level_slices, predicate.low);
 
-        while(i < first_level_slices.size() && first_level_slices.at(i).left_value < predicate.high){
+        while(i < static_cast<int64_t>(first_level_slices.size()) && first_level_slices.at(i).left_value < predicate.high){
             slices_to_check.push_back(first_level_slices.at(i));
             ++i;
         }
@@ -120,7 +120,7 @@ vector<pair<int64_t, int64_t>> Quasii::search(Query& query){
                 auto predicate = predicate_on_column(slice.children.at(0).column, query);
                 auto i = binarySearch(slice.children, predicate.low);
 
-                while(i < slice.children.size() && slice.children.at(i).left_value < predicate.high){
+                while(i < static_cast<int64_t>(slice.children.size()) && slice.children.at(i).left_value < predicate.high){
                     slices_to_check.push_back(slice.children.at(i));
                     ++i;
                 }
@@ -146,7 +146,7 @@ Predicate Quasii::predicate_on_column(int64_t column, Query& query){
 // biggest who is less or equal to the key
 int64_t Quasii::binarySearch(const vector<Slice> &slice, float key){
     auto  min = (int64_t) 0;
-    auto  max = slice.size() - 1;
+    auto  max = static_cast<int64_t>(slice.size() - 1);
 
     if(min == max)
         return min;
@@ -216,7 +216,7 @@ void Quasii::build(vector<Slice> &slices, Query &query){
     auto high = predicate.high;
     auto i = binarySearch(slices, low);
     auto index_start = i;
-    while (i < slices.size() && slices.at(i).left_value <= high){
+    while (i < static_cast<int64_t>(slices.size()) && slices.at(i).left_value <= high){
         vector<Slice> refined_slices = refine(slices.at(i), predicate);
         for (auto &r_s : refined_slices){
             if(r_s.intersects(low, high)){
