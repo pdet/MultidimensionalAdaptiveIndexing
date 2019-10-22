@@ -16,7 +16,7 @@ MyGenerator::MyGenerator(
                 selectivity(selectivity_),
                 number_of_queries(number_of_queries_){}
 
-bool MyGenerator::generate(
+void MyGenerator::generate(
         const std::string &table_path,
         const std::string &workload_path
 ){

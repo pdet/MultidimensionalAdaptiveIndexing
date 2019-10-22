@@ -12,7 +12,7 @@ class MyGenerator{
                 float selectivity_,
                 int64_t number_of_queries_
                 );
-        bool generate(const std::string &table_path, const std::string &workload_path);
+        void generate(const std::string &table_path, const std::string &workload_path);
 
     private:
         int64_t n_of_rows;
