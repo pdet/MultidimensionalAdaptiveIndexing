@@ -31,7 +31,7 @@ void Measurements::save(std::string csv_name, int repetition, std::string alg_na
 
     // Append the results
     double init_time = initialization_time;
-    for(size_t i = 0; i < adaptation_time.size(); ++i){
+    for(int64_t i = 0; i < adaptation_time.size(); ++i){
         auto line =  '"' + alg_name + "\", " \
                    + std::to_string(init_time) + ", " \
                    + std::to_string(adaptation_time.at(i)) + ", " \

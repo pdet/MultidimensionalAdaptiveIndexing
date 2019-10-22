@@ -9,13 +9,13 @@
 class StandardCrackingNode{
     public:
         float value;
-        size_t position;
+        int64_t position;
         StandardCrackingNode(){
             value = 0;
             position = 0;
         }
 
-        StandardCrackingNode(float v, size_t p){
+        StandardCrackingNode(float v, int64_t p){
             value = v;
             position = p;
         }
@@ -51,14 +51,14 @@ class StandardCracking : public  AbstractIndex
     private:
         std::vector<Table> cracker_columns;
         std::vector<std::set<StandardCrackingNode>> index;
-        const size_t minimum_partition_size = 100;
+        const int64_t minimum_partition_size = 100;
 
         void adapt(Query &query);
 
         std::vector<char> search(Query &query);
 
-        size_t get_node_count();
-        size_t biggest_index();
-        size_t smallest_index();
+        int64_t get_node_count();
+        int64_t biggest_index();
+        int64_t smallest_index();
 };
 #endif // STANDARD_CRACKING_H

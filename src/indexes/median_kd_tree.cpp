@@ -60,7 +60,7 @@ Table MedianKDTree::range_query(Query& query){
         Measurements::difference(end, start)
     );
 
-    size_t n_tuples_scanned = 0;
+    int64_t n_tuples_scanned = 0;
     for(auto &partition : partitions)
         n_tuples_scanned += partition.second - partition.first;
 
@@ -139,10 +139,10 @@ unique_ptr<KDTree> MedianKDTree::initialize_index(){
     return index;
 }
 
-pair<float, size_t> MedianKDTree::find_median(size_t column, size_t lower_limit, size_t upper_limit){
-    size_t low = lower_limit;
-    size_t high = upper_limit;
-    size_t position;
+pair<float, int64_t> MedianKDTree::find_median(int64_t column, int64_t lower_limit, int64_t upper_limit){
+    int64_t low = lower_limit;
+    int64_t high = upper_limit;
+    int64_t position;
     float element;
 
     do{
@@ -177,7 +177,7 @@ pair<float, size_t> MedianKDTree::find_median(size_t column, size_t lower_limit,
 }
 
 // Returns the position on where the pivot would end
-size_t MedianKDTree::pivot_table(size_t column, size_t low, size_t high, float pivot, size_t pivot_position)
+int64_t MedianKDTree::pivot_table(int64_t column, int64_t low, int64_t high, float pivot, int64_t pivot_position)
 {
 //  This method only works if we use the last element as the pivot
 //  So we change the pivot to the last position

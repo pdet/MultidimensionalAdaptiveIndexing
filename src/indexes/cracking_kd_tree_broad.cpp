@@ -64,7 +64,7 @@ Table CrackingKDTreeBroad::range_query(Query& query){
         Measurements::difference(end, start)
     );
 
-    size_t n_tuples_scanned = 0;
+    int64_t n_tuples_scanned = 0;
     for(auto &partition : partitions)
         n_tuples_scanned += partition.second - partition.first;
 
@@ -78,13 +78,13 @@ Table CrackingKDTreeBroad::range_query(Query& query){
     return result;
 }
 
-void CrackingKDTreeBroad::insert(size_t column, float key){
+void CrackingKDTreeBroad::insert(int64_t column, float key){
     if(index->root == nullptr){
         // First insertion
         // Crack and insert into root
-        size_t lower_limit = 0;
-        size_t upper_limit = table->row_count() - 1;
-        size_t position = table->CrackTable(lower_limit, upper_limit, key, column);
+        int64_t lower_limit = 0;
+        int64_t upper_limit = table->row_count() - 1;
+        int64_t position = table->CrackTable(lower_limit, upper_limit, key, column);
         position--;
         if (!(position < lower_limit || position >= upper_limit)){
             index->root = index->create_node(column, key, position);
@@ -137,7 +137,7 @@ void CrackingKDTreeBroad::insert(size_t column, float key){
     }
 }
 
-void CrackingKDTreeBroad::follow_or_crack_right(KDNode *current, size_t column, float key, float upper_limit){
+void CrackingKDTreeBroad::follow_or_crack_right(KDNode *current, int64_t column, float key, int64_t upper_limit){
     // If the right child is null, then we crack that partition
     // Current:      (col, key)
     //              /          \
@@ -167,7 +167,7 @@ void CrackingKDTreeBroad::follow_or_crack_right(KDNode *current, size_t column, 
     }
 }
 
-void CrackingKDTreeBroad::follow_or_crack_left(KDNode *current, size_t column, float key, float lower_limit){
+void CrackingKDTreeBroad::follow_or_crack_left(KDNode *current, int64_t column, float key, int64_t lower_limit){
     // If the left child is null, then we crack that partition
     // Current:      (col, key)
     //              /          \

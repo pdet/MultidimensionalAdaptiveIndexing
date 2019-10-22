@@ -9,12 +9,12 @@
 
 using namespace std;
 
-KDTree::KDTree(size_t row_count) : row_count(row_count){
+KDTree::KDTree(int64_t row_count) : row_count(row_count){
     root = nullptr;
 }
 KDTree::~KDTree(){}
 
-vector<pair<size_t, size_t>> KDTree::search(Query& query){
+vector<pair<int64_t, int64_t>> KDTree::search(Query& query){
     partitions.resize(0);
 
     if(root == nullptr){
@@ -77,7 +77,7 @@ vector<pair<size_t, size_t>> KDTree::search(Query& query){
     return partitions;
 }
 
-unique_ptr<KDNode> KDTree::create_node(size_t column, float key, size_t position){
+unique_ptr<KDNode> KDTree::create_node(int64_t column, float key, int64_t position){
     auto node = make_unique<KDNode>(
                 column, key, position, position + 1
             );
@@ -85,17 +85,17 @@ unique_ptr<KDNode> KDTree::create_node(size_t column, float key, size_t position
     return node;
 }
 
-size_t KDTree::get_node_count(){
+int64_t KDTree::get_node_count(){
     return number_of_nodes;
 }
 
-size_t KDTree::get_max_height(){
+int64_t KDTree::get_max_height(){
     if(root == nullptr)
         return 0;
     vector<KDNode*> nodes;
-    vector<size_t> heights;
+    vector<int64_t> heights;
 
-    size_t max_height = 0;
+    int64_t max_height = 0;
 
     nodes.push_back(root.get());
     heights.push_back(1);
@@ -126,14 +126,14 @@ size_t KDTree::get_max_height(){
     return max_height;
 }
 
-size_t KDTree::get_min_height(){
+int64_t KDTree::get_min_height(){
     if(root == nullptr)
         return 0;
 
     vector<KDNode*> nodes;
-    vector<size_t> heights;
+    vector<int64_t> heights;
 
-    size_t min_height = numeric_limits<size_t>::max();
+    int64_t min_height = numeric_limits<int64_t>::max();
 
     nodes.push_back(root.get());
     heights.push_back(1);
@@ -167,7 +167,7 @@ size_t KDTree::get_min_height(){
 // Checks the left child
 // If it is null then we reached a partition
 // Otherwise, we follow it
-void KDTree::get_partition_or_follow_left(KDNode *current, size_t lower_limit){
+void KDTree::get_partition_or_follow_left(KDNode *current, int64_t lower_limit){
     if (current->left_child == nullptr)
     {
         partitions.push_back(make_pair(lower_limit, current->left_position));
@@ -183,7 +183,7 @@ void KDTree::get_partition_or_follow_left(KDNode *current, size_t lower_limit){
 // Checks the right child
 // If it is null then we reached a partition
 // Otherwise, we follow it
-void KDTree::get_partition_or_follow_right(KDNode *current, size_t upper_limit){
+void KDTree::get_partition_or_follow_right(KDNode *current, int64_t upper_limit){
     if (current->right_child == nullptr)
     {
         partitions.push_back(make_pair(current->right_position, upper_limit));
@@ -198,7 +198,7 @@ void KDTree::get_partition_or_follow_right(KDNode *current, size_t upper_limit){
 
 // Checks if node's column is inside of query
 bool KDTree::node_in_query(KDNode *current, Query& query){
-    for(size_t i = 0; i < query.predicate_count(); i++)
+    for(int64_t i = 0; i < query.predicate_count(); i++)
     {
         if(current->column == query.predicates.at(i).column)
             return true;
@@ -214,7 +214,7 @@ bool KDTree::node_in_query(KDNode *current, Query& query){
 // Query:      |-----|
 //            low   high
 bool KDTree::node_greater_equal_query(KDNode *node, Query& query){
-    for(size_t i = 0; i < query.predicate_count(); i++)
+    for(int64_t i = 0; i < query.predicate_count(); i++)
     {
         if(node->column == query.predicates.at(i).column){
             auto high = query.predicates.at(i).high;
@@ -235,7 +235,7 @@ bool KDTree::node_greater_equal_query(KDNode *node, Query& query){
 // Query:            |-----|
 //                  low   high
 bool KDTree::node_less_equal_query(KDNode *node, Query& query){
-    for(size_t i = 0; i < query.predicate_count(); i++)
+    for(int64_t i = 0; i < query.predicate_count(); i++)
     {
         if(node->column == query.predicates.at(i).column){
             auto low = query.predicates.at(i).low;

@@ -61,7 +61,7 @@ shared_ptr<Table> StandardCracking::range_query(Query& query){
 
     // Scan the table and returns a materialized view of the result.
     auto result = make_shared<Table>(table->col_count());
-    for (size_t i = 0; i < bitvector.size(); ++i)
+    for (int64_t i = 0; i < bitvector.size(); ++i)
     {
         auto bit = bitvector.at(i);
         if(bit){
@@ -77,7 +77,7 @@ shared_ptr<Table> StandardCracking::range_query(Query& query){
         Measurements::difference(end, start)
     );
 
-    size_t n_tuples_scanned = 0;
+    int64_t n_tuples_scanned = 0;
     for(auto bit: bitvector){
         if(bit)
             n_tuples_scanned += 1;
@@ -111,15 +111,15 @@ std::vector<char> StandardCracking::search(Query &query){
 // Return bitvector
 }
 
-size_t StandardCracking::get_node_count(){
-    size_t node_count = 0;
+int64_t StandardCracking::get_node_count(){
+    int64_t node_count = 0;
     for(auto &i : index)
         node_count += i.size();
     return node_count;
 }
 
-size_t StandardCracking::biggest_index(){
-    size_t biggest = 0;
+int64_t StandardCracking::biggest_index(){
+    int64_t biggest = 0;
     for(auto &i: index){
         if(i.size() > biggest)
             biggest = i.size();
@@ -127,8 +127,8 @@ size_t StandardCracking::biggest_index(){
     return biggest;
 }
 
-size_t StandardCracking::smallest_index(){
-    size_t smallest = std::numeric_limits<size_t>::max();
+int64_t StandardCracking::smallest_index(){
+    int64_t smallest = std::numeric_limits<int64_t>::max();
     for(auto &i : index){
         if(i.size() < smallest)
             smallest = i.size();

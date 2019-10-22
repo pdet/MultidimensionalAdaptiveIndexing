@@ -59,7 +59,7 @@ Table AverageKDTree::range_query(Query& query){
         Measurements::difference(end, start)
     );
 
-    size_t n_tuples_scanned = 0;
+    int64_t n_tuples_scanned = 0;
     for(auto &partition : partitions)
         n_tuples_scanned += partition.second - partition.first;
 
@@ -138,9 +138,9 @@ unique_ptr<KDTree> AverageKDTree::initialize_index(){
     return index;
 }
 
-pair<float, size_t> AverageKDTree::find_average(size_t column, size_t lower_limit, size_t upper_limit){
+pair<float, int64_t> AverageKDTree::find_average(int64_t column, int64_t lower_limit, int64_t upper_limit){
     float sum = 0.0;
-    for (size_t i = lower_limit; i <= upper_limit; i++)
+    for (int64_t i = lower_limit; i <= upper_limit; i++)
         sum += table->columns.at(column)->at(i);
 
     auto average = sum/static_cast<float>(upper_limit-lower_limit+1);

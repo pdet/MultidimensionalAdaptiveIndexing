@@ -28,12 +28,12 @@ private:
 
     // Vectors to simplify the insertion algorithm
     vector<KDNode*> nodes_to_check;
-    vector<size_t> lower_limits, upper_limits;
+    vector<int64_t> lower_limits, upper_limits;
 
-    void insert(size_t column, float key);
+    void insert(int64_t column, float key);
 
-    void follow_or_crack_right(KDNode *current, size_t column, float key, float upper_limit);
+    void follow_or_crack_right(KDNode *current, int64_t column, float key, int64_t upper_limit);
 
-    void follow_or_crack_left(KDNode *current, size_t column, float key, float lower_limit);
+    void follow_or_crack_left(KDNode *current, int64_t column, float key, int64_t lower_limit);
 };
 #endif // CRACKING_KDTREE_BROAD_H

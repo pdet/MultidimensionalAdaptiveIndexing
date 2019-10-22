@@ -10,16 +10,16 @@ Table::Table(vector<vector<float> > &columns_to_be_copied){
     number_of_rows = columns_to_be_copied.at(0).size();
 
     columns.resize(number_of_columns);
-    for (size_t col = 0; col < number_of_columns; col++){
+    for (int64_t col = 0; col < number_of_columns; col++){
         columns.at(col) = make_unique<Column>(
             columns_to_be_copied.at(col)
         );
     }
 }
 
-Table::Table(size_t number_of_columns) : number_of_columns(number_of_columns){
+Table::Table(int64_t number_of_columns) : number_of_columns(number_of_columns){
     columns.resize(number_of_columns);
-    for(size_t i = 0; i < number_of_columns; ++i){
+    for(int64_t i = 0; i < number_of_columns; ++i){
         columns.at(i) = make_unique<Column>();
     }
     number_of_rows = 0;
@@ -31,11 +31,11 @@ Table::Table(Table *table_to_copy){
 
     // Allocate the columns
     columns.resize(number_of_columns);
-    for(size_t i = 0; i < number_of_columns; ++i){
+    for(int64_t i = 0; i < number_of_columns; ++i){
         columns.at(i) = make_unique<Column>();
     }
     // Copy the columns from one table to the other
-    for (size_t col_index = 0; col_index < table_to_copy->col_count(); col_index++)
+    for (int64_t col_index = 0; col_index < table_to_copy->col_count(); col_index++)
         columns.at(col_index) = make_unique<Column>(
             *(table_to_copy->columns.at(col_index).get())
         );
@@ -47,11 +47,11 @@ Table::Table(const Table &other){
 
     // Allocate the columns
     columns.resize(number_of_columns);
-    for(size_t i = 0; i < number_of_columns; ++i){
+    for(int64_t i = 0; i < number_of_columns; ++i){
         columns.at(i) = make_unique<Column>();
     }
     // Copy the columns from one table to the other
-    for (size_t col_index = 0; col_index < other.col_count(); col_index++)
+    for (int64_t col_index = 0; col_index < other.col_count(); col_index++)
         columns.at(col_index) = make_unique<Column>(
             *(other.columns.at(col_index).get())
         );
@@ -63,9 +63,9 @@ void Table::append_column(Column col){
     number_of_columns++;
 }
 
-vector<float> Table::materialize_row(size_t row_index){
+vector<float> Table::materialize_row(int64_t row_index){
     vector<float> row(col_count());
-    for(size_t col = 0; col < col_count(); col++){
+    for(int64_t col = 0; col < col_count(); col++){
         row.at(col) = columns.at(col)->at(row_index);
     }
     return row;
@@ -73,14 +73,14 @@ vector<float> Table::materialize_row(size_t row_index){
 
 void Table::append(vector<float> row){
     assert(row.size() == number_of_columns);
-    for(size_t col = 0; col < row.size(); col++){
+    for(int64_t col = 0; col < row.size(); col++){
         columns.at(col)->append(row.at(col));
     }
     number_of_rows++;
 }
 
-void Table::exchange(size_t index1, size_t index2){
-    for(size_t column_index = 0; column_index < number_of_columns; ++column_index){
+void Table::exchange(int64_t index1, int64_t index2){
+    for(int64_t column_index = 0; column_index < number_of_columns; ++column_index){
         auto value1 = columns.at(column_index)->at(index1);
         auto value2 = columns.at(column_index)->at(index2);
 
@@ -95,10 +95,10 @@ void Table::exchange(size_t index1, size_t index2){
 // Returns in which position the list is greater or equal to key
 // In case of repetition, returns the first one, and all the others come
 // right after it
-size_t Table::CrackTable(size_t low, size_t high, float element, size_t c)
+int64_t Table::CrackTable(int64_t low, int64_t high, float element, int64_t c)
 {
-    size_t x1 = low;
-    size_t x2 = high;
+    int64_t x1 = low;
+    int64_t x2 = high;
 
     while (x1 <= x2 && x2 > 0)
     {
@@ -122,7 +122,7 @@ size_t Table::CrackTable(size_t low, size_t high, float element, size_t c)
 // Cracks table in three from position i = low until i == high
 // on column (c) with left key and right key
 // Returns a pair of positions indicating where each patition starts
-pair<size_t, size_t> Table::CrackTableInThree(size_t low, size_t high, float key_left, float key_right, size_t c)
+pair<int64_t, int64_t> Table::CrackTableInThree(int64_t low, int64_t high, float key_left, float key_right, int64_t c)
 {
     auto x1 = low;
     auto x2 = high;
@@ -167,10 +167,10 @@ pair<size_t, size_t> Table::CrackTableInThree(size_t low, size_t high, float key
     return make_pair(x1,x2);
 }
 
-size_t Table::row_count() const{
+int64_t Table::row_count() const{
     return number_of_rows;
 }
 
-size_t Table::col_count() const{
+int64_t Table::col_count() const{
     return number_of_columns;
 }

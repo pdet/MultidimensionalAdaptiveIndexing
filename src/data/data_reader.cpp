@@ -1,7 +1,4 @@
 #include "data_reader.hpp"
-#include <fstream>
-#include <iostream>
-#include <sstream>
 
 using namespace std;
 
@@ -17,12 +14,12 @@ unique_ptr<Table> DataReader::read_table(const string &data_path){
         exit(-1);
     }
 
-    auto row = split(line, ' ');
+    auto row = split<float>(line, ' ');
     auto table = make_unique<Table>(row.size());
     table->append(row);
 
     while(getline(file,line)){
-        row = split(line, ' ');
+        row = split<float>(line, ' ');
         table->append(row);
     }
 
@@ -47,9 +44,9 @@ vector<Query> DataReader::read_workload(const string &workload_path){
         getline(file, high_line);
         getline(file, col_line);
 
-        auto lows = split(low_line, ' ');
-        auto highs = split(high_line, ' ');
-        auto cols = split(col_line, ' ');
+        auto lows = split<float>(low_line, ' ');
+        auto highs = split<float>(high_line, ' ');
+        auto cols = split<int64_t>(col_line, ' ');
 
         workload.push_back(
                 Query(lows, highs, cols)
@@ -62,15 +59,4 @@ vector<Query> DataReader::read_workload(const string &workload_path){
     return workload;
 }
 
-vector<float> DataReader::split(const string& s, char delimiter)
-{
-    string buf;                         // Have a buffer string
-    stringstream ss(s.c_str());         // Insert the string into a stream
 
-    vector<float> tokens;               // Create vector to hold our words
-
-    while (ss >> buf)
-        tokens.push_back(atof(buf.c_str()));
-
-    return tokens;
-}

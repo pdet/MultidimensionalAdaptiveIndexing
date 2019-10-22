@@ -28,15 +28,15 @@ private:
     int64_t minimum_partition_size = 100;
 
     // Variables to help with initialization
-    vector<size_t> columns;
-    vector<size_t> lower_limits, upper_limits;
+    vector<int64_t> columns;
+    vector<int64_t> lower_limits, upper_limits;
     vector<KDNode*> nodes_to_check;
 
     unique_ptr<KDTree> initialize_index();
 
-    pair<float, size_t> find_median(size_t column, size_t lower_limit, size_t upper_limit);
+    pair<float, int64_t> find_median(int64_t column, int64_t lower_limit, int64_t upper_limit);
 
     // Returns the position on where the pivot would end
-    size_t pivot_table(size_t column, size_t low, size_t high, float pivot, size_t pivot_position);
+    int64_t pivot_table(int64_t column, int64_t low, int64_t high, float pivot, int64_t pivot_position);
 };
 #endif // MEDIAN_KD_TREE_H

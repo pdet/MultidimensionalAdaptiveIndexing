@@ -15,10 +15,10 @@ void Column::append(float value){
     data.push_back(value);
 }
 
-float Column::at(size_t index){
+float Column::at(int64_t index){
     return data.at(index);
 }
 
-void Column::assign(size_t index, float value){
+void Column::assign(int64_t index, float value){
     data.at(index) = value;
 }

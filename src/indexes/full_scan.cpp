@@ -49,10 +49,10 @@ Table FullScan::range_query(Query& query){
 
 void FullScan::scan_partition(
     Table *table, Query& query,
-    size_t low, size_t high,
+    int64_t low, int64_t high,
     Table *table_to_store_results
 ){
-    std::vector<size_t> qualifying_rows;
+    std::vector<int64_t> qualifying_rows;
     qualifying_rows.reserve(high - low + 1);
 
     bool first = true;
@@ -66,7 +66,7 @@ void FullScan::scan_partition(
 
             // If it is a range query
             if(low_pred != high_pred){
-                for(size_t row_id = low; row_id <= high; row_id++){
+                for(int64_t row_id = low; row_id <= high; row_id++){
                     auto value = table->columns.at(column)->at(row_id);
                     if(low_pred <= value && value < high_pred)
                         qualifying_rows.push_back(row_id);
@@ -74,7 +74,7 @@ void FullScan::scan_partition(
             }
             // If it is a point query
             else{
-                for(size_t row_id = low; row_id <= high; row_id++){
+                for(int64_t row_id = low; row_id <= high; row_id++){
                     auto value = table->columns.at(column)->at(row_id);
                     if(low_pred == value)
                         qualifying_rows.push_back(row_id);
@@ -83,7 +83,7 @@ void FullScan::scan_partition(
             first = false;
         }
         else{
-            std::vector<size_t> temp_qualifying_rows;
+            std::vector<int64_t> temp_qualifying_rows;
             temp_qualifying_rows.reserve(high - low + 1);
             // If it is a range query
             if(low_pred != high_pred){

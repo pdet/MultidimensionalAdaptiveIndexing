@@ -23,7 +23,7 @@ public:
 
     static void scan_partition(
         Table *table, Query& query,
-        size_t low, size_t high,
+        int64_t low, int64_t high,
         Table *table_to_store_results
     );
 };

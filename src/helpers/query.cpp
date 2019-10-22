@@ -5,10 +5,10 @@
 
 using namespace std;
 
-Query::Query(vector<float> low, vector<float> high, vector<float> column){
+Query::Query(vector<float> low, vector<float> high, vector<int64_t> column){
     number_of_predicates = low.size();
     predicates.resize(number_of_predicates);
-    for (size_t i = 0; i < number_of_predicates; i++)
+    for (int64_t i = 0; i < number_of_predicates; i++)
     {
         predicates.at(i) = Predicate(
             low.at(i), high.at(i), column.at(i)
@@ -19,7 +19,7 @@ Query::Query(vector<float> low, vector<float> high, vector<float> column){
 Query::Query(const Query& query){
     number_of_predicates = query.number_of_predicates;
     predicates.resize(number_of_predicates);
-    for (size_t i = 0; i < number_of_predicates; i++)
+    for (int64_t i = 0; i < number_of_predicates; i++)
     {
         predicates.at(i) = Predicate(
             query.predicates.at(i).low,
@@ -31,6 +31,6 @@ Query::Query(const Query& query){
 
 Query::Query(){}
 
-size_t Query::predicate_count(){
+int64_t Query::predicate_count(){
     return number_of_predicates;
 }

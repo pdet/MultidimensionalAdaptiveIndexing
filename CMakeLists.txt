@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.11)
 project(MultidimensionalAdaptiveIndex)
 set (CMAKE_CXX_STANDARD 14)
-add_definitions("-g -Wall")
+add_definitions("-Wall")
 
 # Setting output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)

@@ -16,9 +16,9 @@ public:
 
     void append(float value);
 
-    float at(size_t index);
+    float at(int64_t index);
 
-    void assign(size_t index, float value);
+    void assign(int64_t index, float value);
 };
 
 #endif // COLUMN_H

@@ -55,7 +55,7 @@ bool Generator::generate(const std::string &table_path, const std::string &workl
   if (workload == 3) {
     // GMRQB
     dimensions = 19;
-    size_t i = 0;
+    int64_t i = 0;
     std::ifstream feature_vectors(FEATUREVECTORS_FILE);
     std::string line;
     std::string token;
@@ -70,7 +70,7 @@ bool Generator::generate(const std::string &table_path, const std::string &workl
         line_tokens.push_back(token);
       // parse dimensions
 
-      for (size_t j = 0; j < dimensions; ++j){
+      for (int64_t j = 0; j < dimensions; ++j){
         data_point[j] = stof(line_tokens[j]);
         myfile << line_tokens[j];
         if(j + 1 != dimensions)
@@ -84,7 +84,7 @@ bool Generator::generate(const std::string &table_path, const std::string &workl
     myfile.close();
   } else if(workload == 4) {
     // Power Dataset
-    size_t i = 0;
+    int64_t i = 0;
     dimensions = 3;
     std::ifstream tuples(POWER_DATASET_FILE);
     std::string line;
@@ -99,7 +99,7 @@ bool Generator::generate(const std::string &table_path, const std::string &workl
       while(std::getline(iss, token, '\t'))
         line_tokens.push_back(token);
       // parse attributes
-      for (size_t j = 1; j < 4; ++j){
+      for (int64_t j = 1; j < 4; ++j){
         data_point[j-1] = stof(line_tokens[j]);
         myfile << line_tokens[j];
         if(j + 1 != 4)
@@ -116,18 +116,18 @@ bool Generator::generate(const std::string &table_path, const std::string &workl
     std::normal_distribution<double> nd(0.5,0.5);
     std::uniform_real_distribution<double> ud(0,1);
     // create multi-modal distribution
-    size_t distribution_modals = 3;
+    int64_t distribution_modals = 3;
     std::vector<std::normal_distribution<double> > mmd(distribution_modals);
-    //  for (size_t i = 0; i < distribution_modals; ++i)
+    //  for (int64_t i = 0; i < distribution_modals; ++i)
     mmd[0] = std::normal_distribution<double>(0.2, 0.2);
     mmd[1] = std::normal_distribution<double>(0.4, 0.2);
     mmd[2] = std::normal_distribution<double>(0.6, 0.2);
 
     std::ofstream myfile(table_path);
 
-    for (size_t i = 0; i < n_of_rows; ++i) {
+    for (int64_t i = 0; i < n_of_rows; ++i) {
       std::vector<float> data_point(dimensions);
-      for (size_t j = 0; j < dimensions; ++j) {
+      for (int64_t j = 0; j < dimensions; ++j) {
         if (workload == 0)
           data_point[j] = (float) nd(gen);
         else if (workload == 1)
@@ -153,7 +153,7 @@ bool Generator::generate(const std::string &table_path, const std::string &workl
   std::vector<std::vector<float> > lb_queries(number_of_queries, std::vector<float>(dimensions, std::numeric_limits<float>::min()));
   std::vector<std::vector<float> > ub_queries(number_of_queries, std::vector<float>(dimensions, std::numeric_limits<float>::max()));
   if (workload == 3) {
-    size_t i = 0;
+    int64_t i = 0;
     std::ifstream genes(GENES_FILE);
     std::string line;
     std::string token;
@@ -401,21 +401,21 @@ bool Generator::generate(const std::string &table_path, const std::string &workl
         default:
           break;
       }
-      for(size_t col = 0; col < cols.size(); ++col){
+      for(int64_t col = 0; col < cols.size(); ++col){
         myfile << lb_queries[i][cols[col]];
         if(col + 1 != cols.size())
           myfile << " ";
       }
       myfile << "\n";
 
-      for(size_t col = 0; col < cols.size(); ++col){
+      for(int64_t col = 0; col < cols.size(); ++col){
         myfile << ub_queries[i][cols[col]];
         if(col + 1 != cols.size())
           myfile << " ";
       }
       myfile << "\n";
 
-      for(size_t col = 0; col < cols.size(); ++col){
+      for(int64_t col = 0; col < cols.size(); ++col){
         myfile << cols[col];
         if(col + 1 != cols.size())
           myfile << " ";
@@ -426,11 +426,11 @@ bool Generator::generate(const std::string &table_path, const std::string &workl
     myfile.close();
   } else {
     std::ofstream myfile(workload_path);
-    for (size_t i = 0; i < number_of_queries; ++i) {
+    for (int64_t i = 0; i < number_of_queries; ++i) {
       // myfile << "SELECT * FROM synthetic WHERE";
       int first  = rand() % n_of_rows;
       int second = rand() % n_of_rows;
-      for (size_t j = 0; j < dimensions; ++j) {
+      for (int64_t j = 0; j < dimensions; ++j) {
         lb_queries[i][j] = std::min(data_points[first][j], data_points[second][j]);
         ub_queries[i][j] = std::max(data_points[first][j], data_points[second][j]);
         if (workload == 2) {
@@ -438,21 +438,21 @@ bool Generator::generate(const std::string &table_path, const std::string &workl
           ub_queries[i][j] = lb_queries[i][j] + selectivity;
         }
       }
-      for(size_t col = 0; col < dimensions; ++col){
+      for(int64_t col = 0; col < dimensions; ++col){
         myfile << lb_queries[i][col];
         if(col + 1 != dimensions)
           myfile << " ";
       }
       myfile << "\n";
 
-      for(size_t col = 0; col < dimensions; ++col){
+      for(int64_t col = 0; col < dimensions; ++col){
         myfile << ub_queries[i][col];
         if(col + 1 != dimensions)
           myfile << " ";
       }
       myfile << "\n";
 
-      for(size_t col = 0; col < dimensions; ++col){
+      for(int64_t col = 0; col < dimensions; ++col){
         myfile << col;
         if(col + 1 != dimensions)
           myfile << " ";

@@ -6,7 +6,7 @@
 
 using namespace std;
 
-KDNode::KDNode(size_t column, float key, size_t left_position, size_t right_position)
+KDNode::KDNode(int64_t column, float key, int64_t left_position, int64_t right_position)
 : key(key), column(column), left_position(left_position), right_position(right_position){
     left_child = nullptr;
     right_child = nullptr;

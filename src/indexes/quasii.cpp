@@ -68,7 +68,7 @@ Table Quasii::range_query(Query& query){
         Measurements::difference(end, start)
     );
 
-    size_t n_tuples_scanned = 0;
+    int64_t n_tuples_scanned = 0;
     for(auto &partition : partitions)
         n_tuples_scanned += partition.second - partition.first;
 
@@ -82,16 +82,16 @@ Table Quasii::range_query(Query& query){
     return result;
 }
 
-size_t Quasii::count_slices(vector<Slice> &slices){
-    size_t number_of_slices = slices.size();
+int64_t Quasii::count_slices(vector<Slice> &slices){
+    int64_t number_of_slices = slices.size();
     for(auto slice : slices){
         number_of_slices += count_slices(slice.children);
     }
     return number_of_slices;
 }
 
-vector<pair<size_t, size_t>> Quasii::search(Query& query){
-    vector<pair<size_t, size_t>> partitions;
+vector<pair<int64_t, int64_t>> Quasii::search(Query& query){
+    vector<pair<int64_t, int64_t>> partitions;
     vector<Slice> slices_to_check;
 
     if(column_in_query(first_level_slices.at(0).column, query)){
@@ -135,7 +135,7 @@ vector<pair<size_t, size_t>> Quasii::search(Query& query){
     return partitions;
 }
 
-Predicate Quasii::predicate_on_column(size_t column, Query& query){
+Predicate Quasii::predicate_on_column(int64_t column, Query& query){
     for(auto predicate : query.predicates){
         if(column == predicate.column)
             return predicate;
@@ -144,15 +144,15 @@ Predicate Quasii::predicate_on_column(size_t column, Query& query){
 }
 
 // biggest who is less or equal to the key
-size_t Quasii::binarySearch(const vector<Slice> &slice, float key){
-    auto  min = (size_t) 0;
+int64_t Quasii::binarySearch(const vector<Slice> &slice, float key){
+    auto  min = (int64_t) 0;
     auto  max = slice.size() - 1;
 
     if(min == max)
         return min;
 
     while (max >= min && max > 0) {
-        size_t mid = ((max+min)/2.0) + 0.5;
+        int64_t mid = ((max+min)/2.0) + 0.5;
 
         if(slice.at(mid).left_value ==  key){
             return mid;
@@ -168,8 +168,8 @@ size_t Quasii::binarySearch(const vector<Slice> &slice, float key){
     return max;
 }
 
-bool Quasii::column_in_query(size_t column, Query &query){
-    for(size_t i = 0; i < query.predicate_count(); ++i){
+bool Quasii::column_in_query(int64_t column, Query &query){
+    for(int64_t i = 0; i < query.predicate_count(); ++i){
         if(column == query.predicates.at(i).column)
             return true;
     }

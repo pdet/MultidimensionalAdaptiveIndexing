@@ -17,39 +17,39 @@ class KDTree
 public:
 
     unique_ptr<KDNode> root; // Root of the tree
-    size_t row_count;
+    int64_t row_count;
 
 
-    KDTree(size_t row_count);
+    KDTree(int64_t row_count);
     ~KDTree();
 
-    vector<pair<size_t, size_t>> search(Query& query);
+    vector<pair<int64_t, int64_t>> search(Query& query);
 
-    unique_ptr<KDNode> create_node(size_t column, float key, size_t position);
+    unique_ptr<KDNode> create_node(int64_t column, float key, int64_t position);
 
-    size_t get_node_count();
+    int64_t get_node_count();
 
-    size_t get_max_height();
+    int64_t get_max_height();
 
-    size_t get_min_height();
+    int64_t get_min_height();
 
 private:
 
-    size_t number_of_nodes = 0;
+    int64_t number_of_nodes = 0;
 
-    vector<pair<size_t, size_t>> partitions;
+    vector<pair<int64_t, int64_t>> partitions;
     vector<KDNode*> nodes_to_check;
-    vector<size_t> lower_limits, upper_limits;
+    vector<int64_t> lower_limits, upper_limits;
 
     // Checks the left child
     // If it is null then we reached a partition
     // Otherwise, we follow it
-    void get_partition_or_follow_left(KDNode *current, size_t lower_limit);
+    void get_partition_or_follow_left(KDNode *current, int64_t lower_limit);
 
     // Checks the right child
     // If it is null then we reached a partition
     // Otherwise, we follow it
-    void get_partition_or_follow_right(KDNode *current, size_t upper_limit);
+    void get_partition_or_follow_right(KDNode *current, int64_t upper_limit);
 
     // Checks if node's column is inside of query
     bool node_in_query(KDNode *current, Query& query);
