@@ -23,8 +23,9 @@ public:
 
     Table range_query(Query& query) override;
 
-private:
+    // Todo: this is public because of the medians generator, but it shouldn't
     unique_ptr<KDTree> index;
+private:
     int64_t minimum_partition_size = 100;
 
     // Variables to help with initialization

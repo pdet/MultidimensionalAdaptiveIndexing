@@ -5,8 +5,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+// Generators
 #include "generator.hpp"
 #include "my_generator.hpp"
+#include "medians.hpp"
 
 #define FEATUREVECTORS_FILE "data/datasets/chr22_feature.vectors"
 #define GENES_FILE "data/datasets/genes.txt"
@@ -108,7 +110,7 @@ int main(int argc, char* argv[]) {
     else
         std::cout << "INFO: " << n_of_rows << " vectors, " << dimensions << " dimensions." << std::endl;
 
-    if(workload > 4){
+    if(workload == 5){
         auto generator = MyGenerator(
             n_of_rows,
             dimensions,
@@ -116,7 +118,11 @@ int main(int argc, char* argv[]) {
             number_of_queries
         );
         generator.generate(DATA_FILE, QUERY_FILE);
-    }else{
+    }else if (workload == 6){
+        auto generator = Medians(n_of_rows, dimensions);
+        generator.generate(DATA_FILE, QUERY_FILE);
+    }
+    else{
         auto generator = Generator(
 
             n_of_rows,

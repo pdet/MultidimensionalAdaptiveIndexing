@@ -14,6 +14,7 @@ class Benchmarks:
     GMRQB = 3
     Power = 4
     Our_benchmark = 5
+    Medians = 6
 
     def benchmark_string(benchmark):
         if benchmark == Benchmarks.Normal:
@@ -28,6 +29,8 @@ class Benchmarks:
             return 'Power'
         if benchmark == Benchmarks.Our_benchmark:
             return 'Our Benchmark'
+        if benchmark == Benchmarks.Medians:
+            return 'Medians'
         exit('Error: Benchmark not identified')
 
 
@@ -147,6 +150,7 @@ class MDAIWizard:
             [3] - GMRQB
             [4] - Power
             [5] - Our Benchmark
+            [6] - Medians
             Please type a number:""",
             Benchmarks.Normal
         )
