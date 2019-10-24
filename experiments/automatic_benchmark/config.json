@@ -1,0 +1,22 @@
+{
+    "experiments": [
+        {
+            "name": "config0",
+            "benchmark": 0,
+            "number_of_attributes": 5,
+            "number_of_queries": 1000,
+            "number_of_tuples": 1000,
+            "algorithms": [
+                "Cracking KD-Tree Broad",
+                "Quasii",
+                "KDTree-Median",
+                "KDTree-Average",
+                "Full-Scan"
+            ],
+            "query_type": 7,
+            "selectivity": 0.001,
+            "repetitions": "1",
+            "minimum_partition_size": "1000"
+        }
+    ]
+}
