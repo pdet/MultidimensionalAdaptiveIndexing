@@ -29,6 +29,5 @@ while True:
         os.chdir(SCRIPT_PATH)
         current_git_version = get_current_git_version()
         run_experiments()
-        print(current_git_version)
         os.rename(os.path.join("experiments","automatic_benchmark","config0"),os.path.join("experiments","automatic_benchmark",str(current_git_version)))
     time.sleep(60)
