@@ -6,8 +6,14 @@ import matplotlib.pyplot as plt
 from textwrap import wrap
 import inspect
 
-SCRIPT_PATH =  os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) # script directory
+# script directory
+SCRIPT_PATH = os.path.dirname(
+        os.path.abspath(
+            inspect.getfile(inspect.currentframe())
+        )
+    )
 os.chdir(SCRIPT_PATH)
+
 
 class cd:
     """Context manager for changing the current working directory"""
@@ -186,6 +192,67 @@ class Plots:
         ax.set_title("\n".join(wrap(title, 30, break_long_words=False)))
         fig.savefig(file_name, bbox_inches='tight')
 
+    def size_per_query(self, file_name):
+        """Per query index size 
+        Arguments:
+            - file_name (string): output file
+        """
+
+        fig, ax = plt.subplots(nrows=1, ncols=1)
+        algorithms = self.df['NAME'].unique()
+        avgs = {}
+        for alg in algorithms:
+            temp_df = self.df.loc[self.df['NAME'] == alg].copy()
+            avg = self.average_each_query(list(temp_df['MEMORY_FOOTPRINT']))
+            avgs[alg] = avg
+
+        for alg in sorted(avgs, key=lambda x: avgs[x][-1], reverse=True):
+            ax.plot(
+                avgs[alg],
+                label=alg
+            )
+
+        ax.set_xlabel("Query Number")
+        ax.set_ylabel("Memory Footprint (Bytes)")
+        ax.legend(bbox_to_anchor=(1.0, 1.0))
+        title = f"Memory Footprint per Query\
+                {self.config['number_of_attributes']}-column(s)\
+                {self.config['number_of_tuples']}-tuples\
+                {self.config['selectivity']}-selectivity"
+        ax.set_title("\n".join(wrap(title, 30, break_long_words=False)))
+        fig.savefig(file_name, bbox_inches='tight')
+
+    def first_query_time(self, file_name):
+        """First query response time
+
+        Arguments:
+            - file_name (string): output file
+        """
+        fig, ax = plt.subplots(nrows=1, ncols=1)
+        algorithms = list(self.df['NAME'].unique())
+        first_query_times = []
+        for alg in algorithms:
+            temp_df = self.df.loc[self.df['NAME'] == alg].copy()
+            temp_df['TOTAL_TIME'] = temp_df['INITIALIZATION_TIME']
+            temp_df['TOTAL_TIME'] += temp_df['ADAPTATION_TIME']
+            temp_df['TOTAL_TIME'] += temp_df['QUERY_TIME']
+            avg = self.average_each_query(list(temp_df['TOTAL_TIME']))
+            first_query_times.append(avg[0])
+
+        algs_pos = [i for i, _ in enumerate(algorithms)]
+        ax.bar(algs_pos, first_query_times)
+        ax.set_xticks(algs_pos)
+        ax.set_xticklabels(algorithms, rotation='vertical')
+
+        ax.set_xlabel("Algorithm")
+        ax.set_ylabel("Time (seconds)")
+        title = f"First QueryTime\
+                {self.config['number_of_attributes']}-column(s)\
+                {self.config['number_of_tuples']}-tuples\
+                {self.config['selectivity']}-selectivity"
+        ax.set_title("\n".join(wrap(title, 30, break_long_words=False)))
+        fig.savefig(file_name, bbox_inches='tight')
+
 
 class Benchmark:
     """Executes the benchmark given by the config file"""
@@ -278,6 +345,8 @@ if __name__ == "__main__":
         name = exp['name']
         plotter = Plots(name + '/results.csv', exp)
         plotter.per_query_plot(name + "/per_query.png")
+        plotter.first_query_time(name + "/first_query.png")
         plotter.cum_sum_plot(name + "/cum_sum.png")
         plotter.tuples_scanned(name + "/tuples_scanned.png")
         plotter.per_query_cost_breakdown(name)
+        plotter.size_per_query(name + "/footprint.png")
