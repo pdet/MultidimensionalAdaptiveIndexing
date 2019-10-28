@@ -40,6 +40,7 @@ class Algorithms:
     KD_TREE_MEDIAN = 2
     KD_TREE_AVERAGE = 3
     FULL_SCAN = 4
+    STANDARD_CRACKING = 5
 
     def to_hash():
         return {
@@ -47,7 +48,8 @@ class Algorithms:
             Algorithms.QUASII: "Quasii",
             Algorithms.KD_TREE_MEDIAN: "KDTree-Median",
             Algorithms.KD_TREE_AVERAGE: "KDTree-Average",
-            Algorithms.FULL_SCAN: "Full-Scan"
+            Algorithms.FULL_SCAN: "Full-Scan",
+            Algorithms.STANDARD_CRACKING: "Standard Cracking"
         }
 
     def pp_hash(h, prefix):

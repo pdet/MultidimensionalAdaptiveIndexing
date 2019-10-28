@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <string>
+#include <map>
+
 
 class StandardCrackingNode{
     public:
@@ -37,25 +40,28 @@ class StandardCrackingNode{
 class StandardCracking : public  AbstractIndex
 {
     public:
-        StandardCracking();
+        StandardCracking(std::map<std::string, std::string> config);
         ~StandardCracking(); 
 
         std::string name() override{
             return "Standard Cracking";
         }
-        void initialize(const shared_ptr<Table> table_to_copy) override;
+        void initialize(Table* table_to_copy) override;
 
         void adapt_index(Query& query) override;
 
-        shared_ptr<Table> range_query(Query& query) override;
+        Table range_query(Query& query) override;
     private:
         std::vector<Table> cracker_columns;
         std::vector<std::set<StandardCrackingNode>> index;
-        const int64_t minimum_partition_size = 100;
+        int64_t minimum_partition_size = 100;
 
         void adapt(Query &query);
 
         std::vector<char> search(Query &query);
+
+
+        std::pair<int64_t, int64_t> search_partition(std::set<StandardCrackingNode> s, float value);
 
         int64_t get_node_count();
         int64_t biggest_index();

@@ -21,6 +21,7 @@ set(TEST_SOURCES
         ${CMAKE_SOURCE_DIR}/test/test.cpp
         ${CMAKE_SOURCE_DIR}/test/end_to_end_tests/small_test/small_test.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/index_factory.cpp
+        ${CMAKE_SOURCE_DIR}/test/indexes/standard_cracking.cpp
         ${CMAKE_SOURCE_DIR}/test/data/my_generator.cpp)
 add_executable(tests ${TEST_SOURCES})
 target_link_libraries(tests MDAI_lib)
