@@ -25,6 +25,7 @@ def save_experiments():
 current_git_version = '0'
 
 while True:
+    pull_new_changes()
     if current_git_version != get_current_git_version():
         os.chdir(SCRIPT_PATH)
         current_git_version = get_current_git_version()
