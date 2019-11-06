@@ -1,5 +1,5 @@
-# Multidimensional Adaptive Indexing (MDAI)
-![Build](https://github.com/pdet/MultidimensionalAdaptiveIndexing/workflows/CI/badge.svg)
+# Multidimensional Adaptive Indexing (MDAI) ![Build](https://github.com/pdet/MultidimensionalAdaptiveIndexing/workflows/CI/badge.svg)
+
 
 In this stand-alone implementation, we present various MDAI approaches and compare them to state of the art indexing strategies for multidimensional data through several different benchmarks.
 
