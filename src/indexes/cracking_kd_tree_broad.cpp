@@ -78,6 +78,10 @@ Table CrackingKDTreeBroad::range_query(Query& query){
     return result;
 }
 
+void CrackingKDTreeBroad::draw_index(std::string path){
+    index->draw(path);
+}
+
 void CrackingKDTreeBroad::insert(int64_t column, float key){
     if(index->root == nullptr){
         // First insertion

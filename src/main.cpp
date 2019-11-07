@@ -13,7 +13,7 @@ int main(int argc, char** argv){
     string workload_path = "queries";
     string data_path = "data";
     string index_algorithm = "Full Scan";
-    string csv_path;
+    string results_path;
     int number_of_repetitions = 3;
     map<string, string> config;
 
@@ -34,7 +34,7 @@ int main(int argc, char** argv){
             number_of_repetitions = atoi(optarg);
             break;
         case 's':
-            csv_path = optarg;
+            results_path = optarg;
             break;
         case 'p':
             config["minimum_partition_size"] = optarg;
@@ -45,7 +45,7 @@ int main(int argc, char** argv){
             cout << "-d <data_path>\n";
             cout << "-i <algorithm>\n";
             cout << "-r <number_of_repetitions>\n";
-            cout << "-s <csv_path>\n";
+            cout << "-s <folder_to_save_results>\n";
             cout << "-p <minimum_partition_size>\n";
             return -1;
         }
@@ -54,6 +54,8 @@ int main(int argc, char** argv){
         auto index = IndexFactory::getIndex(index_algorithm, config);
 
         cout << index->name() << " Repetition: " << repetition << endl;
+        
+        std::system(("mkdir " + results_path + "/" + '"' + index->name() + '"').c_str());
 
         auto table = DataReader::read_table(data_path);
         auto workload = DataReader::read_workload(workload_path);
@@ -61,10 +63,13 @@ int main(int argc, char** argv){
         index->initialize(table.get());
         for(size_t i = 0; i < workload.size(); ++i){
             index->adapt_index(workload.at(i));
+            index->draw_index(
+                results_path + "/" + index->name() + "/" + std::to_string(i) + ".dot"
+            );
             index->range_query(workload.at(i));
         }
 
-        index->measurements->save(csv_path, repetition, index->name());
+        index->measurements->save(results_path + "/results.csv", repetition, index->name());
     }
     return 0;
 }

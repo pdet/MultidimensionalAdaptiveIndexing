@@ -3,6 +3,7 @@
 #include <utility>
 #include <vector>
 #include "kd_node.hpp"
+#include <string>
 
 using namespace std;
 
@@ -25,3 +26,11 @@ KDNode::KDNode(){
 }
 
 KDNode::~KDNode(){}
+
+string KDNode::label(){
+    string label;
+    label += "Key: " + to_string(key) + "\n";
+    label += "Column: " + to_string(column) + "\n";
+    label += to_string(left_position) + "  |  " + to_string(right_position)+ "\n";
+    return label; 
+}

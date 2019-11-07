@@ -5,6 +5,7 @@
 #include "../helpers/measurements.hpp"
 #include "../helpers/query.hpp"
 #include <vector>
+#include <string>
 
 class AbstractIndex
 {
@@ -23,5 +24,6 @@ public:
     virtual void adapt_index(Query& query) = 0;
     virtual Table range_query(Query& query) = 0;
     virtual string name() = 0;
+    virtual void draw_index(std::string path){}
 };
 #endif // ABSTRACT_INDEX_H

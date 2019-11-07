@@ -276,7 +276,7 @@ class Benchmark:
         self.BUILD_DIR = build_dir
         self.BIN_DIR = bin_dir
 
-    def run(self, results_file="results", compile_code=True):
+    def run(self, results_folder="results", compile_code=True):
         """Runs the benchmark, saves the results as CSV file in results_file
 
         Arguments:
@@ -311,7 +311,7 @@ class Benchmark:
                     "-d", "data",
                     "-i", algorithm,
                     "-r", str(self.config['repetitions']),
-                    "-s", self.CURRENT_DIR + "/" + results_file,
+                    "-s", self.CURRENT_DIR + "/" + results_folder,
                     "-p", str(self.config["minimum_partition_size"])
                 ])
 
@@ -335,7 +335,7 @@ if __name__ == "__main__":
         os.makedirs(name)
         benchmark = Benchmark(exp, BUILD_DIR, BIN_DIR)
         benchmark.run(
-                results_file=name + '/results.csv',
+                results_folder=name,
                 compile_code=compile_code
         )
         compile_code = False

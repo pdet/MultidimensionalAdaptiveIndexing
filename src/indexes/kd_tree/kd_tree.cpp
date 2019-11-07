@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 #include <limits>
+#include <fstream>
+#include <map>
 
 using namespace std;
 
@@ -162,6 +164,68 @@ int64_t KDTree::get_min_height(){
     }
 
     return min_height;
+}
+
+void KDTree::draw(std::string path){
+    std::ofstream myfile(path.c_str());
+
+    myfile << "digraph KDTree {\n";
+
+    std::map<size_t, std::string> labels;
+    if(root != nullptr){
+
+        vector<KDNode*> nodes;
+        vector<int64_t> heights;
+        size_t n_nulls = 0;
+        nodes.push_back(root.get());
+
+        while(!nodes.empty()){
+            auto node = nodes.back();
+            nodes.pop_back();
+
+            myfile << std::to_string(reinterpret_cast<size_t>(node))\
+                   << "[label=\"" + node->label() + "\"]\n;"; 
+
+            if(node->left_child.get() != nullptr){
+                nodes.push_back(node->left_child.get());
+                myfile << std::to_string(reinterpret_cast<size_t>(node));
+                myfile << " -> ";
+                myfile << std::to_string(
+                    reinterpret_cast<size_t>(node->left_child.get())
+                );
+                myfile << "[label =\"L\"];\n";
+            }
+            else{
+                myfile << std::to_string(reinterpret_cast<size_t>(node));
+                myfile << " -> ";
+                myfile << "null" + std::to_string(n_nulls);
+                myfile << "[label =\"L\"];\n";
+                myfile << "null" + std::to_string(n_nulls) + "[shape=point]\n";
+                n_nulls++;
+            }
+            if(node->right_child.get() != nullptr){
+                nodes.push_back(node->right_child.get());
+                myfile << std::to_string(reinterpret_cast<size_t>(node));
+                myfile << " -> ";
+                myfile << std::to_string(
+                    reinterpret_cast<size_t>(node->right_child.get())
+                );
+                myfile << "[label =\"R\"];\n";
+            }
+            else{
+                myfile << std::to_string(reinterpret_cast<size_t>(node));
+                myfile << " -> ";
+                myfile << "null" + std::to_string(n_nulls);
+                myfile << "[label =\"R\"];\n";
+                myfile << "null" + std::to_string(n_nulls) + "[shape=point]\n";
+                n_nulls++;
+            }
+
+        }
+
+    }
+    myfile << "\n}";
+    myfile.close();
 }
 
 // Checks the left child

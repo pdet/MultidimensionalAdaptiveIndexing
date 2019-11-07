@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 #include <memory>
+#include <string>
 
 using namespace std;
 
@@ -29,6 +30,7 @@ public:
     KDNode(const KDNode &node);
     KDNode();
     ~KDNode();
+    std::string label();
 };
 
 #endif // KDNODE_H

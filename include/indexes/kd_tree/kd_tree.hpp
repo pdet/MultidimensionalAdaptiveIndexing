@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 #include <limits>
+#include <string>
 
 using namespace std;
 
@@ -32,6 +33,8 @@ public:
     int64_t get_max_height();
 
     int64_t get_min_height();
+
+    void draw(std::string path);
 
 private:
 

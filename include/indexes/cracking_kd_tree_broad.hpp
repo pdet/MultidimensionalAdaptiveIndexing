@@ -22,6 +22,8 @@ public:
     void adapt_index(Query& query) override;
 
     Table range_query(Query& query) override;
+
+    void draw_index(std::string path) override;
 private:
     unique_ptr<KDTree> index;
     int64_t minimum_partition_size = 100;
