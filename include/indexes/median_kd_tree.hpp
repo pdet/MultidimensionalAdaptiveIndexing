@@ -25,6 +25,11 @@ public:
 
     // Todo: this is public because of the medians generator, but it shouldn't
     unique_ptr<KDTree> index;
+
+    void draw_index(std::string path) override{
+        index->draw(path);
+    }
+
 private:
     int64_t minimum_partition_size = 100;
 
