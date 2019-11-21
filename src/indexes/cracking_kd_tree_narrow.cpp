@@ -244,6 +244,7 @@ unique_ptr<KDNode> CrackingKDTreeNarrow::insert_new_nodes(QueryShell *query, int
     for(; i < predicates.size(); ++i){
         std::tie(key, column, is_high) = predicates.at(i);
         auto position = table->CrackTable(lower_limit, upper_limit, key, column);
+        position--;
         if(lower_limit < position && position < upper_limit){
             if(position - lower_limit < minimum_partition_size)
                 return nullptr;
@@ -260,8 +261,10 @@ unique_ptr<KDNode> CrackingKDTreeNarrow::insert_new_nodes(QueryShell *query, int
     for(; i < predicates.size(); ++i){
         std::tie(key, column, is_high) = predicates.at(i);
         if(current_is_high){
+            // High predicates always insert node on their left side
             upper_limit = current->left_position; 
             auto position = table->CrackTable(lower_limit, upper_limit, key, column);
+            position--;
             if(lower_limit < position && position < upper_limit){
                 if(position - lower_limit < minimum_partition_size)
                     return first;
@@ -271,8 +274,10 @@ unique_ptr<KDNode> CrackingKDTreeNarrow::insert_new_nodes(QueryShell *query, int
             }
         }
         else{
+            // Low predicates always insert node on their right side
             lower_limit = current->right_position; 
             auto position = table->CrackTable(lower_limit, upper_limit, key, column);
+            position--;
             if(lower_limit < position && position < upper_limit){
                 if(position - lower_limit < minimum_partition_size)
                     return first;

@@ -52,7 +52,7 @@ TEST_CASE( "Test Cracking KDTree Narrow", "[CrackingKDTreeNarrow]" ) {
     for(size_t query_index = 0; query_index < workload.size(); ++query_index){
         auto received = result_sizes.at(query_index);
         auto expected = baseline_results.at(query_index);
-        REQUIRE(expected == received);
+        CHECK(expected == received);
     }
 }
 
