@@ -15,6 +15,7 @@ ExternalProject_Add(catch2
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/deps/include/catch2)
+include_directories(${CMAKE_SOURCE_DIR}/test)
 
 # Compile tests
 set(TEST_SOURCES 
@@ -23,6 +24,9 @@ set(TEST_SOURCES
         ${CMAKE_SOURCE_DIR}/test/indexes/standard_cracking.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_narrow.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_broad.cpp
+        ${CMAKE_SOURCE_DIR}/test/indexes/quasii.cpp
+        ${CMAKE_SOURCE_DIR}/test/indexes/median_kd_tree.cpp
+        ${CMAKE_SOURCE_DIR}/test/indexes/average_kd_tree.cpp
         ${CMAKE_SOURCE_DIR}/test/data/my_generator.cpp)
 add_executable(tests ${TEST_SOURCES})
 target_link_libraries(tests MDAI_lib)
