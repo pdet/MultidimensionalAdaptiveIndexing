@@ -23,6 +23,7 @@ set(TEST_SOURCES
         ${CMAKE_SOURCE_DIR}/test/indexes/index_factory.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/standard_cracking.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_narrow.cpp
+        ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_broad.cpp
         ${CMAKE_SOURCE_DIR}/test/data/my_generator.cpp)
 add_executable(tests ${TEST_SOURCES})
 target_link_libraries(tests MDAI_lib)
