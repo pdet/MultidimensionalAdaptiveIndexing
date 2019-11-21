@@ -19,7 +19,6 @@ include_directories(${CMAKE_SOURCE_DIR}/deps/include/catch2)
 # Compile tests
 set(TEST_SOURCES 
         ${CMAKE_SOURCE_DIR}/test/test.cpp
-        ${CMAKE_SOURCE_DIR}/test/end_to_end_tests/small_test/small_test.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/index_factory.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/standard_cracking.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_narrow.cpp
