@@ -3,6 +3,7 @@
 #include <math.h>
 #include <algorithm>
 #include <stack>
+#include <fstream>
 
 Quasii::Quasii(std::map<std::string, std::string> config){
     if(config.find("minimum_partition_size") == config.end())
@@ -80,6 +81,47 @@ Table Quasii::range_query(Query& query){
     measurements->tuples_scanned.push_back(n_tuples_scanned);
 
     return result;
+}
+
+void Quasii::draw_index(std::string path){
+    std::ofstream myfile(path.c_str());
+
+    myfile << "digraph Quasii{\n node [shape=record];\n";
+
+    std::vector<std::vector<Slice>*> slices;
+    slices.push_back(&first_level_slices);
+
+    while(!slices.empty()){
+        std::vector<Slice> *array_of_slices = slices.back();
+        slices.pop_back();
+        // First we create the node
+        myfile << std::to_string(
+                    reinterpret_cast<size_t>(&((*array_of_slices)[0]))
+                ) + "[label=\"\n";
+        for(auto slice : *array_of_slices){
+            myfile << slice.label(); 
+            myfile << "|";
+        }
+
+        myfile << "\"\n];\n";
+
+        // Then we link the nodes 
+        for(size_t i = 0; i < array_of_slices->size(); ++i){
+            auto &slice = array_of_slices->at(i);
+            if(slice.children.empty()){}
+            else{
+                myfile << std::to_string(
+                    reinterpret_cast<size_t>(&((*array_of_slices)[0]))
+                ) + "->" + std::to_string(
+                    reinterpret_cast<size_t>(&(slice.children[0]))
+                ) + ";\n";
+                slices.push_back(&(slice.children));
+            }
+        }
+    }
+
+    myfile << "\n}";
+    myfile.close();
 }
 
 int64_t Quasii::count_slices(vector<Slice> &slices){

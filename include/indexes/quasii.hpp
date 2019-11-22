@@ -26,6 +26,8 @@ public:
 
     Table range_query(Query& query) override;
 
+    void draw_index(std::string path) override;
+
 private:
     vector<Slice> first_level_slices;
 

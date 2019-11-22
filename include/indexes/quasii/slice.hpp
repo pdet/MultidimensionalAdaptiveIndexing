@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <vector>
 #include <cstdint>
+#include <string>
 
 using namespace std;
 
@@ -25,6 +26,8 @@ public:
 
     Slice();
     ~Slice();
+
+    string label();
 
     bool equal(const Slice &other);
 

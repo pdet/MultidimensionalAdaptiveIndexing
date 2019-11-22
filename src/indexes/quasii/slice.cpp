@@ -32,6 +32,14 @@ Slice::Slice(){
 }
 Slice::~Slice(){}
 
+string Slice::label(){
+    auto offsets = std::to_string(offset_begin) + '-' + std::to_string(offset_end);
+    auto pivots = std::to_string(left_value) + '-' + std::to_string(right_value);
+    return "Column: " + std::to_string(column) + "\\n" +\
+           "Offsets: " + offsets + "\\n" +\
+           "Pivots: " + pivots;
+}
+
 bool Slice::equal(const Slice &other){
     return (
         column == other.column &&
