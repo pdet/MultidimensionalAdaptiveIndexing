@@ -16,14 +16,14 @@ class TestHelper{
             const string workload_path = "test_queries";
             const string table_path = "test_data";
 
-            auto generator = MyGenerator(
-                    n_rows,
-                    n_dimensions,
-                    selectivity,
-                    n_queries
-                    );
+            //auto generator = MyGenerator(
+            //        n_rows,
+            //        n_dimensions,
+            //        selectivity,
+            //        n_queries
+            //        );
 
-            generator.generate(table_path, workload_path);
+            //generator.generate(table_path, workload_path);
 
             auto table = DataReader::read_table(table_path);
             auto workload = DataReader::read_workload(workload_path);
@@ -44,25 +44,18 @@ class TestHelper{
                 REQUIRE(baseline_results.at(j) > 0);
             }
 
-            vector<size_t> result_sizes(workload.size());
-
-
             INFO("Running (" << alg->name() << ")");
 
             alg->initialize(table.get());
             for(size_t j = 0; j < workload.size(); ++j){
                 alg->adapt_index(workload.at(j));
-                auto result = alg->range_query(workload.at(j));
-                result_sizes.at(j) = result.row_count();
+                alg->draw_index("./" + alg->name() + "/" + std::to_string(j) + ".dot");
+                auto result = alg->range_query(workload.at(j)).row_count();
+                auto expected = baseline_results.at(j);
+                CHECK(expected == result);
+
             }
 
-            INFO("Comparing Results");
-
-            for(size_t query_index = 0; query_index < workload.size(); ++query_index){
-                auto received = result_sizes.at(query_index);
-                auto expected = baseline_results.at(query_index);
-                CHECK(expected == received);
-            }
         }
 };
 

@@ -94,11 +94,15 @@ void Quasii::draw_index(std::string path){
     while(!slices.empty()){
         std::vector<Slice> *array_of_slices = slices.back();
         slices.pop_back();
-        // First we create the node
-        myfile << std::to_string(
+
+        auto array_id = std::to_string(
                     reinterpret_cast<size_t>(&((*array_of_slices)[0]))
-                ) + "[label=\"\n";
-        for(auto slice : *array_of_slices){
+                );
+
+        // First we create the node
+        myfile << array_id + "[label=\"\n";
+        for(auto &slice : *array_of_slices){
+            myfile << "<" + std::to_string(reinterpret_cast<size_t>(&slice)) + ">";
             myfile << slice.label(); 
             myfile << "|";
         }
@@ -108,11 +112,12 @@ void Quasii::draw_index(std::string path){
         // Then we link the nodes 
         for(size_t i = 0; i < array_of_slices->size(); ++i){
             auto &slice = array_of_slices->at(i);
+            auto slice_id = std::to_string(
+                    reinterpret_cast<size_t>(&(slice))
+                );
             if(slice.children.empty()){}
             else{
-                myfile << std::to_string(
-                    reinterpret_cast<size_t>(&((*array_of_slices)[0]))
-                ) + "->" + std::to_string(
+                myfile << array_id + ":" + array_id + "->" + std::to_string(
                     reinterpret_cast<size_t>(&(slice.children[0]))
                 ) + ";\n";
                 slices.push_back(&(slice.children));
