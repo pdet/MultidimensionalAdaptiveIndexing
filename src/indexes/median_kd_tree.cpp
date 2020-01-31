@@ -105,32 +105,32 @@ unique_ptr<KDTree> MedianKDTree::initialize_index(){
         auto column = (columns.back() + 1) % table->col_count();
         columns.pop_back();
 
-        if(current->left_position - lower_limit > minimum_partition_size){
-            auto median_result = find_median(column, lower_limit, current->left_position);
+        if(current->position - lower_limit > minimum_partition_size){
+            auto median_result = find_median(column, lower_limit, current->position - 1);
             auto median = median_result.first;
             auto position = median_result.second;
 
-            if(!(position < lower_limit || position >= current->left_position)){
+            if(!(position < lower_limit || position >= current->position - 1)){
                 current->left_child = index->create_node(column, median, position);
 
                 nodes_to_check.push_back(current->left_child.get());
                 columns.push_back(column);
                 lower_limits.push_back(lower_limit);
-                upper_limits.push_back(current->left_position);
+                upper_limits.push_back(current->position - 1);
             }
         }
 
-        if(upper_limit - current->right_position > minimum_partition_size){
-            auto median_result = find_median(column, current->right_position, upper_limit);
+        if(upper_limit - current->position > minimum_partition_size){
+            auto median_result = find_median(column, current->position, upper_limit);
             auto median = median_result.first;
             auto position = median_result.second;
 
-            if(!(position < current->right_position || position >= upper_limit)){
+            if(!(position < current->position || position >= upper_limit)){
                 current->right_child = index->create_node(column, median, position);
 
                 nodes_to_check.push_back(current->right_child.get());
                 columns.push_back(column);
-                lower_limits.push_back(current->right_position);
+                lower_limits.push_back(current->position);
                 upper_limits.push_back(upper_limit);
             }
         }
@@ -173,7 +173,7 @@ pair<float, int64_t> MedianKDTree::find_median(int64_t column, int64_t lower_lim
             break;
     }
 
-    return make_pair(element, position - 1);
+    return make_pair(element, position);
 }
 
 // Returns the position on where the pivot would end
