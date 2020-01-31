@@ -22,7 +22,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             #${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_broad.cpp
             #${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_narrow.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/median_kd_tree.cpp
-            #${CMAKE_SOURCE_DIR}/src/indexes/average_kd_tree.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/average_kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/quasii/slice.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/quasii.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_tree.cpp

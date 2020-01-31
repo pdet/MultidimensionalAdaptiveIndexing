@@ -104,32 +104,32 @@ unique_ptr<KDTree> AverageKDTree::initialize_index(){
         auto column = (columns.back() + 1) % table->col_count();
         columns.pop_back();
 
-        if(current->left_position - lower_limit > minimum_partition_size){
-            auto average_result = find_average(column, lower_limit, current->left_position);
+        if(current->position - lower_limit > minimum_partition_size){
+            auto average_result = find_average(column, lower_limit, current->position - 1);
             auto average = average_result.first;
             auto position = average_result.second;
 
-            if(!(position < lower_limit || position >= current->left_position)){
+            if(!(position < lower_limit || position >= current->position - 1)){
                 current->left_child = index->create_node(column, average, position);
 
                 nodes_to_check.push_back(current->left_child.get());
                 columns.push_back(column);
                 lower_limits.push_back(lower_limit);
-                upper_limits.push_back(current->left_position);
+                upper_limits.push_back(current->position - 1);
             }
         }
 
-        if(upper_limit - current->right_position > minimum_partition_size){
-            auto average_result = find_average(column, current->right_position, upper_limit);
+        if(upper_limit - current->position > minimum_partition_size){
+            auto average_result = find_average(column, current->position, upper_limit);
             auto average = average_result.first;
             auto position = average_result.second;
 
-            if(!(position < current->right_position || position >= upper_limit)){
+            if(!(position < current->position || position >= upper_limit)){
                 current->right_child = index->create_node(column, average, position);
 
                 nodes_to_check.push_back(current->right_child.get());
                 columns.push_back(column);
-                lower_limits.push_back(current->right_position);
+                lower_limits.push_back(current->position);
                 upper_limits.push_back(upper_limit);
             }
         }
@@ -147,5 +147,5 @@ pair<float, int64_t> AverageKDTree::find_average(int64_t column, int64_t lower_l
 
     auto position = table->CrackTable(lower_limit, upper_limit, average, column);
 
-    return make_pair(average, position-1);
+    return make_pair(average, position);
 }

@@ -6,7 +6,7 @@
 //#include "cracking_kd_tree_broad.hpp"
 //#include "cracking_kd_tree_narrow.hpp"
 #include "median_kd_tree.hpp"
-//#include "average_kd_tree.hpp"
+#include "average_kd_tree.hpp"
 #include "quasii.hpp"
 #include "standard_cracking.hpp"
 
@@ -32,8 +32,8 @@ public:
         //    return make_unique<CrackingKDTreeNarrow>(config);
         if(index_name == "KDTree-Median")
             return make_unique<MedianKDTree>(config);
-        //if(index_name == "KDTree-Average")
-        //    return make_unique<AverageKDTree>(config);
+        if(index_name == "KDTree-Average")
+            return make_unique<AverageKDTree>(config);
         if(index_name == "Quasii")
             return make_unique<Quasii>(config);
         if(index_name == "Standard Cracking")
