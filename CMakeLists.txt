@@ -9,6 +9,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 # Header files
 include_directories(${CMAKE_SOURCE_DIR}/include/helpers)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes)
+include_directories(${CMAKE_SOURCE_DIR}/include/indexes/cracking_kd_trees)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes/kd_tree)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes/quasii)
 include_directories(${CMAKE_SOURCE_DIR}/include/data)
@@ -20,6 +21,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/table.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/full_scan.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/abstract_cracking_kd_tree.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_trees/all_hyperplanes_broad.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/median_kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/average_kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/quasii/slice.cpp

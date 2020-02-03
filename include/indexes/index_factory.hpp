@@ -7,6 +7,7 @@
 #include "average_kd_tree.hpp"
 #include "quasii.hpp"
 #include "standard_cracking.hpp"
+#include "all_hyperplanes_broad.hpp"
 
 #include <iostream>
 #include <string>
@@ -32,6 +33,8 @@ public:
             return make_unique<Quasii>(config);
         if(index_name == "Standard Cracking")
             return make_unique<StandardCracking>(config);
+        if(index_name == "AllHyperplanesBroad")
+            return make_unique<AllHyperplanesBroad>(config);
 
         assert(false);
     }

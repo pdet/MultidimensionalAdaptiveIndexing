@@ -21,6 +21,7 @@ include_directories(${CMAKE_SOURCE_DIR}/test)
 set(TEST_SOURCES 
         ${CMAKE_SOURCE_DIR}/test/test.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/index_factory.cpp
+        ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_trees/all_hyperplanes_broad.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/standard_cracking.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/quasii.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/median_kd_tree.cpp
