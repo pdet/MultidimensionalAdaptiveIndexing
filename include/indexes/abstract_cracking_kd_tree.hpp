@@ -25,7 +25,7 @@ public:
     Table range_query(Query& query) override;
 
     void draw_index(std::string path) override;
-private:
+protected:
     unique_ptr<KDTree> index;
     int64_t minimum_partition_size = 100;
     std::vector<int64_t> lower_limits;
