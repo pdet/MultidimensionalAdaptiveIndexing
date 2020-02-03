@@ -8,6 +8,7 @@
 #include "quasii.hpp"
 #include "standard_cracking.hpp"
 #include "all_hyperplanes_broad.hpp"
+#include "all_hyperplanes_narrow.hpp"
 
 #include <iostream>
 #include <string>
@@ -35,6 +36,9 @@ public:
             return make_unique<StandardCracking>(config);
         if(index_name == "AllHyperplanesBroad")
             return make_unique<AllHyperplanesBroad>(config);
+        if(index_name == "AllHyperplanesNarrow")
+            return make_unique<AllHyperplanesNarrow>(config);
+
 
         assert(false);
     }

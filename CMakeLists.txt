@@ -22,6 +22,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/full_scan.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/abstract_cracking_kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_trees/all_hyperplanes_broad.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_trees/all_hyperplanes_narrow.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/median_kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/average_kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/quasii/slice.cpp
