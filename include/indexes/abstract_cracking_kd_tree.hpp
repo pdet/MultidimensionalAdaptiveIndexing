@@ -14,7 +14,7 @@ public:
     ~AbstractCrackingKDTree();
 
     string name() override{
-        return "Cracking KD-Tree Broad";
+        return "Abstract Craking KD-Tree";
     }
 
     void initialize(Table *table_to_copy) override;
