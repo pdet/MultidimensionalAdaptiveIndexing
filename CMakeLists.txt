@@ -26,7 +26,6 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/quasii.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_node.cpp
-            ${CMAKE_SOURCE_DIR}/src/indexes/standard_cracking.cpp
             ${CMAKE_SOURCE_DIR}/src/data/data_reader.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/my_generator.cpp

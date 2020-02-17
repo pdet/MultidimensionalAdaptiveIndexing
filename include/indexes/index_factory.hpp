@@ -6,7 +6,6 @@
 #include "median_kd_tree.hpp"
 #include "average_kd_tree.hpp"
 #include "quasii.hpp"
-#include "standard_cracking.hpp"
 #include "cracking_kd_tree.hpp"
 
 #include <iostream>
@@ -33,8 +32,6 @@ public:
             return make_unique<AverageKDTree>(config);
         if(index_name == "Quasii")
             return make_unique<Quasii>(config);
-        if(index_name == "Standard Cracking")
-            return make_unique<StandardCracking>(config);
 
         assert(false);
     }
@@ -47,7 +44,6 @@ public:
         indexes.push_back(make_unique<MedianKDTree>(config));
         indexes.push_back(make_unique<AverageKDTree>(config));
         indexes.push_back(make_unique<Quasii>(config));
-        indexes.push_back(make_unique<StandardCracking>(config));
         return indexes;
     }
 
