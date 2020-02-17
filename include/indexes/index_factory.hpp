@@ -7,6 +7,7 @@
 #include "average_kd_tree.hpp"
 #include "quasii.hpp"
 #include "standard_cracking.hpp"
+#include "cracking_kd_tree.hpp"
 
 #include <iostream>
 #include <string>
@@ -26,6 +27,8 @@ public:
             return make_unique<FullScan>(config);
         if(index_name == "KDTree-Median")
             return make_unique<MedianKDTree>(config);
+        if(index_name == "CrackingKDTree")
+            return make_unique<CrackingKDTree>(config);
         if(index_name == "KDTree-Average")
             return make_unique<AverageKDTree>(config);
         if(index_name == "Quasii")
@@ -40,6 +43,7 @@ public:
             map<string, string> config = map<string, string>()
         ){
         vector<shared_ptr<AbstractIndex>> indexes;
+        indexes.push_back(make_unique<CrackingKDTree>(config));
         indexes.push_back(make_unique<MedianKDTree>(config));
         indexes.push_back(make_unique<AverageKDTree>(config));
         indexes.push_back(make_unique<Quasii>(config));
