@@ -26,8 +26,8 @@ class CrackingKDTree : public AbstractIndex
     void draw_index(std::string path) override{
         index->draw(path);
     }
-private:
 
+private:
     unique_ptr<KDTree> index;
     int64_t minimum_partition_size = 100;
 };

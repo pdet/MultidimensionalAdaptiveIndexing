@@ -17,6 +17,8 @@ void CrackingKDTree::initialize(Table *table_to_copy){
     // Copy the entire table
     table = make_unique<Table>(table_to_copy);
 
+    index = make_unique<KDTree>(table->row_count());
+
     auto end = measurements->time();
 
     measurements->initialization_time = Measurements::difference(end, start);
