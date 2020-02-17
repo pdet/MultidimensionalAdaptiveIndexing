@@ -21,7 +21,7 @@ vector<pair<int64_t, int64_t>> KDTree::search(Query& query){
 
     if(root == nullptr){
         partitions.push_back(
-            make_pair(0, row_count)
+            make_pair(0, row_count-1)
         );
         return partitions;
     }
