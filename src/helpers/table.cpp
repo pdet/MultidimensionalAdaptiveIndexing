@@ -90,7 +90,7 @@ void Table::exchange(int64_t index1, int64_t index2){
     }
 }
 
-// Cracks table from position i = low until i == high
+// Cracks table from position i = low until i < high
 // on column (c) with key (element)
 // Returns in which position the list is greater or equal to key
 // In case of repetition, returns the first one, and all the others come
@@ -98,7 +98,7 @@ void Table::exchange(int64_t index1, int64_t index2){
 int64_t Table::CrackTable(int64_t low, int64_t high, float element, int64_t c)
 {
     int64_t x1 = low;
-    int64_t x2 = high;
+    int64_t x2 = high - 1;
 
     while (x1 <= x2 && x2 > 0)
     {
@@ -119,13 +119,13 @@ int64_t Table::CrackTable(int64_t low, int64_t high, float element, int64_t c)
     return x1;
 }
 
-// Cracks table in three from position i = low until i == high
+// Cracks table in three from position i = low until i < high
 // on column (c) with left key and right key
 // Returns a pair of positions indicating where each patition starts
 pair<int64_t, int64_t> Table::CrackTableInThree(int64_t low, int64_t high, float key_left, float key_right, int64_t c)
 {
     auto x1 = low;
-    auto x2 = high;
+    auto x2 = high - 1;
     // "Eliminate" all the correct ones on the right side
     while (x2 > x1 && columns.at(c)->at(x2)  >= key_right)
         x2--;
