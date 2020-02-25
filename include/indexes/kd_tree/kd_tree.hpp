@@ -54,9 +54,6 @@ private:
     // Otherwise, we follow it
     void get_partition_or_follow_right(KDNode *current, int64_t upper_limit);
 
-    // Checks if node's column is inside of query
-    bool node_in_query(KDNode *current, Query& query);
-
     // If the node's key is greater or equal to the high part of the query
     // Then follow the left child
     // This behavior changes if low == high in query, which means it is a equality

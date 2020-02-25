@@ -42,18 +42,13 @@ vector<pair<int64_t, int64_t>> KDTree::search(Query& query){
         auto upper_limit = upper_limits.back();
         upper_limits.pop_back();
 
-        // If current's column is not in query follow both children
-        if(!node_in_query(current, query)){
-            get_partition_or_follow_left(current, lower_limit);
-            get_partition_or_follow_right(current, upper_limit);
-        }
         // If the node's key is greater or equal to the high part of the query
         // Then follow the left child
         //                  Key
         // Data:  |----------!--------|
         // Query:      |-----|
         //            low   high
-        else if (node_greater_equal_query(current, query)){
+        if (node_greater_equal_query(current, query)){
             get_partition_or_follow_left(current, lower_limit);
         }
         // If the node's key is smaller to the low part of the query
@@ -81,7 +76,7 @@ vector<pair<int64_t, int64_t>> KDTree::search(Query& query){
 
 unique_ptr<KDNode> KDTree::create_node(int64_t column, float key, int64_t position){
     auto node = make_unique<KDNode>(
-                column, key, position, position + 1
+                column, key, position 
             );
     number_of_nodes++;
     return node;
@@ -234,13 +229,13 @@ void KDTree::draw(std::string path){
 void KDTree::get_partition_or_follow_left(KDNode *current, int64_t lower_limit){
     if (current->left_child == nullptr)
     {
-        partitions.push_back(make_pair(lower_limit, current->left_position));
+        partitions.push_back(make_pair(lower_limit, current->position));
     }
     else
     {
         nodes_to_check.push_back(current->left_child.get());
         lower_limits.push_back(lower_limit);
-        upper_limits.push_back(current->left_position);
+        upper_limits.push_back(current->position);
     }
 }
 
@@ -250,24 +245,14 @@ void KDTree::get_partition_or_follow_left(KDNode *current, int64_t lower_limit){
 void KDTree::get_partition_or_follow_right(KDNode *current, int64_t upper_limit){
     if (current->right_child == nullptr)
     {
-        partitions.push_back(make_pair(current->right_position, upper_limit));
+        partitions.push_back(make_pair(current->position, upper_limit));
     }
     else
     {
         nodes_to_check.push_back(current->right_child.get());
-        lower_limits.push_back(current->right_position);
+        lower_limits.push_back(current->position);
         upper_limits.push_back(upper_limit);
     }
-}
-
-// Checks if node's column is inside of query
-bool KDTree::node_in_query(KDNode *current, Query& query){
-    for(int64_t i = 0; i < query.predicate_count(); i++)
-    {
-        if(current->column == query.predicates.at(i).column)
-            return true;
-    }
-    return false;
 }
 
 // If the node's key is greater or equal to the high part of the query

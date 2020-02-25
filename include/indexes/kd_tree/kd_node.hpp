@@ -22,11 +22,11 @@ public:
     unique_ptr<KDNode> left_child;
     unique_ptr<KDNode> right_child;
 
-    int64_t left_position; // Strict smaller than key from this position backwards
-    int64_t right_position; // Greater or equal than key from this position forwards
+    // Strict smaller than key from this position backwards
+    // Greater or equal than key from this position forwards
+    int64_t position;
 
-
-    KDNode(int64_t column, float key, int64_t left_position, int64_t right_position);
+    KDNode(int64_t column, float key, int64_t position);
     KDNode(const KDNode &node);
     KDNode();
     ~KDNode();
