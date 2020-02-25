@@ -29,7 +29,7 @@ Table FullScan::range_query(Query& query){
     // Scan the table and returns a materialized view of the result.
     auto result = Table(table->col_count());
 
-    scan_partition(table.get(), query, 0, table->row_count() - 1, &result);
+    scan_partition(table.get(), query, 0, table->row_count(), &result);
 
     auto end = measurements->time();
 
@@ -64,42 +64,20 @@ void FullScan::scan_partition(
         // First time we have to fill the qualyfing rows
         if(first){
 
-            // If it is a range query
-            if(low_pred != high_pred){
-                for(int64_t row_id = low; row_id <= high; row_id++){
-                    auto value = table->columns.at(column)->at(row_id);
-                    if(low_pred <= value && value < high_pred)
-                        qualifying_rows.push_back(row_id);
-                }
-            }
-            // If it is a point query
-            else{
-                for(int64_t row_id = low; row_id <= high; row_id++){
-                    auto value = table->columns.at(column)->at(row_id);
-                    if(low_pred == value)
-                        qualifying_rows.push_back(row_id);
-                }
+            for(int64_t row_id = low; row_id < high; row_id++){
+                auto value = table->columns.at(column)->at(row_id);
+                if(low_pred <= value && value < high_pred)
+                    qualifying_rows.push_back(row_id);
             }
             first = false;
         }
         else{
             std::vector<int64_t> temp_qualifying_rows;
             temp_qualifying_rows.reserve(high - low + 1);
-            // If it is a range query
-            if(low_pred != high_pred){
-                for(auto row_id : qualifying_rows){
-                    auto value = table->columns.at(column)->at(row_id);
-                    if(low_pred <= value && value < high_pred)
-                        temp_qualifying_rows.push_back(row_id);
-                }
-            }
-            // If it is a point query
-            else{
-                for(auto row_id : qualifying_rows){
-                    auto value = table->columns.at(column)->at(row_id);
-                    if(low_pred == value)
-                        temp_qualifying_rows.push_back(row_id);
-                }
+            for(auto row_id : qualifying_rows){
+                auto value = table->columns.at(column)->at(row_id);
+                if(low_pred <= value && value < high_pred)
+                    temp_qualifying_rows.push_back(row_id);
             }
             qualifying_rows = temp_qualifying_rows;
         }
