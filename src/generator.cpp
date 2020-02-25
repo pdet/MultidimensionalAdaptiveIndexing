@@ -118,11 +118,7 @@ int main(int argc, char* argv[]) {
             number_of_queries
         );
         generator.generate(DATA_FILE, QUERY_FILE);
-    }else if (workload == 6){
-        auto generator = Medians(n_of_rows, dimensions);
-        generator.generate(DATA_FILE, QUERY_FILE);
-    }
-    else{
+    }else{
         auto generator = Generator(
 
             n_of_rows,

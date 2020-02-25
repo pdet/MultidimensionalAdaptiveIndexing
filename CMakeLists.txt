@@ -29,7 +29,6 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/data/data_reader.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/my_generator.cpp
-            ${CMAKE_SOURCE_DIR}/src/data/medians.cpp
             )
 
 add_library(MDAI_lib ${SOURCES})
