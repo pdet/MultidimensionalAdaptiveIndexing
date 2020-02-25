@@ -8,7 +8,6 @@
 // Generators
 #include "generator.hpp"
 #include "my_generator.hpp"
-#include "medians.hpp"
 
 #define FEATUREVECTORS_FILE "data/datasets/chr22_feature.vectors"
 #define GENES_FILE "data/datasets/genes.txt"
