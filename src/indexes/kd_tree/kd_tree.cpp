@@ -31,7 +31,7 @@ vector<pair<int64_t, int64_t>> KDTree::search(Query& query){
 
     nodes_to_check.push_back(root.get());
     lower_limits.push_back(0);
-    upper_limits.push_back(row_count - 1);
+    upper_limits.push_back(row_count);
     while(!nodes_to_check.empty()){
         auto current = nodes_to_check.back();
         nodes_to_check.pop_back();
@@ -257,7 +257,6 @@ void KDTree::get_partition_or_follow_right(KDNode *current, int64_t upper_limit)
 
 // If the node's key is greater or equal to the high part of the query
 // Then follow the left child
-// This behavior changes if low == high in query, which means it is a equality
 //                  Key
 // Data:  |----------!--------|
 // Query:      |-----|
