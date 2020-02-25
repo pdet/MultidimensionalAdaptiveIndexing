@@ -6,6 +6,7 @@
 #include "abstract_index.hpp"
 #include <string>
 #include <map>
+#include <set>
 
 class CrackingKDTree : public AbstractIndex
 {
@@ -28,14 +29,25 @@ class CrackingKDTree : public AbstractIndex
     }
 
 private:
+    using Point = std::vector<float>;
+    using Edge = std::pair<Point, Point>;
     unique_ptr<KDTree> index;
     int64_t minimum_partition_size = 100;
 
-    void adapt(Query& query);
+    void adapt(
+        std::vector<Point> points,
+        std::vector<Edge> edges
+        );
 
-    void insert_point(std::vector<float> point, size_t is_right_hand_side);
+    void insert_point(Point point, size_t is_right_hand_side);
+    void insert_edge(Edge& edge);
 
-    std::vector<std::vector<float> > query_to_points(Query& query);
+    std::vector<Point> query_to_points(Query& query);
+    std::vector<Edge> query_to_edges(Query& query);
+    Point decompress_edge(size_t compressed_edge, Query& query);
+
+    float max(Point p1, Point p2, size_t dimension);
+    float min(Point p1, Point p2, size_t dimension);
 
     void crack_point(
             std::vector<float> point,   // point to be inserted
