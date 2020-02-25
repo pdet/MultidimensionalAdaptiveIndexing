@@ -78,7 +78,6 @@ Table CrackingKDTree::range_query(Query& query){
     //std::cout << (n_tuples_scanned)<<std::endl;
     //std::cout << std::endl;
 
-
     return result;
 }
 
@@ -86,6 +85,7 @@ void CrackingKDTree::adapt(Query& query){
     // Transform query into points
     auto points = query_to_points(query);
     // Insert all points
+
     //for(auto& predicate : query.predicates){
     //    std::cout << predicate.low << "<=" << predicate.column << "<" << predicate.high << " AND ";
     //}
