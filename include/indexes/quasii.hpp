@@ -43,10 +43,6 @@ private:
 
     int64_t predicate_index(int64_t column, Query &query);
 
-    bool column_in_query(int64_t column, Query &query);
-
-    Predicate predicate_on_column(int64_t column, Query& query);
-
     void calculate_level_thresholds();
 
     void build(vector<Slice> &slices, Query &query);
