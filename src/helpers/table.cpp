@@ -124,47 +124,9 @@ int64_t Table::CrackTable(int64_t low, int64_t high, float element, int64_t c)
 // Returns a pair of positions indicating where each patition starts
 pair<int64_t, int64_t> Table::CrackTableInThree(int64_t low, int64_t high, float key_left, float key_right, int64_t c)
 {
-    auto x1 = low;
-    auto x2 = high - 1;
-    // "Eliminate" all the correct ones on the right side
-    while (x2 > x1 && columns.at(c)->at(x2)  >= key_right)
-        x2--;
-    auto x3 = x2;
-    // Fixes the middle partition and the last one
-    // Stop when find someone from the first partition
-    while (x3 > x1 && columns.at(c)->at(x3)  >= key_left)
-    {
-        if (columns.at(c)->at(x3) >= key_right)
-        {
-            exchange(x2, x3);
-            x2--;
-        }
-        x3--;
-    }
-    // X3 stops when it finds someone from the first partition
-    while (x1 < x3)
-    {
-        // Find element not from first partition
-        if (columns.at(c)->at(x1)  < key_left)
-            x1++;
-        else
-        {
-            exchange(x1, x3);
-            // Fixes the middle partition and the last one
-            // Stop when find someone from the first partition
-            while (x3 > x1 && columns.at(c)->at(x3)  >= key_left)
-            {
-                if (columns.at(c)->at(x3)  >= key_right)
-                {
-                    exchange(x2, x3);
-                    x2--;
-                }
-                x3--;
-            }
-        }
-    }
-
-    return make_pair(x1,x2);
+    auto p1 = CrackTable(low, high, key_left, c);
+    auto p2 = CrackTable(p1, high, key_right, c);
+    return make_pair(p1, p2);
 }
 
 int64_t Table::row_count() const{
