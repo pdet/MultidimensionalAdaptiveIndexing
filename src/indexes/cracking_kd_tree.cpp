@@ -78,9 +78,9 @@ Table CrackingKDTree::range_query(Query& query){
     measurements->tuples_scanned.push_back(n_tuples_scanned);
 
 
-    std::cout << (index->get_node_count()) << std::endl;
-    std::cout << (n_tuples_scanned)<<std::endl;
-    std::cout << std::endl;
+    //std::cout << (index->get_node_count()) << std::endl;
+    //std::cout << (n_tuples_scanned)<<std::endl;
+    //std::cout << std::endl;
 
     return result;
 }
