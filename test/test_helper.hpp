@@ -5,6 +5,7 @@
 #include "data_reader.hpp"
 #include "my_generator.hpp"
 #include <string>
+#include <cstdlib>
 
 class TestHelper{
     public:
@@ -16,14 +17,14 @@ class TestHelper{
             const string workload_path = "test_queries";
             const string table_path = "test_data";
 
-            //auto generator = MyGenerator(
-            //        n_rows,
-            //        n_dimensions,
-            //        selectivity,
-            //        n_queries
-            //        );
+            auto generator = MyGenerator(
+                    n_rows,
+                    n_dimensions,
+                    selectivity,
+                    n_queries
+                    );
 
-            //generator.generate(table_path, workload_path);
+            generator.generate(table_path, workload_path);
 
             auto table = DataReader::read_table(table_path);
             auto workload = DataReader::read_workload(workload_path);
@@ -46,14 +47,15 @@ class TestHelper{
 
             INFO("Running (" << alg->name() << ")");
 
+            //std::system(("mkdir -p ./'" + alg->name() + "'").c_str());
+
             alg->initialize(table.get());
             for(size_t j = 0; j < workload.size(); ++j){
                 alg->adapt_index(workload.at(j));
-                alg->draw_index("./" + alg->name() + "/" + std::to_string(j) + ".dot");
+                //alg->draw_index("./" + alg->name() + "/" + std::to_string(j) + ".dot");
                 auto result = alg->range_query(workload.at(j)).row_count();
                 auto expected = baseline_results.at(j);
                 CHECK(expected == result);
-
             }
 
         }
