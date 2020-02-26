@@ -8,6 +8,15 @@
 
 using namespace std;
 
+// How the Slice looks like:
+//         |============================|
+//         | Values go from:            |
+//         |    left_value (>=)         |
+//         |    right_value (<)         |
+//         | Column: X1                 |
+//         |============================|
+// Table Start Pos (>=)           Table End Pos (<)
+
 class Slice{
 public:
     int64_t column;
