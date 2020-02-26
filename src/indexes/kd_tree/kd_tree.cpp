@@ -11,6 +11,10 @@
 
 using namespace std;
 
+//std::string colors[] = {
+//    "aliceblue", "antiquewhite", "antiquewhite1", "antiquewhite2","antiquewhite3"
+//};
+
 KDTree::KDTree(int64_t row_count) : row_count(row_count){
     root = nullptr;
 }
@@ -178,8 +182,10 @@ void KDTree::draw(std::string path){
             auto node = nodes.back();
             nodes.pop_back();
 
-            myfile << std::to_string(reinterpret_cast<size_t>(node))\
-                   << "[label=\"" + node->label() + "\"]\n;"; 
+            myfile << std::to_string(reinterpret_cast<size_t>(node));
+            myfile << "[label=\"" + node->label() + "\"";
+            // myfile << ", style=filled, fillcolor=" + colors[node->column];
+            myfile << "]\n;"; 
 
             if(node->left_child.get() != nullptr){
                 nodes.push_back(node->left_child.get());
