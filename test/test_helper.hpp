@@ -12,7 +12,7 @@ class TestHelper{
         static void test(
                 int64_t n_rows, int64_t n_dimensions,
                 float selectivity, int64_t n_queries,
-                std::string algorithm
+                size_t algorithm_id
                 ){
             const string workload_path = "test_queries";
             const string table_path = "test_data";
@@ -29,7 +29,7 @@ class TestHelper{
             auto table = DataReader::read_table(table_path);
             auto workload = DataReader::read_workload(workload_path);
 
-            auto alg = IndexFactory::getIndex(algorithm);
+            auto alg = IndexFactory::getIndex(algorithm_id);
 
             auto baseline = IndexFactory::baselineIndex();
 

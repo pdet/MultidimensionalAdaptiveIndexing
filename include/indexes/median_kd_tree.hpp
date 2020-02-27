@@ -10,6 +10,7 @@
 class MedianKDTree : public AbstractIndex
 {
 public:
+    static const size_t ID = 2;
     MedianKDTree(std::map<std::string, std::string> config);
     ~MedianKDTree();
 

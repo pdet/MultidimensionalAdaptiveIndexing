@@ -8,6 +8,7 @@
 class FullScan : public AbstractIndex
 {
 public:
+    const static size_t ID = 0;
     FullScan(std::map<std::string, std::string> config);
     ~FullScan();
 

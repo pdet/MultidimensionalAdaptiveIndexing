@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <stdexcept>
 
 using namespace std;
 
@@ -19,32 +20,45 @@ class IndexFactory
 {
 public:
     static unique_ptr<AbstractIndex> getIndex(
-            string index_name,
+            size_t algorithm_id,
             map<string, string> config = map<string, string>()
         ){
-        if(index_name == "Full-Scan")
-            return make_unique<FullScan>(config);
-        if(index_name == "KDTree-Median")
-            return make_unique<MedianKDTree>(config);
-        if(index_name == "CrackingKDTree")
-            return make_unique<CrackingKDTree>(config);
-        if(index_name == "KDTree-Average")
-            return make_unique<AverageKDTree>(config);
-        if(index_name == "Quasii")
-            return make_unique<Quasii>(config);
+        switch(algorithm_id){
+            case FullScan::ID:
+                return make_unique<FullScan>(config);
+            case MedianKDTree::ID:
+                return make_unique<MedianKDTree>(config);
+            case CrackingKDTree::ID:
+                return make_unique<CrackingKDTree>(config);
+            case AverageKDTree::ID:
+                return make_unique<AverageKDTree>(config);
+            case Quasii::ID:
+                return make_unique<Quasii>(config);
+            default:
+                throw std::invalid_argument("Invalid Algorithm ID");
+                assert(false);
+        }
+    }
 
-        assert(false);
+    static vector<size_t> algorithmIDs(){
+        return {
+                FullScan::ID,
+                MedianKDTree::ID,
+                CrackingKDTree::ID,
+                AverageKDTree::ID,
+                Quasii::ID
+        };
     }
 
     static vector<shared_ptr<AbstractIndex>> allIndexes(
             map<string, string> config = map<string, string>()
         ){
-        vector<shared_ptr<AbstractIndex>> indexes;
-        indexes.push_back(make_unique<CrackingKDTree>(config));
-        indexes.push_back(make_unique<MedianKDTree>(config));
-        indexes.push_back(make_unique<AverageKDTree>(config));
-        indexes.push_back(make_unique<Quasii>(config));
-        return indexes;
+        return {
+            make_unique<CrackingKDTree>(config),
+            make_unique<MedianKDTree>(config),
+            make_unique<AverageKDTree>(config),
+            make_unique<Quasii>(config)
+        };
     }
 
     static shared_ptr<AbstractIndex> baselineIndex(

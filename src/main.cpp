@@ -27,9 +27,6 @@ int main(int argc, char** argv){
         case 'd':
             data_path = optarg;
             break;
-        case 'i':
-            index_algorithm = optarg;
-            break;
         case 'r':
             number_of_repetitions = atoi(optarg);
             break;
@@ -43,33 +40,29 @@ int main(int argc, char** argv){
             cout << "Usage:\n";
             cout << "-w <workload_path>\n";
             cout << "-d <data_path>\n";
-            cout << "-i <algorithm>\n";
             cout << "-r <number_of_repetitions>\n";
-            cout << "-s <folder_to_save_results>\n";
+            cout << "-s <file_to_save_results>\n";
             cout << "-p <minimum_partition_size>\n";
             return -1;
         }
 
-    for(auto repetition = 0; repetition < number_of_repetitions; repetition++){
-        auto index = IndexFactory::getIndex(index_algorithm, config);
+    for(auto& id : IndexFactory::algorithmIDs()){
+        for(auto repetition = 0; repetition < number_of_repetitions; repetition++){
+            auto index = IndexFactory::getIndex(id, config);
 
-        cout << index->name() << " Repetition: " << repetition << endl;
-        
-        std::system(("mkdir " + results_path + "/" + '"' + index->name() + '"').c_str());
+            cout << index->name() << " Repetition: " << repetition << endl;
 
-        auto table = DataReader::read_table(data_path);
-        auto workload = DataReader::read_workload(workload_path);
+            auto table = DataReader::read_table(data_path);
+            auto workload = DataReader::read_workload(workload_path);
 
-        index->initialize(table.get());
-        for(size_t i = 0; i < workload.size(); ++i){
-            index->adapt_index(workload.at(i));
-            index->draw_index(
-                results_path + "/" + index->name() + "/" + std::to_string(i) + ".dot"
-            );
-            index->range_query(workload.at(i));
+            index->initialize(table.get());
+            for(size_t i = 0; i < workload.size(); ++i){
+                index->adapt_index(workload.at(i));
+                index->range_query(workload.at(i));
+            }
+
+            index->measurements->save(results_path + "/results.csv", repetition, index->name());
         }
-
-        index->measurements->save(results_path + "/results.csv", repetition, index->name());
     }
     return 0;
 }
