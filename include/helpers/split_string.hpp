@@ -1,5 +1,5 @@
-#ifndef DATA_READER_H
-#define DATA_READER_H
+#ifndef SPLIT_STRING_H
+#define SPLIT_STRING_H
 
 #include "table.hpp"
 #include "query.hpp"
@@ -9,13 +9,10 @@
 #include <iostream>
 #include <sstream>
 
-class DataReader
+template <class T>
+class SplitString 
 {
     public:
-        static std::unique_ptr<Table> read_table(const std::string &data_path);
-        static std::vector<Query> read_workload(const std::string &workload_path);
-    private:
-        template <class T>
         static vector<T> split(const string& s, char delimiter)
         {
             string buf;                         // Have a buffer string
@@ -30,4 +27,4 @@ class DataReader
         }
 };
 
-#endif // DATA_READER_H
+#endif // SPLIT_STRING_H

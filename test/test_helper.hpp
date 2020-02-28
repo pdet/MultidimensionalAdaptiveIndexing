@@ -2,8 +2,7 @@
 #define TEST_HELPER_H
 
 #include "index_factory.hpp"
-#include "data_reader.hpp"
-#include "my_generator.hpp"
+#include "uniform_generator.hpp"
 #include <string>
 #include <cstdlib>
 
@@ -17,7 +16,7 @@ class TestHelper{
             const string workload_path = "test_queries";
             const string table_path = "test_data";
 
-            auto generator = MyGenerator(
+            auto generator = UniformGenerator(
                     n_rows,
                     n_dimensions,
                     selectivity,
@@ -26,8 +25,8 @@ class TestHelper{
 
             generator.generate(table_path, workload_path);
 
-            auto table = DataReader::read_table(table_path);
-            auto workload = DataReader::read_workload(workload_path);
+            auto table = Table::read_file(table_path);
+            auto workload = Workload::read_file(workload_path);
 
             auto alg = IndexFactory::getIndex(algorithm_id);
 
@@ -35,12 +34,12 @@ class TestHelper{
 
             INFO("Baseline (" << baseline->name() << ")");
 
-            vector<size_t> baseline_results(workload.size());
+            vector<size_t> baseline_results(workload.query_count());
 
             baseline->initialize(table.get());
-            for(size_t j = 0; j < workload.size(); ++j){
-                baseline->adapt_index(workload.at(j));
-                auto result = baseline->range_query(workload.at(j));
+            for(size_t j = 0; j < workload.query_count(); ++j){
+                baseline->adapt_index(workload.queries.at(j));
+                auto result = baseline->range_query(workload.queries.at(j));
                 baseline_results.at(j) = result.row_count();
                 REQUIRE(baseline_results.at(j) > 0);
             }
@@ -50,10 +49,10 @@ class TestHelper{
             //std::system(("mkdir -p ./'" + alg->name() + "'").c_str());
 
             alg->initialize(table.get());
-            for(size_t j = 0; j < workload.size(); ++j){
-                alg->adapt_index(workload.at(j));
+            for(size_t j = 0; j < workload.query_count(); ++j){
+                alg->adapt_index(workload.queries.at(j));
                 //alg->draw_index("./" + alg->name() + "/" + std::to_string(j) + ".dot");
-                auto result = alg->range_query(workload.at(j)).row_count();
+                auto result = alg->range_query(workload.queries.at(j)).row_count();
                 auto expected = baseline_results.at(j);
                 CHECK(expected == result);
             }

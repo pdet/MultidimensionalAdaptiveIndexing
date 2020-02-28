@@ -27,6 +27,10 @@ public:
 
     ~Table();
 
+    static unique_ptr<Table> read_file(std::string path);
+
+    void save_file(std::string path);
+
     vector<float> materialize_row(int64_t row_index);
 
     void append_column(Column col);

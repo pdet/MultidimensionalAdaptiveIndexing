@@ -3,6 +3,8 @@
 #include <vector>
 #include <cstdint>
 #include <iostream>
+#include <fstream>
+#include "split_string.hpp"
 
 using namespace std;
 Table::Table(vector<vector<float> > &columns_to_be_copied){
@@ -57,7 +59,53 @@ Table::Table(const Table &other){
         );
 }
 
+unique_ptr<Table> Table::read_file(std::string path){
+    ifstream file(path.c_str(), ios::in);
+    if(!file.is_open()){
+        cout << "Error *opening* data file\n";
+        exit(-1);
+    }
+    string line;
+    if(!getline(file, line)){
+        cout << "Error *reading* data file\n";
+        exit(-1);
+    }
+
+    auto row = SplitString<float>::split(line, ' ');
+    auto table = make_unique<Table>(row.size());
+    table->append(row);
+
+    while(getline(file,line)){
+        row = SplitString<float>::split(line, ' ');
+        table->append(row);
+    }
+
+    file.close();
+
+    return table;
+
+}
+
+void Table::save_file(std::string path){
+    ofstream file(path.c_str(), ios::out);
+    if(!file.is_open()){
+        cout << "Error *opening* file\n";
+        exit(-1);
+    }
+
+    for(size_t i = 0; i < number_of_rows; ++i){
+        auto row = materialize_row(i);
+        for(size_t j = 0; j < number_of_columns - 1; ++j){
+            file << row.at(j) << " "; 
+        }
+        file << row.at(number_of_columns-1) << "\n";
+    }
+
+    file.close();
+}
+
 Table::~Table(){}
+
 void Table::append_column(Column col){
     columns.push_back(make_unique<Column>(col));
     number_of_columns++;

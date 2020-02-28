@@ -1,5 +1,4 @@
 #include "index_factory.hpp"
-#include "data_reader.hpp"
 #include <string>
 #include <iostream>
 #include <map>
@@ -8,6 +7,9 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#include "table.hpp"
+#include "workload.hpp"
 
 int main(int argc, char** argv){
     string workload_path = "queries";
@@ -52,13 +54,13 @@ int main(int argc, char** argv){
 
             cout << index->name() << " Repetition: " << repetition << endl;
 
-            auto table = DataReader::read_table(data_path);
-            auto workload = DataReader::read_workload(workload_path);
+            auto table = Table::read_file(data_path);
+            auto workload = Workload::read_file(workload_path);
 
             index->initialize(table.get());
-            for(size_t i = 0; i < workload.size(); ++i){
-                index->adapt_index(workload.at(i));
-                index->range_query(workload.at(i));
+            for(size_t i = 0; i < workload.query_count(); ++i){
+                index->adapt_index(workload.queries.at(i));
+                index->range_query(workload.queries.at(i));
             }
 
             index->measurements->save(results_path + "/results.csv", repetition, index->name());
