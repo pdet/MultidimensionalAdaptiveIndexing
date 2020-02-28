@@ -3,6 +3,7 @@
 
 #include "abstract_index.hpp"
 #include "full_scan.hpp"
+#include "full_scan_slow.hpp"
 #include "median_kd_tree.hpp"
 #include "average_kd_tree.hpp"
 #include "quasii.hpp"
@@ -26,6 +27,8 @@ public:
         switch(algorithm_id){
             case FullScan::ID:
                 return make_unique<FullScan>(config);
+            case FullScanSlow::ID:
+                return make_unique<FullScanSlow>(config);
             case MedianKDTree::ID:
                 return make_unique<MedianKDTree>(config);
             case CrackingKDTree::ID:
@@ -64,7 +67,7 @@ public:
     static shared_ptr<AbstractIndex> baselineIndex(
             map<string, string> config = map<string, string>()
         ){
-        return make_unique<FullScan>(config);
+        return make_unique<FullScanSlow>(config);
     }
 };
 #endif // INDEX_FACTORY_H

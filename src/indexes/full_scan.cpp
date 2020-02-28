@@ -27,7 +27,7 @@ Table FullScan::range_query(Query& query){
 
 
     // Scan the table and returns a materialized view of the result.
-    auto result = Table(table->col_count());
+    auto result = Table(1);
 
     scan_partition(table.get(), query, 0, table->row_count(), &result);
 
@@ -55,34 +55,41 @@ void FullScan::scan_partition(
     std::vector<int64_t> qualifying_rows;
     qualifying_rows.reserve(high - low + 1);
 
-    bool first = true;
+    // First we fill the qualifying rows
+    auto column = query.predicates[0].column;
+    auto low_pred = query.predicates[0].low;
+    auto high_pred = query.predicates[0].high;
 
-    for(auto predicate : query.predicates){
-        auto column = predicate.column;
-        auto low_pred = predicate.low;
-        auto high_pred = predicate.high;
-        // First time we have to fill the qualyfing rows
-        if(first){
-
-            for(int64_t row_id = low; row_id < high; row_id++){
-                auto value = table->columns.at(column)->at(row_id);
-                if(low_pred <= value && value < high_pred)
-                    qualifying_rows.push_back(row_id);
-            }
-            first = false;
-        }
-        else{
-            std::vector<int64_t> temp_qualifying_rows;
-            temp_qualifying_rows.reserve(high - low + 1);
-            for(auto row_id : qualifying_rows){
-                auto value = table->columns.at(column)->at(row_id);
-                if(low_pred <= value && value < high_pred)
-                    temp_qualifying_rows.push_back(row_id);
-            }
-            qualifying_rows = temp_qualifying_rows;
+    size_t qualifying_index = 0;
+    for(int64_t row_id = low; row_id < high; row_id++){
+        auto value = table->columns[column]->data[row_id];
+        if(low_pred <= value && value < high_pred){
+            qualifying_rows[qualifying_index] = row_id;
+            qualifying_index++;
         }
     }
 
-    for(auto qualifying_row : qualifying_rows)
-        table_to_store_results->append(table->materialize_row(qualifying_row));
+    // Skip the first predicate
+    size_t predicate_index = 1;
+    size_t number_of_qualified_rows = qualifying_index;
+    for(; predicate_index < query.predicate_count(); ++predicate_index){
+        auto column = query.predicates[predicate_index].column;
+        auto low_pred = query.predicates[predicate_index].low;
+        auto high_pred = query.predicates[predicate_index].high;
+
+        qualifying_index = 0;
+        for(auto i = 0; i < number_of_qualified_rows; ++i){
+            auto value = table->columns[column]->data[qualifying_rows[i]];
+            if(low_pred <= value && value < high_pred){
+                qualifying_rows[qualifying_index] = qualifying_rows[i];
+                qualifying_index++;
+            }
+        }
+        number_of_qualified_rows = qualifying_index;
+    }
+
+    for(auto i = 0; i < number_of_qualified_rows; ++i)
+        table_to_store_results->append(
+            {static_cast<float>(qualifying_rows[i])}
+        );
 }

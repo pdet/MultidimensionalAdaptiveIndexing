@@ -10,8 +10,6 @@ using namespace std;
 
 class Workload 
 {
-private:
-    int64_t number_of_queries;
 public:
     vector<Query> queries;
     Workload();

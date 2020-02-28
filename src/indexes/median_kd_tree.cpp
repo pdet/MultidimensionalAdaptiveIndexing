@@ -45,8 +45,8 @@ Table MedianKDTree::range_query(Query& query){
     // Search on the index the correct partitions
     auto partitions = index->search(query);
 
-    // Scan the table and returns a materialized view of the result.
-    auto result = Table(table->col_count());
+    // Scan the table and returns the row ids 
+    auto result = Table(1);
     for (auto partition : partitions)
     {
         auto low = partition.first;

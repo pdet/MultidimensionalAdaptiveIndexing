@@ -5,10 +5,8 @@
 #include <cstdint>
 
 class Column{
-private:
-    std::vector<float> data;
-
 public:
+    std::vector<float> data;
     Column(std::vector<float> column_to_copy);
 
     Column();

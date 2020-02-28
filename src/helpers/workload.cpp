@@ -72,5 +72,5 @@ void Workload::save_file(string path){
 }
 
 const size_t Workload::query_count(){
-    return number_of_queries;
+    return queries.size();
 }
