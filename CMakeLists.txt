@@ -29,6 +29,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_node.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/uniform_generator.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generators/genome_generator.cpp
             )
 
 add_library(MDAI_lib ${SOURCES})
@@ -38,5 +39,8 @@ target_link_libraries(main MDAI_lib)
 
 add_executable(uniform_generator ${CMAKE_SOURCE_DIR}/src/data/uniform_generator_main.cpp)
 target_link_libraries(uniform_generator MDAI_lib)
+
+add_executable(genome_generator ${CMAKE_SOURCE_DIR}/src/data/genome_generator_main.cpp)
+target_link_libraries(genome_generator MDAI_lib)
 
 add_subdirectory("test")

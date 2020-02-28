@@ -1,4 +1,4 @@
-#include "generator.hpp"
+#include "genome_generator.hpp"
 
 #include <cmath>
 #include <cstring>
@@ -12,21 +12,7 @@
 #include <unordered_map>
 #include <algorithm>
 
-//void usage(){
-//  std::cout << std::endl;
-//  std::cout << "Usage:" <<std::endl;
-//  std::cout << "-r <number_of_rows>" << std::endl;
-//  std::cout << "-d <number_of_dimensions>" << std::endl;
-//  std::cout << "-w <workload_choice>" << std::endl;
-//  std::cout << "  '-(0=normal, 1=clustered, 2=uniform, 3=GMRQB, 4=power)" << std::endl;
-//  std::cout << "  '- GMRQB has fixed selectivity and 19 dimensions." << std::endl;
-//  std::cout << "  '- power has fixed 4 dimensions." << std::endl;
-//  std::cout << "-s <selectivity>" << std::endl;
-//  std::cout << "-q <number_of_queries>" << std::endl;
-//  std::cout << "-t <query_type>" << std::endl;
-//}
-
-Generator::Generator(
+GenomeGenerator::GenomeGenerator(
                 int64_t n_of_rows_,
                 int64_t dimensions_,
                 int64_t workload_,
@@ -48,7 +34,7 @@ Generator::Generator(
                 GENES_FILE(genes_file_)
 {}
 
-bool Generator::generate(const std::string &table_path, const std::string &workload_path){
+void GenomeGenerator::generate(std::string table_path, std::string workload_path){
   std::vector< std::vector<float> > data_points(n_of_rows, std::vector<float>(dimensions));
 
   // Get data or generate it
