@@ -35,6 +35,7 @@ class TestHelper{
             INFO("Baseline (" << baseline->name() << ")");
 
             vector<size_t> baseline_results(workload.query_count());
+            REQUIRE(workload.query_count() > 0);
 
             baseline->initialize(table.get());
             for(size_t j = 0; j < workload.query_count(); ++j){
