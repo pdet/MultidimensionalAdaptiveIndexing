@@ -86,8 +86,8 @@ Table CrackingKDTree::range_query(Query& query){
 }
 
 void CrackingKDTree::adapt(
-    std::vector<Point> points,
-    std::vector<Edge> edges
+    std::vector<Point> &points,
+    std::vector<Edge> &edges
     ){
     // Insert points
     for(auto i = 0; i < points.size(); ++i){
@@ -101,7 +101,7 @@ void CrackingKDTree::adapt(
 }
 
 void CrackingKDTree::insert_point(
-    Point point,
+    Point &point,
     size_t is_right_hand_side
 ){
     std::vector<bool> should_insert(point.size(), true);
@@ -297,23 +297,23 @@ void CrackingKDTree::insert_edge(CrackingKDTree::Edge& edge){
 
 }
 
-float CrackingKDTree::max(CrackingKDTree::Point p1, CrackingKDTree::Point p2, size_t dimension){
+float CrackingKDTree::max(CrackingKDTree::Point &p1, CrackingKDTree::Point &p2, size_t dimension){
     if(p1.at(dimension) > p2.at(dimension))
         return p1.at(dimension);
     return p2.at(dimension);
 }
 
-float CrackingKDTree::min(CrackingKDTree::Point p1, CrackingKDTree::Point p2, size_t dimension){
+float CrackingKDTree::min(CrackingKDTree::Point &p1, CrackingKDTree::Point &p2, size_t dimension){
     if(p1.at(dimension) < p2.at(dimension))
         return p1.at(dimension);
     return p2.at(dimension);
 }
 
 void CrackingKDTree::crack_point(
-    std::vector<float> point,   // point to be inserted
+    Point &point,   // point to be inserted
     size_t is_right_hand_side,  // if each axis of the point comes
                                 //  from the right side of query
-    std::vector<bool> should_insert, // if the axis should be inserted
+    std::vector<bool> &should_insert, // if the axis should be inserted
     KDNode* current, // node to insert the new point
     int64_t low_position,       // lower position from partition
     int64_t high_position      // upper position from partition
@@ -398,7 +398,7 @@ void CrackingKDTree::crack_point(
 }
 
 // Finds the next dimension that should be inserted
-int64_t CrackingKDTree::next_dim(int64_t start, std::vector<bool> should_insert){
+int64_t CrackingKDTree::next_dim(int64_t start, std::vector<bool> &should_insert){
     auto n_dimensions = should_insert.size();
     int64_t next = (start + 1) % n_dimensions;
     while(next != start){
@@ -411,7 +411,7 @@ int64_t CrackingKDTree::next_dim(int64_t start, std::vector<bool> should_insert)
 }
 
 
-bool CrackingKDTree::all_elements_false(std::vector<bool> v){
+bool CrackingKDTree::all_elements_false(std::vector<bool> &v){
     return std::all_of(
         v.begin(), v.end(), [](bool i){return !i;}
     );
