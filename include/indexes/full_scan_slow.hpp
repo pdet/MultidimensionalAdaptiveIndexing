@@ -23,7 +23,7 @@ public:
     Table range_query(Query& query) override;
 
     static void scan_partition(
-        Table *table, Query& query,
+        Table *t, Query& query,
         int64_t low, int64_t high,
         Table *table_to_store_results
     );
