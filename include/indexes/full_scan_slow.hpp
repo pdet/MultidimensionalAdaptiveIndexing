@@ -13,7 +13,7 @@ public:
     ~FullScanSlow();
 
     string name() override{
-        return "Full Scan Slow (baseline)";
+        return "FullScanSlow(baseline)";
     }
 
     void initialize(Table *table_to_copy) override;

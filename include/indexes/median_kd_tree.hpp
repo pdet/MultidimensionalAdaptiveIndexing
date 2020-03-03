@@ -15,7 +15,7 @@ public:
     ~MedianKDTree();
 
     string name() override{
-        return "Median KD-Tree";
+        return "MedianKDTree";
     }
 
     void initialize(Table *table_to_copy) override;

@@ -13,7 +13,7 @@ public:
     ~FullScan();
 
     string name() override{
-        return "Full Scan";
+        return "FullScan";
     }
 
     void initialize(Table *table_to_copy) override;

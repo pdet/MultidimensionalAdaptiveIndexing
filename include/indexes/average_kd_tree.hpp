@@ -15,7 +15,7 @@ public:
     ~AverageKDTree();
 
     string name() override{
-        return "Average KD-Tree";
+        return "AverageKDTree";
     }
 
     void initialize(Table *table_to_copy) override;
