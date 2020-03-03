@@ -31,7 +31,7 @@ std::vector<std::string> Measurements::get_headers(
     return headers;
 }
 
-void Measurements::save(std::string csv_name, int repetition, std::string alg_name){
+void Measurements::save(std::string csv_name, int repetition){
     bool file_exists = exists(csv_name);
     std::fstream csv_file(csv_name, std::ios::out | std::ios::app);
 

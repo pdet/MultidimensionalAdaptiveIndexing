@@ -25,7 +25,7 @@ public:
 
     void append(std::string key, std::string value);
 
-    void save(std::string csv_name, int repetition, std::string alg_name);
+    void save(std::string csv_name, int repetition);
 
 private:
     inline bool exists (const std::string& name);
