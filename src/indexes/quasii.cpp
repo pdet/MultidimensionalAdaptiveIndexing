@@ -30,7 +30,10 @@ void Quasii::initialize(Table *table_to_copy){
 
     auto end = measurements->time();
 
-    measurements->initialization_time = Measurements::difference(end, start);
+        measurements->append(
+        "initialization_time",
+        std::to_string(Measurements::difference(end, start))
+    );
     // ******************
 }
 
@@ -42,8 +45,9 @@ void Quasii::adapt_index(Query& query){
 
     auto end = measurements->time();
     // ******************
-    measurements->adaptation_time.push_back(
-        Measurements::difference(end, start)
+    measurements->append(
+        "adaptation_time",
+        std::to_string(Measurements::difference(end, start))
     );
 }
 
@@ -65,8 +69,9 @@ Table Quasii::range_query(Query& query){
 
     auto end = measurements->time();
     // ******************
-    measurements->query_time.push_back(
-        Measurements::difference(end, start)
+    measurements->append(
+        "query_time",
+        std::to_string(Measurements::difference(end, start))
     );
 
     int64_t n_tuples_scanned = 0;
@@ -74,11 +79,17 @@ Table Quasii::range_query(Query& query){
         n_tuples_scanned += partition.second - partition.first;
 
     // Before returning the result, update the statistics.
-    measurements->number_of_nodes.push_back(count_slices(first_level_slices));
-    measurements->max_height.push_back(table->col_count());
-    measurements->min_height.push_back(table->col_count());
-    measurements->memory_footprint.push_back(count_slices(first_level_slices) * sizeof(Slice));
-    measurements->tuples_scanned.push_back(n_tuples_scanned);
+    measurements->append(
+        "number_of_nodes",
+        std::to_string(count_slices(first_level_slices))
+    );
+    measurements->append("max_height", std::to_string(table->col_count()));
+    measurements->append("min_height", std::to_string(table->col_count()));
+    measurements->append(
+        "memory_footprint",
+        std::to_string(count_slices(first_level_slices) * sizeof(Slice))
+    );
+    measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
 
     return result;
 }

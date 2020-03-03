@@ -23,8 +23,10 @@ void MedianKDTree::initialize(Table *table_to_copy){
 
     auto end = measurements->time();
 
-    measurements->initialization_time = Measurements::difference(end, start);
-    // ******************
+    measurements->append(
+        "initialization_time",
+        std::to_string(Measurements::difference(end, start))
+    );    // ******************
 }
 
 void MedianKDTree::adapt_index(Query& query){
@@ -33,8 +35,9 @@ void MedianKDTree::adapt_index(Query& query){
     // DOES ABSOLUTELY NOTHING HERE
     auto end = measurements->time();
     // ******************
-    measurements->adaptation_time.push_back(
-        Measurements::difference(end, start)
+    measurements->append(
+        "adaptation_time",
+        std::to_string(Measurements::difference(end, start))
     );
 }
 
@@ -56,8 +59,9 @@ Table MedianKDTree::range_query(Query& query){
 
     auto end = measurements->time();
     // ******************
-    measurements->query_time.push_back(
-        Measurements::difference(end, start)
+    measurements->append(
+        "query_time",
+        std::to_string(Measurements::difference(end, start))
     );
 
     int64_t n_tuples_scanned = 0;
@@ -65,11 +69,11 @@ Table MedianKDTree::range_query(Query& query){
         n_tuples_scanned += partition.second - partition.first;
 
     // Before returning the result, update the statistics.
-    measurements->number_of_nodes.push_back(index->get_node_count());
-    measurements->max_height.push_back(index->get_max_height());
-    measurements->min_height.push_back(index->get_min_height());
-    measurements->memory_footprint.push_back(index->get_node_count() * sizeof(KDNode));
-    measurements->tuples_scanned.push_back(n_tuples_scanned);
+    measurements->append("number_of_nodes", std::to_string(index->get_node_count()));
+    measurements->append("max_height", std::to_string(index->get_max_height()));
+    measurements->append("min_height", std::to_string(index->get_min_height()));
+    measurements->append("memory_footprint", std::to_string(index->get_node_count() * sizeof(KDNode)));
+    measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
 
     return result;
 }

@@ -63,7 +63,10 @@ int main(int argc, char** argv){
                 index->range_query(workload.queries.at(i));
             }
 
-            index->measurements->save(results_path + "/results.csv", repetition, index->name());
+            index->measurements->save(
+                results_path + "/results-" + index->name() + ".csv",
+                repetition, index->name()
+            );
         }
     }
     return 0;

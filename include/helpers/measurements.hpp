@@ -5,19 +5,13 @@
 #include <vector>
 #include <numeric>
 #include <string>
+#include <map>
 
 class Measurements
 {
 public:
-    double initialization_time;
-    std::vector<double> adaptation_time;
-    std::vector<double> query_time;
-    std::vector<int64_t> max_height;
-    std::vector<int64_t> min_height;
-    std::vector<int64_t> number_of_nodes;
-    std::vector<int64_t> memory_footprint;
-    std::vector<int64_t> tuples_scanned;
-
+    std::map<std::string, std::vector<std::string> > measurements;
+    
     Measurements();
     ~Measurements();
 
@@ -25,17 +19,11 @@ public:
 
     static double difference(double  end, double  start);
 
-    double average_adaptation_time(){
-        return average(adaptation_time);
-    }
+    std::vector<std::string> get_headers(
+            std::map<std::string, std::vector<std::string>> m
+            );
 
-    double average_query_time(){
-        return average(query_time);
-    }
-
-    double average(std::vector<double> v){
-        return std::accumulate(v.begin(), v.end(), 0.0)/(double)v.size();
-    }
+    void append(std::string key, std::string value);
 
     void save(std::string csv_name, int repetition, std::string alg_name);
 

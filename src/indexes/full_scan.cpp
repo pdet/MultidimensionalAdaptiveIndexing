@@ -12,13 +12,19 @@ void FullScan::initialize(Table *table_to_copy){
 
     auto end = measurements->time();
 
-    measurements->initialization_time = Measurements::difference(end, start);
+    measurements->append(
+        "initialization_time",
+        std::to_string(Measurements::difference(end, start))
+    );
 }
 
 void FullScan::adapt_index(Query& query){
     // Zero adaptation for full scan
-    measurements->adaptation_time.push_back(
-        Measurements::difference(measurements->time(), measurements->time())
+    measurements->append(
+        "adaptation_time",
+        std::to_string(
+            Measurements::difference(measurements->time(), measurements->time())
+        )
     );
 }
 
@@ -33,16 +39,13 @@ Table FullScan::range_query(Query& query){
 
     auto end = measurements->time();
 
-    measurements->query_time.push_back(
-        Measurements::difference(end, start)
+    measurements->append(
+        "query_time",
+        std::to_string(Measurements::difference(end, start))
     );
 
     // Before returning the result, update the statistics.
-    measurements->number_of_nodes.push_back(0);
-    measurements->max_height.push_back(0);
-    measurements->min_height.push_back(0);
-    measurements->memory_footprint.push_back(0);
-    measurements->tuples_scanned.push_back(table->row_count());
+    measurements->append("tuples_scanned", std::to_string(table->row_count()));
 
     return result;
 }
