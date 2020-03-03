@@ -8,6 +8,8 @@
 #include "average_kd_tree.hpp"
 #include "quasii.hpp"
 #include "cracking_kd_tree.hpp"
+#include "cracking_kd_tree_mine.hpp"
+#include "cracking_kd_tree_recursive.hpp"
 
 #include <iostream>
 #include <string>
@@ -33,6 +35,10 @@ public:
                 return make_unique<MedianKDTree>(config);
             case CrackingKDTree::ID:
                 return make_unique<CrackingKDTree>(config);
+            case CrackingKDTreeMine::ID:
+                return make_unique<CrackingKDTreeMine>(config);
+            case CrackingKDTreeRecursive::ID:
+                return make_unique<CrackingKDTreeRecursive>(config);
             case AverageKDTree::ID:
                 return make_unique<AverageKDTree>(config);
             case Quasii::ID:
@@ -45,10 +51,12 @@ public:
 
     static vector<size_t> algorithmIDs(){
         return {
-                FullScan::ID,
-                MedianKDTree::ID,
+                //FullScan::ID,
+                //MedianKDTree::ID,
                 CrackingKDTree::ID,
-                AverageKDTree::ID,
+                CrackingKDTreeMine::ID,
+                CrackingKDTreeRecursive::ID,
+                //AverageKDTree::ID,
                 Quasii::ID
         };
     }
@@ -58,6 +66,8 @@ public:
         ){
         return {
             make_unique<CrackingKDTree>(config),
+            make_unique<CrackingKDTreeMine>(config),
+            make_unique<CrackingKDTreeRecursive>(config),
             make_unique<MedianKDTree>(config),
             make_unique<AverageKDTree>(config),
             make_unique<Quasii>(config)
