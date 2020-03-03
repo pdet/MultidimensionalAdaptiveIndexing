@@ -63,9 +63,14 @@ int main(int argc, char** argv){
                 index->range_query(workload.queries.at(i));
             }
 
+            auto file_name = results_path + "/results";
+            file_name += "-" + index->name();
+            file_name += "-" + std::to_string(table->col_count());
+            file_name += ".csv"; 
+
             index->measurements->save(
-                results_path + "/results-" + index->name() + ".csv",
-                repetition, index->name()
+                file_name,
+                repetition
             );
         }
     }
