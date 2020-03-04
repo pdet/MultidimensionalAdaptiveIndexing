@@ -23,69 +23,74 @@ void KDTreeRecursive::search_recursion(
     Query& query,
     vector<pair<int64_t, int64_t>> &partitions
 ){
-    // If the node's key is greater or equal to the high part of the query
-    // Then follow the left child
-    //                  Key
-    // Data:  |----------!--------|
-    // Query:      |-----|
-    //            low   high
-    if (node_greater_equal_query(current, query)){
-        if(current->left_child == nullptr){
-            partitions.push_back(make_pair(lower_limit, current->position));
-        }
-        else{
-            search_recursion(
-                current->left_child.get(),
-                lower_limit, current->position,
-                query, partitions
-            );
-        }
-    }
-    // If the node's key is smaller to the low part of the query
-    // Then follow the right child
-    //                  Key
-    // Data:  |----------!--------|
-    // Query:            |-----|
-    //                  low   high
-    else if (node_less_equal_query(current, query)){
-        if(current->right_child == nullptr){
-            partitions.push_back(make_pair(current->position, upper_limit));
-        }
-        else{
-            search_recursion(
-                current->right_child.get(),
-                current->position, upper_limit,
-                query, partitions
-            );
-        }
-    }
-    // If the node's key is inside the query
-    // Then follow both children
-    //                  Key
-    // Data:  |----------!--------|
-    // Query:         |-----|
-    //               low   high
-    else{
-        if(current->left_child == nullptr){
-            partitions.push_back(make_pair(lower_limit, current->position));
-        }
-        else{
-            search_recursion(
-                current->left_child.get(),
-                lower_limit, current->position,
-                query, partitions
-            );
-        }
-        if(current->right_child == nullptr){
-            partitions.push_back(make_pair(current->position, upper_limit));
-        }
-        else{
-            search_recursion(
-                current->right_child.get(),
-                current->position, upper_limit,
-                query, partitions
-            );
-        }
+        switch(current->compare(query)){
+        case -1:
+            // If the node's key is smaller to the low part of the query
+            // Then follow the right child
+            //                  Key
+            // Data:  |----------!--------|
+            // Query:            |-----|
+            //                  low   high
+            if(current->right_child == nullptr){
+                partitions.push_back(make_pair(current->position, upper_limit));
+            }
+            else{
+                search_recursion(
+                        current->right_child.get(),
+                        current->position, upper_limit,
+                        query, partitions
+                        );
+            }
+            break; 
+        case +1:
+            // If the node's key is greater or equal to the high part of the query
+            // Then follow the left child
+            //                  Key
+            // Data:  |----------!--------|
+            // Query:      |-----|
+            //            low   high
+            if(current->left_child == nullptr){
+                partitions.push_back(make_pair(lower_limit, current->position));
+            }
+            else{
+                search_recursion(
+                        current->left_child.get(),
+                        lower_limit, current->position,
+                        query, partitions
+                        );
+            }
+            break;
+        case 0:
+            // If the node's key is inside the query
+            // Then follow both children
+            //                  Key
+            // Data:  |----------!--------|
+            // Query:         |-----|
+            //               low   high
+            if(current->left_child == nullptr){
+                partitions.push_back(make_pair(lower_limit, current->position));
+            }
+            else{
+                search_recursion(
+                        current->left_child.get(),
+                        lower_limit, current->position,
+                        query, partitions
+                        );
+            }
+            if(current->right_child == nullptr){
+                partitions.push_back(make_pair(current->position, upper_limit));
+            }
+            else{
+                search_recursion(
+                        current->right_child.get(),
+                        current->position, upper_limit,
+                        query, partitions
+                        );
+            }
+            break;
+        default:
+            assert(false);
+            break;
     }
 }
 
@@ -251,40 +256,4 @@ void KDTreeRecursive::draw(std::string path){
     }
     myfile << "\n}";
     myfile.close();
-}
-
-// If the node's key is greater or equal to the high part of the query
-// Then follow the left child
-//                  Key
-// Data:  |----------!--------|
-// Query:      |-----|
-//            low   high
-bool KDTreeRecursive::node_greater_equal_query(KDNode *node, Query& query){
-    for(int64_t i = 0; i < query.predicate_count(); i++)
-    {
-        if(node->column == query.predicates[i].column){
-            auto high = query.predicates[i].high;
-            return high <= node->key;
-        }
-    }
-    assert(false);
-    return false;
-}
-
-// If the node's key is smaller to the low part of the query
-// Then follow the right child
-//                  Key
-// Data:  |----------!--------|
-// Query:            |-----|
-//                  low   high
-bool KDTreeRecursive::node_less_equal_query(KDNode *node, Query& query){
-    for(int64_t i = 0; i < query.predicate_count(); i++)
-    {
-        if(node->column == query.predicates[i].column){
-            auto low = query.predicates[i].low;
-            return node->key <= low;
-        }
-    }
-    assert(false);
-    return false;
 }

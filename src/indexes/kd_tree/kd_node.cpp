@@ -33,3 +33,11 @@ string KDNode::label(){
     label += to_string(position)+ "\n";
     return label; 
 }
+
+int8_t KDNode::compare(Query& query){
+    if(key < query.predicates[column].low) 
+        return -1;
+    if(query.predicates[column].high < key)
+        return +1;
+    return 0;
+}

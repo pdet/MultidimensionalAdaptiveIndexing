@@ -7,6 +7,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include "query.hpp"
 
 using namespace std;
 
@@ -31,6 +32,7 @@ public:
     KDNode();
     ~KDNode();
     std::string label();
+    int8_t compare(Query& query);
 };
 
 #endif // KDNODE_H
