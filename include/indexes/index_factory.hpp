@@ -10,6 +10,8 @@
 #include "cracking_kd_tree.hpp"
 #include "cracking_kd_tree_mine.hpp"
 #include "cracking_kd_tree_recursive.hpp"
+#include "cracking_kd_tree_faces.hpp"
+#include "cracking_kd_tree_recursive_with_recursive_search.hpp"
 
 #include <iostream>
 #include <string>
@@ -37,8 +39,12 @@ public:
                 return make_unique<CrackingKDTree>(config);
             case CrackingKDTreeMine::ID:
                 return make_unique<CrackingKDTreeMine>(config);
+            case CrackingKDTreeFaces::ID:
+                return make_unique<CrackingKDTreeFaces>(config);
             case CrackingKDTreeRecursive::ID:
                 return make_unique<CrackingKDTreeRecursive>(config);
+            case CrackingKDTreeRecursiveWithRecursiveSearch::ID:
+                return make_unique<CrackingKDTreeRecursiveWithRecursiveSearch>(config);
             case AverageKDTree::ID:
                 return make_unique<AverageKDTree>(config);
             case Quasii::ID:
@@ -56,6 +62,8 @@ public:
                 CrackingKDTree::ID,
                 CrackingKDTreeMine::ID,
                 CrackingKDTreeRecursive::ID,
+                CrackingKDTreeFaces::ID,
+                CrackingKDTreeRecursiveWithRecursiveSearch::ID,
                 //AverageKDTree::ID,
                 Quasii::ID
         };
@@ -68,6 +76,8 @@ public:
             make_unique<CrackingKDTree>(config),
             make_unique<CrackingKDTreeMine>(config),
             make_unique<CrackingKDTreeRecursive>(config),
+            make_unique<CrackingKDTreeFaces>(config),
+            make_unique<CrackingKDTreeRecursiveWithRecursiveSearch>(config),
             make_unique<MedianKDTree>(config),
             make_unique<AverageKDTree>(config),
             make_unique<Quasii>(config)

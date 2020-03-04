@@ -25,9 +25,14 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/median_kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/average_kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_mine.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_recursive.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_faces.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_recursive_with_recursive_search.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/quasii/slice.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/quasii.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_tree.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_tree_recursive.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_node.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/uniform_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/genome_generator.cpp

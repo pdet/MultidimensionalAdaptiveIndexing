@@ -46,12 +46,12 @@ void CrackingKDTreeRecursive::adapt_index(Query& query){
     auto edges = query_to_edges(query); 
     end = measurements->time();
     // ******************
-    start = measurements->time();
     measurements->append(
         "edge_generation",
         std::to_string(Measurements::difference(end, start))
     );
 
+    start = measurements->time();
     // Adapt the KDTree 
     adapt(points, edges);
     end = measurements->time();
