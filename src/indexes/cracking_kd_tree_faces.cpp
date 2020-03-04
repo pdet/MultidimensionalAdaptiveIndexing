@@ -26,9 +26,9 @@ void CrackingKDTreeFaces::initialize(Table *table_to_copy){
     auto end = measurements->time();
 
     measurements->append(
-        "initialization_time",
-        std::to_string(Measurements::difference(end, start))
-    );
+            "initialization_time",
+            std::to_string(Measurements::difference(end, start))
+            );
     // ******************
 }
 
@@ -40,9 +40,9 @@ void CrackingKDTreeFaces::adapt_index(Query& query){
     auto end = measurements->time();
     // ******************
     measurements->append(
-        "adaptation_time",
-        std::to_string(Measurements::difference(end, start))
-    );
+            "adaptation_time",
+            std::to_string(Measurements::difference(end, start))
+            );
 
 }
 
@@ -65,9 +65,9 @@ Table CrackingKDTreeFaces::range_query(Query& query){
     auto end = measurements->time();
     // ******************
     measurements->append(
-        "query_time",
-        std::to_string(Measurements::difference(end, start))
-    );
+            "query_time",
+            std::to_string(Measurements::difference(end, start))
+            );
 
     int64_t n_tuples_scanned = 0;
     for(auto &partition : partitions)
@@ -92,36 +92,36 @@ void CrackingKDTreeFaces::adapt(Query& query){
 
     if(index->root == nullptr){
         auto position = table->CrackTable(
-            0, table->row_count(),
-            query.predicates[0].low, 0 
-        );
+                0, table->row_count(),
+                query.predicates[0].low, 0 
+                );
         index->root = index->create_node(0, query.predicates[0].low, position);
     }
 
     for(size_t dim = 0; dim < query.predicate_count(); ++dim){
         adapt_recursion(
-            index->root.get(),
-            query,
-            dim, query.predicates[dim].low,
-            0, table->row_count()
-        );
+                index->root.get(),
+                query,
+                dim, query.predicates[dim].low,
+                0, table->row_count()
+                );
         adapt_recursion(
-            index->root.get(),
-            query,
-            dim, query.predicates[dim].high,
-            0, table->row_count()
-        );
+                index->root.get(),
+                query,
+                dim, query.predicates[dim].high,
+                0, table->row_count()
+                );
     }
 }
 
 void CrackingKDTreeFaces::adapt_recursion(
-    KDNode *current,
-    Query& query,
-    int64_t pivot_dim,
-    float pivot,
-    int64_t lower_limit,
-    int64_t upper_limit
-){
+        KDNode *current,
+        Query& query,
+        int64_t pivot_dim,
+        float pivot,
+        int64_t lower_limit,
+        int64_t upper_limit
+        ){
 
     // If the size of the partition is already too small then stop exploring it
     if(upper_limit - lower_limit + 1 < minimum_partition_size)
@@ -138,149 +138,115 @@ void CrackingKDTreeFaces::adapt_recursion(
         if(current->key < pivot){
             if(current->left_child == nullptr){
                 auto position = table->CrackTable(
-                    lower_limit, current->position,
-                    pivot, pivot_dim
-                );
+                        lower_limit, current->position,
+                        pivot, pivot_dim
+                        );
                 current->left_child = index->create_node(
                         pivot_dim, pivot, position
-                );
+                        );
             }else{
                 adapt_recursion(
-                    current->left_child.get(), query,
-                    pivot_dim, pivot,
-                    lower_limit, current->position
-                );
+                        current->left_child.get(), query,
+                        pivot_dim, pivot,
+                        lower_limit, current->position
+                        );
             }
         }else{
             if(current->right_child == nullptr){
                 auto position = table->CrackTable(
-                    current->position, upper_limit,
-                    pivot, pivot_dim
-                );
+                        current->position, upper_limit,
+                        pivot, pivot_dim
+                        );
                 current->right_child = index->create_node(
                         pivot_dim, pivot, position
-                );
+                        );
             }else{
                 adapt_recursion(
-                    current->right_child.get(), query,
-                    pivot_dim, pivot,
-                    current->position, upper_limit
-                );
+                        current->right_child.get(), query,
+                        pivot_dim, pivot,
+                        current->position, upper_limit
+                        );
             }
         }
     }else{
-        //                  Key
-        // Data:  |----------!--------|
-        // Query:      |-----|
-        //            low   high
-        if(node_greater_equal_query(current, query)){
-            if(current->left_child == nullptr){
-                auto position = table->CrackTable(
-                    lower_limit, current->position,
-                    pivot, pivot_dim
-                );
-                current->left_child = index->create_node(
-                        pivot_dim, pivot, position
-                );
-            }else{
-                adapt_recursion(
-                    current->left_child.get(), query,
-                    pivot_dim, pivot,
-                    lower_limit, current->position
-                );
-            }        }
-        //                  Key
-        // Data:  |----------!--------|
-        // Query:            |-----|
-        //                  low   high
-        else if(node_less_equal_query(current, query)){
-            if(current->right_child == nullptr){
-                auto position = table->CrackTable(
-                    current->position, upper_limit,
-                    pivot, pivot_dim
-                );
-                current->right_child = index->create_node(
-                        pivot_dim, pivot, position
-                );
-            }else{
-                adapt_recursion(
-                    current->right_child.get(), query,
-                    pivot_dim, pivot,
-                    current->position, upper_limit
-                );
-            }
-        }
-        //                  Key
-        // Data:  |----------!--------|
-        // Query:         |-----|
-        //               low   high
-        else{
-            if(current->left_child == nullptr){
-                auto position = table->CrackTable(
-                    lower_limit, current->position,
-                    pivot, pivot_dim
-                );
-                current->left_child = index->create_node(
-                        pivot_dim, pivot, position
-                );
-            }else{
-                adapt_recursion(
-                    current->left_child.get(), query,
-                    pivot_dim, pivot,
-                    lower_limit, current->position
-                );
-            }
-            if(current->right_child == nullptr){
-                auto position = table->CrackTable(
-                    current->position, upper_limit,
-                    pivot, pivot_dim
-                );
-                current->right_child = index->create_node(
-                        pivot_dim, pivot, position
-                );
-            }else{
-                adapt_recursion(
-                    current->right_child.get(), query,
-                    pivot_dim, pivot,
-                    current->position, upper_limit
-                );
-            }
-        }
-    } 
-}
-
-// If the node's key is greater or equal to the high part of the query
-// Then follow the left child
-//                  Key
-// Data:  |----------!--------|
-// Query:      |-----|
-//            low   high
-bool CrackingKDTreeFaces::node_greater_equal_query(KDNode *node, Query& query){
-    for(int64_t i = 0; i < query.predicate_count(); i++)
-    {
-        if(node->column == query.predicates[i].column){
-            auto high = query.predicates[i].high;
-            return high <= node->key;
-        }
+        switch(current->compare(query)){
+            case -1:
+                //                  Key
+                // Data:  |----------!--------|
+                // Query:            |-----|
+                //                  low   high
+                if(current->right_child == nullptr){
+                    auto position = table->CrackTable(
+                            current->position, upper_limit,
+                            pivot, pivot_dim
+                            );
+                    current->right_child = index->create_node(
+                            pivot_dim, pivot, position
+                            );
+                }else{
+                    adapt_recursion(
+                            current->right_child.get(), query,
+                            pivot_dim, pivot,
+                            current->position, upper_limit
+                            );
+                }
+                break;
+            case +1:
+                //                  Key
+                // Data:  |----------!--------|
+                // Query:      |-----|
+                //            low   high
+                if(current->left_child == nullptr){
+                    auto position = table->CrackTable(
+                            lower_limit, current->position,
+                            pivot, pivot_dim
+                            );
+                    current->left_child = index->create_node(
+                            pivot_dim, pivot, position
+                            );
+                }else{
+                    adapt_recursion(
+                            current->left_child.get(), query,
+                            pivot_dim, pivot,
+                            lower_limit, current->position
+                            );
+                }
+                break;
+            case 0:
+                if(current->left_child == nullptr){
+                    auto position = table->CrackTable(
+                            lower_limit, current->position,
+                            pivot, pivot_dim
+                            );
+                    current->left_child = index->create_node(
+                            pivot_dim, pivot, position
+                            );
+                }else{
+                    adapt_recursion(
+                            current->left_child.get(), query,
+                            pivot_dim, pivot,
+                            lower_limit, current->position
+                            );
+                }
+                if(current->right_child == nullptr){
+                    auto position = table->CrackTable(
+                            current->position, upper_limit,
+                            pivot, pivot_dim
+                            );
+                    current->right_child = index->create_node(
+                            pivot_dim, pivot, position
+                            );
+                }else{
+                    adapt_recursion(
+                            current->right_child.get(), query,
+                            pivot_dim, pivot,
+                            current->position, upper_limit
+                            );
+                }
+                break;
+            default:
+                assert(false);
+                break;
+        } 
     }
-    assert(false);
-    return false;
-}
-
-// If the node's key is smaller to the low part of the query
-// Then follow the right child
-//                  Key
-// Data:  |----------!--------|
-// Query:            |-----|
-//                  low   high
-bool CrackingKDTreeFaces::node_less_equal_query(KDNode *node, Query& query){
-    for(int64_t i = 0; i < query.predicate_count(); i++)
-    {
-        if(node->column == query.predicates[i].column){
-            auto low = query.predicates[i].low;
-            return node->key <= low;
-        }
-    }
-    assert(false);
-    return false;
 }
