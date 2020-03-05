@@ -1,17 +1,11 @@
 #include "kd_node.hpp"
-#include "full_scan.hpp"
 #include "cracking_kd_tree_recursive_with_recursive_search.hpp"
-#include <algorithm> // to check if all elements of a vector are true
 
 #define BIT(value, position) (value & ( 1 << position )) >> position
 #define BIT_FLIP(value, position) (value ^ ( 1 << position )) 
 
-CrackingKDTreeRecursiveWithRecursiveSearch::CrackingKDTreeRecursiveWithRecursiveSearch(std::map<std::string, std::string> config){
-    if(config.find("minimum_partition_size") == config.end())
-        minimum_partition_size = 100;
-    else
-        minimum_partition_size = std::stoi(config["minimum_partition_size"]);
-}
+CrackingKDTreeRecursiveWithRecursiveSearch::CrackingKDTreeRecursiveWithRecursiveSearch(std::map<std::string, std::string> config)
+: CrackingKDTree(config){}
 CrackingKDTreeRecursiveWithRecursiveSearch::~CrackingKDTreeRecursiveWithRecursiveSearch(){}
 
 void CrackingKDTreeRecursiveWithRecursiveSearch::initialize(Table *table_to_copy){
@@ -30,37 +24,6 @@ void CrackingKDTreeRecursiveWithRecursiveSearch::initialize(Table *table_to_copy
         std::to_string(Measurements::difference(end, start))
     );
     // ******************
-}
-
-void CrackingKDTreeRecursiveWithRecursiveSearch::adapt_index(Query& query){
-    // Transform query into points and edges before starting to measure time
-    auto start = measurements->time();
-    auto points = query_to_points(query);
-    auto end = measurements->time();
-    measurements->append(
-        "point_generation",
-        std::to_string(Measurements::difference(end, start))
-    );
-
-    start = measurements->time();
-    auto edges = query_to_edges(query); 
-    end = measurements->time();
-    // ******************
-    measurements->append(
-        "edge_generation",
-        std::to_string(Measurements::difference(end, start))
-    );
-
-    start = measurements->time();
-    // Adapt the KDTree 
-    adapt(points, edges);
-    end = measurements->time();
-    // ******************
-    measurements->append(
-        "adaptation_time",
-        std::to_string(Measurements::difference(end, start))
-    );
-
 }
 
 Table CrackingKDTreeRecursiveWithRecursiveSearch::range_query(Query& query){
@@ -96,7 +59,6 @@ Table CrackingKDTreeRecursiveWithRecursiveSearch::range_query(Query& query){
     measurements->append("min_height", std::to_string(index->get_min_height()));
     measurements->append("memory_footprint", std::to_string(index->get_node_count() * sizeof(KDNode)));
     measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
-
     measurements->append(
         "index_efficiency",
         std::to_string(
@@ -110,34 +72,6 @@ Table CrackingKDTreeRecursiveWithRecursiveSearch::range_query(Query& query){
 
     return result;
 }
-
-void CrackingKDTreeRecursiveWithRecursiveSearch::adapt(
-    std::vector<Point> &points,
-    std::vector<Edge> &edges
-    ){ 
-    auto start = measurements->time();
-    // Insert points
-    for(auto i = 0; i < points.size(); ++i){
-        insert_point(points.at(i), i);
-    }
-    auto end = measurements->time();
-    measurements->append(
-        "insert_points",
-        std::to_string(Measurements::difference(end, start))
-    );
-
-    start = measurements->time();
-    // Insert hyperplanes
-    for(auto& edge : edges){
-      insert_edge(edge);
-    }
-    end = measurements->time();
-    measurements->append(
-        "insert_edges",
-        std::to_string(Measurements::difference(end, start))
-    );
-}
-
 void CrackingKDTreeRecursiveWithRecursiveSearch::insert_point(
         Point &point,
         size_t is_right_hand_side
@@ -152,10 +86,10 @@ void CrackingKDTreeRecursiveWithRecursiveSearch::insert_point(
         // Add new root
         auto position = table->CrackTable(
                 low_position, high_position,
-                point.at(0), 0 
+                point[0], 0 
                 );
-        index->root = index->create_node(0, point.at(0), position);
-        should_insert.at(0) = false;
+        index->root = index->create_node(0, point[0], position);
+        should_insert[0] = false;
         current = index->root.get();
     }
 
@@ -211,7 +145,7 @@ void CrackingKDTreeRecursiveWithRecursiveSearch::insert_point(
                 if(should_insert[next_dimension]){
                     auto position = table->CrackTable(
                             current->position, high_position,
-                            point.at(next_dimension), next_dimension
+                            point[next_dimension], next_dimension
                             );
                     current->right_child = index->create_node(
                             next_dimension, point[next_dimension], position
@@ -229,7 +163,7 @@ void CrackingKDTreeRecursiveWithRecursiveSearch::insert_point(
                 if(should_insert[next_dimension]){
                 auto position = table->CrackTable(
                         low_position, current->position,
-                        point.at(next_dimension), next_dimension
+                        point[next_dimension], next_dimension
                         );
                 current->left_child = index->create_node(
                         next_dimension, point[next_dimension], position
@@ -243,6 +177,7 @@ void CrackingKDTreeRecursiveWithRecursiveSearch::insert_point(
     }
 
 }
+
 
 void CrackingKDTreeRecursiveWithRecursiveSearch::insert_edge_recursion(
     KDNode *current,
@@ -339,11 +274,10 @@ void CrackingKDTreeRecursiveWithRecursiveSearch::insert_edge_recursion(
 
 }
 
-void CrackingKDTreeRecursiveWithRecursiveSearch::insert_edge(CrackingKDTreeRecursiveWithRecursiveSearch::Edge& edge){
+void CrackingKDTreeRecursiveWithRecursiveSearch::insert_edge(CrackingKDTree::Edge& edge){
     // Determine which dimension value is fixed
     // (x1, y1) - (x2, y1)
     // Here y1 is fixed, which means this will be the pivot
-    
     auto n_dimensions = edge.first.size();
     size_t pivot_dim = 0;
     for(size_t i = 0; i < n_dimensions; ++i){
@@ -353,125 +287,4 @@ void CrackingKDTreeRecursiveWithRecursiveSearch::insert_edge(CrackingKDTreeRecur
         }
     }
     insert_edge_recursion(index->root.get(), edge, 0, table->row_count(), pivot_dim);
-}
-
-float CrackingKDTreeRecursiveWithRecursiveSearch::max(CrackingKDTreeRecursiveWithRecursiveSearch::Point &p1, CrackingKDTreeRecursiveWithRecursiveSearch::Point &p2, size_t dimension){
-    if(p1.at(dimension) > p2.at(dimension))
-        return p1.at(dimension);
-    return p2.at(dimension);
-}
-
-float CrackingKDTreeRecursiveWithRecursiveSearch::min(CrackingKDTreeRecursiveWithRecursiveSearch::Point &p1, CrackingKDTreeRecursiveWithRecursiveSearch::Point &p2, size_t dimension){
-    if(p1.at(dimension) < p2.at(dimension))
-        return p1.at(dimension);
-    return p2.at(dimension);
-}
-
-// Finds the next dimension that should be inserted
-int64_t CrackingKDTreeRecursiveWithRecursiveSearch::next_dim(int64_t start, std::vector<bool> &should_insert){
-    auto n_dimensions = should_insert.size();
-    int64_t next = (start + 1) % n_dimensions;
-    while(next != start){
-        if(should_insert.at(next))
-            return next;
-        next = (next + 1) % n_dimensions;
-    }
-    // If next == start then there is no next dimension 
-    return next;
-}
-
-
-bool CrackingKDTreeRecursiveWithRecursiveSearch::all_elements_false(std::vector<bool> &v){
-    return std::all_of(
-        v.begin(), v.end(), [](bool i){return !i;}
-    );
-}
-
-std::vector<CrackingKDTreeRecursiveWithRecursiveSearch::Point> CrackingKDTreeRecursiveWithRecursiveSearch::query_to_points(Query& query){
-    auto number_of_dimensions = query.predicate_count();
-    auto number_of_points = 2 << (number_of_dimensions - 1); 
-    std::vector<Point> points(number_of_points);
-
-    for(auto i = 0; i < number_of_points; ++i){
-        Point point(number_of_dimensions);
-        for(auto j = 0; j < number_of_dimensions; ++j){
-            // access the j-bit of i
-            if(BIT(i, j))
-                point.at(j) = query.predicates.at(j).high;
-            else
-                point.at(j) = query.predicates.at(j).low;
-        }
-        points.at(i) = point;
-    }
-
-    return points;
-}
-
-std::vector<CrackingKDTreeRecursiveWithRecursiveSearch::Edge> CrackingKDTreeRecursiveWithRecursiveSearch::query_to_edges(Query& query){
-    auto number_of_dimensions = query.predicate_count();
-    auto number_of_points = 2 << (number_of_dimensions - 1);
-
-    // Monstrosity to compare the compressed edges in the set.
-    // Simply using a set and the algorithm below will yield edges like:
-    // x1,y1 -- x1,y2
-    // x1,y2 -- x1,y1
-    // We want to avoid the duplication of edges
-    auto comp = [] (const std::pair<size_t, size_t>& p1, const std::pair<size_t, size_t>& p2) -> bool{
-        return  !((p1.first == p2.first && p1.second == p2.second) ||
-                (p1.first == p2.second && p1.second == p2.first));
-
-    };
-    std::set<std::pair<size_t, size_t>, decltype(comp) > compressed_edges (comp);
-    for(size_t p = 0; p < number_of_points; ++p){
-        for(size_t i = 0; i < number_of_dimensions; ++i){
-            compressed_edges.insert(std::make_pair(p, BIT_FLIP(p, i)));
-        }
-    }
-
-    assert(compressed_edges.size() == number_of_dimensions * (2 << (number_of_dimensions - 2)));
-
-    // Now transform the compressed edges to actual points
-    std::vector<Edge> edges;
-
-    for(auto& pair : compressed_edges){
-        edges.push_back(
-            Edge(
-                decompress_edge(pair.first, query),
-                decompress_edge(pair.second, query)
-                )
-        );
-    }
-
-    //for(auto& predicate : query.predicates){
-    //    std::cout << predicate.low << " <= ";
-    //    std::cout << predicate.column << " < ";
-    //    std::cout << predicate.high << " AND ";
-    //}
-    //std::cout << std::endl;
-
-    //for(auto& edge : edges){
-    //   for(auto &v : edge.first)
-    //        std::cout << v << ", ";
-    //   std::cout << " --> ";
-
-    //   for(auto &v : edge.second)
-    //        std::cout << v << ", ";
-    //   std::cout << std::endl;
-
-    //}
-
-    return edges;
-}
-
-CrackingKDTreeRecursiveWithRecursiveSearch::Point CrackingKDTreeRecursiveWithRecursiveSearch::decompress_edge(size_t compressed_edge, Query& query){
-    auto number_of_dimensions = query.predicate_count();
-    Point point(number_of_dimensions);
-    for(auto j = 0; j < number_of_dimensions; ++j){
-        // access the j-bit of i
-        if(BIT(compressed_edge, j))
-            point.at(j) = query.predicates.at(j).high;
-        else
-            point.at(j) = query.predicates.at(j).low;
-    }
-    return point;
 }

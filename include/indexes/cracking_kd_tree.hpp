@@ -29,7 +29,7 @@ class CrackingKDTree : public AbstractIndex
         index->draw(path);
     }
 
-private:
+protected:
     using Point = std::vector<float>;
     using Edge = std::pair<Point, Point>;
     unique_ptr<KDTree> index;
@@ -40,8 +40,8 @@ private:
         std::vector<Edge> &edges
         );
 
-    void insert_point(Point &point, size_t is_right_hand_side);
-    void insert_edge(Edge& edge);
+    virtual void insert_point(Point &point, size_t is_right_hand_side);
+    virtual void insert_edge(Edge& edge);
 
     std::vector<Point> query_to_points(Query& query);
     std::vector<Edge> query_to_edges(Query& query);

@@ -117,7 +117,7 @@ void CrackingKDTree::adapt(
     auto start = measurements->time();
     // Insert points
     for(auto i = 0; i < points.size(); ++i){
-        insert_point(points.at(i), i);
+        insert_point(points[i], i);
     }
     auto end = measurements->time();
     measurements->append(
@@ -151,10 +151,10 @@ void CrackingKDTree::insert_point(
         // Add new root
         auto position = table->CrackTable(
                 low_position, high_position,
-                point.at(0), 0 
+                point[0], 0 
                 );
-        index->root = index->create_node(0, point.at(0), position);
-        should_insert.at(0) = false;
+        index->root = index->create_node(0, point[0], position);
+        should_insert[0] = false;
         current = index->root.get();
     }
 
@@ -210,7 +210,7 @@ void CrackingKDTree::insert_point(
                 if(should_insert[next_dimension]){
                     auto position = table->CrackTable(
                             current->position, high_position,
-                            point.at(next_dimension), next_dimension
+                            point[next_dimension], next_dimension
                             );
                     current->right_child = index->create_node(
                             next_dimension, point[next_dimension], position
@@ -228,7 +228,7 @@ void CrackingKDTree::insert_point(
                 if(should_insert[next_dimension]){
                 auto position = table->CrackTable(
                         low_position, current->position,
-                        point.at(next_dimension), next_dimension
+                        point[next_dimension], next_dimension
                         );
                 current->left_child = index->create_node(
                         next_dimension, point[next_dimension], position
@@ -252,7 +252,7 @@ void CrackingKDTree::insert_edge(CrackingKDTree::Edge& edge){
     auto n_dimensions = edge.first.size();
     size_t pivot_dim = 0;
     for(size_t i = 0; i < n_dimensions; ++i){
-        if(edge.first.at(i) == edge.second.at(i)){
+        if(edge.first[i] == edge.second[i]){
             pivot_dim = i;
             break;
         }
@@ -281,7 +281,7 @@ void CrackingKDTree::insert_edge(CrackingKDTree::Edge& edge){
 
         // If that pivot has already been inserted then we don't need to
         // keep looking in this branch.
-        if(current->column == pivot_dim && current->key == edge.first.at(pivot_dim)){
+        if(current->column == pivot_dim && current->key == edge.first[pivot_dim]){
             continue;
         }
 
@@ -293,10 +293,10 @@ void CrackingKDTree::insert_edge(CrackingKDTree::Edge& edge){
             if(current->left_child == nullptr){
                 auto position = table->CrackTable(
                         lower_limit, current->position,
-                        edge.first.at(pivot_dim), pivot_dim 
+                        edge.first[pivot_dim], pivot_dim 
                         );
                 current->left_child = index->create_node(
-                        pivot_dim, edge.first.at(pivot_dim), position
+                        pivot_dim, edge.first[pivot_dim], position
                         );
                 continue;
             }
@@ -312,10 +312,10 @@ void CrackingKDTree::insert_edge(CrackingKDTree::Edge& edge){
             if(current->right_child == nullptr){
                 auto position = table->CrackTable(
                         current->position, upper_limit,
-                        edge.first.at(pivot_dim), pivot_dim 
+                        edge.first[pivot_dim], pivot_dim 
                         );
                 current->right_child = index->create_node(
-                        pivot_dim, edge.first.at(pivot_dim), position
+                        pivot_dim, edge.first[pivot_dim], position
                         );
                 continue;
             }
@@ -332,10 +332,10 @@ void CrackingKDTree::insert_edge(CrackingKDTree::Edge& edge){
             if(current->left_child == nullptr){
                 auto position = table->CrackTable(
                         lower_limit, current->position,
-                        edge.first.at(pivot_dim), pivot_dim 
+                        edge.first[pivot_dim], pivot_dim 
                         );
                 current->left_child = index->create_node(
-                        pivot_dim, edge.first.at(pivot_dim), position
+                        pivot_dim, edge.first[pivot_dim], position
                         );
                 continue;
             }
@@ -346,10 +346,10 @@ void CrackingKDTree::insert_edge(CrackingKDTree::Edge& edge){
             if(current->right_child == nullptr){
                 auto position = table->CrackTable(
                         current->position, upper_limit,
-                        edge.first.at(pivot_dim), pivot_dim 
+                        edge.first[pivot_dim], pivot_dim 
                         );
                 current->right_child = index->create_node(
-                        pivot_dim, edge.first.at(pivot_dim), position
+                        pivot_dim, edge.first[pivot_dim], position
                         );
                 continue;
             }
@@ -363,15 +363,15 @@ void CrackingKDTree::insert_edge(CrackingKDTree::Edge& edge){
 }
 
 float CrackingKDTree::max(CrackingKDTree::Point &p1, CrackingKDTree::Point &p2, size_t dimension){
-    if(p1.at(dimension) > p2.at(dimension))
-        return p1.at(dimension);
-    return p2.at(dimension);
+    if(p1[dimension] > p2[dimension])
+        return p1[dimension];
+    return p2[dimension];
 }
 
 float CrackingKDTree::min(CrackingKDTree::Point &p1, CrackingKDTree::Point &p2, size_t dimension){
-    if(p1.at(dimension) < p2.at(dimension))
-        return p1.at(dimension);
-    return p2.at(dimension);
+    if(p1[dimension] < p2[dimension])
+        return p1[dimension];
+    return p2[dimension];
 }
 
 // Finds the next dimension that should be inserted
@@ -379,7 +379,7 @@ int64_t CrackingKDTree::next_dim(int64_t start, std::vector<bool> &should_insert
     auto n_dimensions = should_insert.size();
     int64_t next = (start + 1) % n_dimensions;
     while(next != start){
-        if(should_insert.at(next))
+        if(should_insert[next])
             return next;
         next = (next + 1) % n_dimensions;
     }
@@ -404,11 +404,11 @@ std::vector<CrackingKDTree::Point> CrackingKDTree::query_to_points(Query& query)
         for(auto j = 0; j < number_of_dimensions; ++j){
             // access the j-bit of i
             if(BIT(i, j))
-                point.at(j) = query.predicates.at(j).high;
+                point[j] = query.predicates[j].high;
             else
-                point.at(j) = query.predicates.at(j).low;
+                point[j] = query.predicates[j].low;
         }
-        points.at(i) = point;
+        points[i] = point;
     }
 
     return points;
@@ -476,9 +476,9 @@ CrackingKDTree::Point CrackingKDTree::decompress_edge(size_t compressed_edge, Qu
     for(auto j = 0; j < number_of_dimensions; ++j){
         // access the j-bit of i
         if(BIT(compressed_edge, j))
-            point.at(j) = query.predicates.at(j).high;
+            point[j] = query.predicates[j].high;
         else
-            point.at(j) = query.predicates.at(j).low;
+            point[j] = query.predicates[j].low;
     }
     return point;
 }
