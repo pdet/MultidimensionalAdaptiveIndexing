@@ -96,6 +96,12 @@ Table CrackingKDTreeMine::range_query(Query& query){
     measurements->append("memory_footprint", std::to_string(index->get_node_count() * sizeof(KDNode)));
     measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
 
+    measurements->append(
+        "index_efficiency",
+        std::to_string(
+            result.row_count()/static_cast<float>(n_tuples_scanned)
+        )
+    );
 
     //std::cout << (index->get_node_count()) << std::endl;
     //std::cout << (n_tuples_scanned)<<std::endl;

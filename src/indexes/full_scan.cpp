@@ -47,6 +47,13 @@ Table FullScan::range_query(Query& query){
     // Before returning the result, update the statistics.
     measurements->append("tuples_scanned", std::to_string(table->row_count()));
 
+    measurements->append(
+        "index_efficiency",
+        std::to_string(
+            result.row_count()/static_cast<float>(table->row_count())
+        )
+    );
+
     return result;
 }
 
