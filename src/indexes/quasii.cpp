@@ -158,11 +158,11 @@ vector<pair<int64_t, int64_t>> Quasii::search(Query& query){
     vector<pair<int64_t, int64_t>> partitions;
     vector<Slice> slices_to_check;
 
-    auto predicate = query.predicates.at(first_level_slices.at(0).column);
+    auto predicate = query.predicates[first_level_slices[0].column];
     auto i = binarySearch(first_level_slices, predicate.low);
 
-    while(i < static_cast<int64_t>(first_level_slices.size()) && first_level_slices.at(i).left_value < predicate.high){
-        slices_to_check.push_back(first_level_slices.at(i));
+    while(i < static_cast<int64_t>(first_level_slices.size()) && first_level_slices[i].left_value < predicate.high){
+        slices_to_check.push_back(first_level_slices[i]);
         ++i;
     }
     while (!slices_to_check.empty())
@@ -175,11 +175,11 @@ vector<pair<int64_t, int64_t>> Quasii::search(Query& query){
                 make_pair(slice.offset_begin, slice.offset_end)
             );
         }else{
-            auto predicate = query.predicates.at(slice.children.at(0).column);
+            auto predicate = query.predicates[slice.children[0].column];
             auto i = binarySearch(slice.children, predicate.low);
 
-            while(i < static_cast<int64_t>(slice.children.size()) && slice.children.at(i).left_value < predicate.high){
-                slices_to_check.push_back(slice.children.at(i));
+            while(i < static_cast<int64_t>(slice.children.size()) && slice.children[i].left_value < predicate.high){
+                slices_to_check.push_back(slice.children[i]);
                 ++i;
             }
         }
@@ -198,11 +198,11 @@ int64_t Quasii::binarySearch(const vector<Slice> &slice, float key){
     while (max >= min && max > 0) {
         int64_t mid = ((max+min)/2.0) + 0.5;
 
-        if(slice.at(mid).left_value ==  key){
+        if(slice[mid].left_value ==  key){
             return mid;
-        }else if(slice.at(mid).left_value < key){
+        }else if(slice[mid].left_value < key){
             min = mid +1;
-        }else if(slice.at(mid).left_value > key){
+        }else if(slice[mid].left_value > key){
             max = mid -1;
         }
 
@@ -246,14 +246,14 @@ struct less_than_offset
 
 void Quasii::build(vector<Slice> &slices, Query &query){
     vector<Slice> refined_slice_aux;
-    auto dim = slices.at(0).column;
-    auto predicate = query.predicates.at(dim);
+    auto dim = slices[0].column;
+    auto predicate = query.predicates[dim];
     auto low = predicate.low;
     auto high = predicate.high;
     auto i = binarySearch(slices, low);
     auto index_start = i;
-    while (i < static_cast<int64_t>(slices.size()) && slices.at(i).left_value <= high){
-        vector<Slice> refined_slices = refine(slices.at(i), predicate);
+    while (i < static_cast<int64_t>(slices.size()) && slices[i].left_value <= high){
+        vector<Slice> refined_slices = refine(slices[i], predicate);
         for (auto &r_s : refined_slices){
             if(r_s.intersects(low, high)){
                 if(r_s.column == table->col_count() - 1)
@@ -285,7 +285,7 @@ vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
     vector<Slice> result_slices;
     vector<Slice> refined_slices;
     // If the slice size is below the threshold then dont refine it
-    if ((slice.offset_end - slice.offset_begin) <= dimensions_threshold.at(slice.column)){
+    if ((slice.offset_end - slice.offset_begin) <= dimensions_threshold[slice.column]){
         refined_slices.push_back(slice);
         return refined_slices;
     }
@@ -310,7 +310,7 @@ vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
         return refined_slices;
     }
     for (auto &r_s : refined_slices){
-        if(r_s.size() > dimensions_threshold.at(r_s.column) && r_s.intersects(low, high)){
+        if(r_s.size() > dimensions_threshold[r_s.column] && r_s.intersects(low, high)){
             vector<Slice> refined_slice_aux = sliceArtificial(r_s);
         result_slices.insert(result_slices.end(), refined_slice_aux.begin(), refined_slice_aux.end());
         }
@@ -335,7 +335,7 @@ vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
 vector<Slice> Quasii::sliceArtificial(Slice &slice){
     vector<Slice> result;
     stack<Slice> slices_to_be_refined;
-    auto threshold = dimensions_threshold.at(slice.column);
+    auto threshold = dimensions_threshold[slice.column];
 
     if(table->col_count() == 1){
         if(slice.size() > threshold)
