@@ -3,9 +3,6 @@
 #include "cracking_kd_tree_faces.hpp"
 #include <algorithm> // to check if all elements of a vector are true
 
-#define BIT(value, position) (value & ( 1 << position )) >> position
-#define BIT_FLIP(value, position) (value ^ ( 1 << position )) 
-
 CrackingKDTreeFaces::CrackingKDTreeFaces(std::map<std::string, std::string> config){
     if(config.find("minimum_partition_size") == config.end())
         minimum_partition_size = 100;
@@ -140,7 +137,7 @@ void CrackingKDTreeFaces::adapt_recursion(
 
     // If the current node has the same column as the pivot dim
     if(current->column == pivot_dim){
-        if(current->key < pivot){
+        if(pivot < current->key){
             if(current->left_child == nullptr){
                 auto position = table->CrackTable(
                         lower_limit, current->position,
@@ -155,6 +152,7 @@ void CrackingKDTreeFaces::adapt_recursion(
                         pivot_dim, pivot,
                         lower_limit, current->position
                         );
+                return;
             }
         }else{
             if(current->right_child == nullptr){
@@ -171,6 +169,7 @@ void CrackingKDTreeFaces::adapt_recursion(
                         pivot_dim, pivot,
                         current->position, upper_limit
                         );
+                return;
             }
         }
     }else{
@@ -194,6 +193,7 @@ void CrackingKDTreeFaces::adapt_recursion(
                             pivot_dim, pivot,
                             current->position, upper_limit
                             );
+                    return;
                 }
                 break;
             case +1:
@@ -215,6 +215,7 @@ void CrackingKDTreeFaces::adapt_recursion(
                             pivot_dim, pivot,
                             lower_limit, current->position
                             );
+                    return;
                 }
                 break;
             case 0:
