@@ -50,16 +50,6 @@ private:
     float max(Point &p1, Point &p2, size_t dimension);
     float min(Point &p1, Point &p2, size_t dimension);
 
-    void crack_point(
-            Point &point,   // point to be inserted
-            size_t is_right_hand_side,  // if each axis of the point comes
-                                        //  from the right side of query
-            std::vector<bool> &should_insert, // if the axis should be inserted
-            KDNode* current, // node to insert the new point
-            int64_t low_position,       // lower position from partition
-            int64_t high_position      // upper position from partition
-            );
-
     int64_t next_dim(int64_t start, std::vector<bool> &should_insert);
 
     bool all_elements_false(std::vector<bool> &v);

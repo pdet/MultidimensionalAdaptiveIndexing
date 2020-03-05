@@ -138,9 +138,9 @@ void CrackingKDTree::adapt(
 }
 
 void CrackingKDTree::insert_point(
-    Point &point,
-    size_t is_right_hand_side
-){
+        Point &point,
+        size_t is_right_hand_side
+        ){
     std::vector<bool> should_insert(point.size(), true);
 
     KDNode* current = index->root.get();
@@ -150,66 +150,94 @@ void CrackingKDTree::insert_point(
     if(current == nullptr){
         // Add new root
         auto position = table->CrackTable(
-            low_position, high_position,
-            point.at(0), 0 
-        );
+                low_position, high_position,
+                point.at(0), 0 
+                );
         index->root = index->create_node(0, point.at(0), position);
         should_insert.at(0) = false;
         current = index->root.get();
     }
 
-    while(true){
+    while(!all_elements_false(should_insert)){
+        // if the minimum threshold for partition size exceded, then return
+        if(high_position - low_position < minimum_partition_size)
+            return;
+
         // If equal
-        if(current->key == point.at(current->column)){
-            should_insert.at(current->column) = false;
+        if(current->key == point[current->column]){
+            should_insert[current->column] = false;
             //If is right hand side of query then we follow left
             if(BIT(is_right_hand_side, current->column)){
                 if(current->left_child == nullptr){
-                    crack_point(
-                            point, is_right_hand_side, should_insert,
-                            current, low_position, current->position 
-                            );
-                    return;
+                    auto next_dimension = next_dim(current->column, should_insert);
+                    if(should_insert[next_dimension]){
+                        auto position = table->CrackTable(
+                                low_position, current->position,
+                                point[next_dimension], next_dimension
+                                );
+                        current->left_child = index->create_node(
+                                next_dimension, point[next_dimension], position
+                                );
+                        should_insert[next_dimension] = false;
+                    }
                 }
-                current = current->left_child.get();
                 high_position = current->position;
+                current = current->left_child.get();
             }
             //If is left hand side of query then we follow right
             else{
                 if(current->right_child == nullptr){
-                    crack_point(
-                            point, is_right_hand_side, should_insert,
-                            current, current->position, high_position
-                            );
-                    return;
+                    auto next_dimension = next_dim(current->column, should_insert);
+                    if(should_insert[next_dimension]){
+                        auto position = table->CrackTable(
+                                current->position, high_position,
+                                point[next_dimension], next_dimension
+                                );
+                        current->right_child = index->create_node(
+                                next_dimension, point[next_dimension], position
+                                );
+                        should_insert[next_dimension] = false;
+                    }
                 }
-                current = current->right_child.get();
                 low_position = current->position;
+                current = current->right_child.get();
             }
         }
-        // follow right
-        else if(current->key < point.at(current->column)){
+        // if point greater than current node follow right
+        else if(current->key < point[current->column]){
             if(current->right_child == nullptr){
-                crack_point(
-                    point, is_right_hand_side, should_insert,
-                    current, current->position, high_position
-                );
-                return;
+                auto next_dimension = next_dim(current->column, should_insert);
+                if(should_insert[next_dimension]){
+                    auto position = table->CrackTable(
+                            current->position, high_position,
+                            point.at(next_dimension), next_dimension
+                            );
+                    current->right_child = index->create_node(
+                            next_dimension, point[next_dimension], position
+                            );
+                    should_insert[next_dimension] = false;
+                }
             }
-            current = current->right_child.get();
             low_position = current->position;
+            current = current->right_child.get();
         }
-        // follow left
+        // if point smaller than current node follow left
         else{
             if(current->left_child == nullptr){
-                crack_point(
-                    point, is_right_hand_side, should_insert,
-                    current, low_position, current->position 
-                );
-                return;
+                auto next_dimension = next_dim(current->column, should_insert);
+                if(should_insert[next_dimension]){
+                auto position = table->CrackTable(
+                        low_position, current->position,
+                        point.at(next_dimension), next_dimension
+                        );
+                current->left_child = index->create_node(
+                        next_dimension, point[next_dimension], position
+                        );
+                should_insert[next_dimension] = false;
+                }
             }
-            current = current->left_child.get();
             high_position = current->position;
+            current = current->left_child.get();
         }
     }
 
@@ -344,94 +372,6 @@ float CrackingKDTree::min(CrackingKDTree::Point &p1, CrackingKDTree::Point &p2, 
     if(p1.at(dimension) < p2.at(dimension))
         return p1.at(dimension);
     return p2.at(dimension);
-}
-
-void CrackingKDTree::crack_point(
-    Point &point,   // point to be inserted
-    size_t is_right_hand_side,  // if each axis of the point comes
-                                //  from the right side of query
-    std::vector<bool> &should_insert, // if the axis should be inserted
-    KDNode* current, // node to insert the new point
-    int64_t low_position,       // lower position from partition
-    int64_t high_position      // upper position from partition
-    ){
-
-    // if there is no dimensions to insert, then return 
-    if(all_elements_false(should_insert))
-        return;
-
-    // if the minimum threshold for partition size exceded, then return
-    if(high_position - low_position < minimum_partition_size)
-        return;
-
-    auto dimension = next_dim(current->column, should_insert);
-
-    // insert the first possible dimension
-    if(should_insert.at(current->column)){
-        if(current->key <= point.at(current->column)){
-            auto position = table->CrackTable(
-                current->position, high_position,
-                point.at(dimension), dimension 
-            );
-            current->right_child = index->create_node(
-                dimension, point.at(dimension), position
-            );
-
-            low_position = current->position;
-            current = current->right_child.get();
-        }else{
-            auto position = table->CrackTable(
-                low_position, current->position,
-                point.at(dimension), dimension 
-            );
-            current->left_child = index->create_node(
-                dimension, point.at(dimension), position
-            );
-
-            high_position = current->position;
-            current = current->left_child.get();
-        }
-    should_insert.at(dimension) = false;
-    }
-
-    // while we still have dimensions to insert
-    while(!all_elements_false(should_insert)){
-
-        if(high_position - low_position < minimum_partition_size)
-            return;
-
-        dimension = next_dim(dimension, should_insert);
-        // If the dimension of the current node came from the right side of a predicate
-        // Then we need to insert to the left side of the current node
-        if(BIT(is_right_hand_side, current->column)){
-            auto position = table->CrackTable(
-                    low_position, current->position,
-                    point.at(dimension), dimension 
-                    );
-            current->left_child = index->create_node(
-                    dimension, point.at(dimension), position
-                    );
-
-            high_position = current->position;
-            current = current->left_child.get();
-        }
-        // If the dimension of the current node came from the left side of a predicate
-        // Then we need to insert to the right side of the current node
-        else{
-            auto position = table->CrackTable(
-                    current->position, high_position,
-                    point.at(dimension), dimension 
-                    );
-            current->right_child = index->create_node(
-                    dimension, point.at(dimension), position
-                    );
-
-            low_position = current->position;
-            current = current->right_child.get();
-        }
-
-        should_insert.at(dimension) = false;
-    }
 }
 
 // Finds the next dimension that should be inserted
