@@ -43,11 +43,18 @@ void AverageKDTree::adapt_index(Query& query){
 
 Table AverageKDTree::range_query(Query& query){
     // ******************
-    auto start = measurements->time();
+auto start = measurements->time();
 
     // Search on the index the correct partitions
     auto partitions = index->search(query);
 
+    auto end = measurements->time();
+    measurements->append(
+            "index_search_time",
+            std::to_string(Measurements::difference(end, start))
+            );
+
+    start = measurements->time();
     // Scan the table and returns the row ids 
     auto result = Table(1);
     for (auto partition : partitions)
@@ -57,10 +64,10 @@ Table AverageKDTree::range_query(Query& query){
         FullScan::scan_partition(table.get(), query, low, high, &result);
     }
 
-    auto end = measurements->time();
+    end = measurements->time();
     // ******************
     measurements->append(
-        "query_time",
+        "scan_time",
         std::to_string(Measurements::difference(end, start))
     );
 

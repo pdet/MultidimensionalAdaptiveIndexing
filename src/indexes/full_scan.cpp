@@ -40,7 +40,7 @@ Table FullScan::range_query(Query& query){
     auto end = measurements->time();
 
     measurements->append(
-        "query_time",
+        "scan_time",
         std::to_string(Measurements::difference(end, start))
     );
 
