@@ -28,6 +28,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_mine.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_recursive.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_faces.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_faces_disable.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/cracking_kd_tree_recursive_with_recursive_search.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/quasii/slice.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/quasii.cpp
