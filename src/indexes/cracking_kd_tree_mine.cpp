@@ -5,7 +5,6 @@ CrackingKDTreeMine::CrackingKDTreeMine(std::map<std::string, std::string> config
 CrackingKDTreeMine::~CrackingKDTreeMine(){}
 
 void CrackingKDTreeMine::insert_edge(CrackingKDTreeMine::Edge& edge){
-    std::cout << "MINE";
     // Determine which dimension value is fixed
     // (x1, y1) - (x2, y1)
     // Here y1 is fixed, which means this will be the pivot
