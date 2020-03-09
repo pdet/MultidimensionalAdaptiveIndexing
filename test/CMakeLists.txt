@@ -24,11 +24,7 @@ set(TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/test/indexes/quasii.cpp
     ${CMAKE_SOURCE_DIR}/test/indexes/median_kd_tree.cpp
     ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree.cpp
-    ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_mine.cpp
-    ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_recursive.cpp
-    ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_faces.cpp
-    ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_faces_disable.cpp
-    ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_recursive_with_recursive_search.cpp
+    ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_per_dimension.cpp
     ${CMAKE_SOURCE_DIR}/test/indexes/average_kd_tree.cpp
     ${CMAKE_SOURCE_DIR}/test/indexes/full_scan.cpp
     ${CMAKE_SOURCE_DIR}/test/data/uniform_generator.cpp

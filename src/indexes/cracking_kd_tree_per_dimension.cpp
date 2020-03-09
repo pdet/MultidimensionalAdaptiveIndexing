@@ -1,22 +1,17 @@
 #include "kd_node.hpp"
 #include "full_scan.hpp"
-#include "cracking_kd_tree_faces_disable.hpp"
+#include "cracking_kd_tree_per_dimension.hpp"
 #include <algorithm> // to check if all elements of a vector are true
 
-CrackingKDTreeFacesDisable::CrackingKDTreeFacesDisable(std::map<std::string, std::string> config){
+CrackingKDTreePerDimension::CrackingKDTreePerDimension(std::map<std::string, std::string> config){
     if(config.find("minimum_partition_size") == config.end())
         minimum_partition_size = 100;
     else
         minimum_partition_size = std::stoi(config["minimum_partition_size"]);
-
-    if(config.find("adaptation_parameter") == config.end())
-        adaptation_parameter = 0.05;
-    else
-        adaptation_parameter = std::stof(config["adaptation_parameter"]);
 }
-CrackingKDTreeFacesDisable::~CrackingKDTreeFacesDisable(){}
+CrackingKDTreePerDimension::~CrackingKDTreePerDimension(){}
 
-void CrackingKDTreeFacesDisable::initialize(Table *table_to_copy){
+void CrackingKDTreePerDimension::initialize(Table *table_to_copy){
     // ******************
     auto start = measurements->time();
 
@@ -34,33 +29,21 @@ void CrackingKDTreeFacesDisable::initialize(Table *table_to_copy){
     // ******************
 }
 
-void CrackingKDTreeFacesDisable::adapt_index(Query& query){
+void CrackingKDTreePerDimension::adapt_index(Query& query){
     // Transform query into points and edges before starting to measure time
     // Adapt the KDTree 
-    auto old_node_count = index->get_node_count();
     auto start = measurements->time();
-    if(should_adapt)
-        adapt(query);
+    adapt(query);
     auto end = measurements->time();
     // ******************
     measurements->append(
             "adaptation_time",
             std::to_string(Measurements::difference(end, start))
             );
-    auto new_node_count = index->get_node_count();
-    if(should_adapt && (new_node_count - old_node_count) < old_node_count * adaptation_parameter){
-        should_adapt=false;
-    }
-
-    measurements->append("number_of_nodes", std::to_string(index->get_node_count()));
-    measurements->append("max_height", std::to_string(index->get_max_height()));
-    measurements->append("min_height", std::to_string(index->get_min_height()));
-    measurements->append("memory_footprint", std::to_string(index->get_node_count() * sizeof(KDNode)));
-
 
 }
 
-Table CrackingKDTreeFacesDisable::range_query(Query& query){
+Table CrackingKDTreePerDimension::range_query(Query& query){
     // ******************
     auto start = measurements->time();
 
@@ -95,6 +78,10 @@ Table CrackingKDTreeFacesDisable::range_query(Query& query){
         n_tuples_scanned += partition.second - partition.first;
 
     // Before returning the result, update the statistics.
+    measurements->append("number_of_nodes", std::to_string(index->get_node_count()));
+    measurements->append("max_height", std::to_string(index->get_max_height()));
+    measurements->append("min_height", std::to_string(index->get_min_height()));
+    measurements->append("memory_footprint", std::to_string(index->get_node_count() * sizeof(KDNode)));
     measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
     measurements->append(
         "index_efficiency",
@@ -103,14 +90,10 @@ Table CrackingKDTreeFacesDisable::range_query(Query& query){
         )
     );
 
-    //std::cout << (index->get_node_count()) << std::endl;
-    //std::cout << (n_tuples_scanned)<<std::endl;
-    //std::cout << std::endl;
-
     return result;
 }
 
-void CrackingKDTreeFacesDisable::adapt(Query& query){ 
+void CrackingKDTreePerDimension::adapt(Query& query){ 
 
     if(index->root == nullptr){
         auto position = table->CrackTable(
@@ -136,7 +119,7 @@ void CrackingKDTreeFacesDisable::adapt(Query& query){
     }
 }
 
-void CrackingKDTreeFacesDisable::adapt_recursion(
+void CrackingKDTreePerDimension::adapt_recursion(
         KDNode *current,
         Query& query,
         int64_t pivot_dim,

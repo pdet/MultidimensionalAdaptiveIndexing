@@ -61,6 +61,7 @@ int main(int argc, char** argv){
             for(size_t i = 0; i < workload.query_count(); ++i){
                 index->adapt_index(workload.queries.at(i));
                 index->range_query(workload.queries.at(i));
+                //index->draw_index(results_path + '/' + index->name() + ".dot");
             }
 
             auto file_name = results_path + "/results";
