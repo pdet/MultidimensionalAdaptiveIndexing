@@ -38,6 +38,13 @@ void Quasii::initialize(Table *table_to_copy){
 }
 
 void Quasii::adapt_index(Query& query){
+    // Before adapting calculate the scan overhead to measure how much the previous
+    // queries helped this one
+    auto partitions = search(query);
+    n_tuples_scanned_before_adapting = 0;
+    for(auto &partition : partitions)
+        n_tuples_scanned_before_adapting += partition.second - partition.first;
+
     // ******************
     auto start = measurements->time();
 
@@ -99,11 +106,19 @@ Table Quasii::range_query(Query& query){
     measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
 
     measurements->append(
-        "index_efficiency",
+        "scan_overhead_before_adapt",
         std::to_string(
-            result.row_count()/static_cast<float>(n_tuples_scanned)
+            n_tuples_scanned_before_adapting/static_cast<float>(result.row_count())
         )
     );
+
+    measurements->append(
+        "scan_overhead_after_adapt",
+        std::to_string(
+            n_tuples_scanned/static_cast<float>(result.row_count())
+        )
+    );
+
     return result;
 }
 

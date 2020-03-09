@@ -83,11 +83,12 @@ Table MedianKDTree::range_query(Query& query){
     measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
 
     measurements->append(
-        "index_efficiency",
+        "scan_overhead",
         std::to_string(
-            result.row_count()/static_cast<float>(n_tuples_scanned)
+            n_tuples_scanned/static_cast<float>(result.row_count())
         )
     );
+
     return result;
 }
 

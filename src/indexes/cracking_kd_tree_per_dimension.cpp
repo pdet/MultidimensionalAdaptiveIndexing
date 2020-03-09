@@ -30,6 +30,14 @@ void CrackingKDTreePerDimension::initialize(Table *table_to_copy){
 }
 
 void CrackingKDTreePerDimension::adapt_index(Query& query){
+    // Before adapting calculate the scan overhead to measure how much the previous
+    // queries helped this one
+    auto partitions = index->search(query);
+    n_tuples_scanned_before_adapting = 0;
+    for(auto &partition : partitions)
+        n_tuples_scanned_before_adapting += partition.second - partition.first;
+
+
     // Transform query into points and edges before starting to measure time
     // Adapt the KDTree 
     auto start = measurements->time();
@@ -83,8 +91,15 @@ Table CrackingKDTreePerDimension::range_query(Query& query){
     measurements->append("min_height", std::to_string(index->get_min_height()));
     measurements->append("memory_footprint", std::to_string(index->get_node_count() * sizeof(KDNode)));
     measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
+
     measurements->append(
-        "index_efficiency",
+        "scan_overhead_before_adapt",
+        std::to_string(
+            n_tuples_scanned_before_adapting/static_cast<float>(result.row_count())
+        )
+    );
+    measurements->append(
+        "scan_overhead_after_adapt",
         std::to_string(
             result.row_count()/static_cast<float>(n_tuples_scanned)
         )

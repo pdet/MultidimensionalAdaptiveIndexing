@@ -12,6 +12,7 @@ class AbstractIndex
 protected:
     // Table with copy of the data
     unique_ptr<Table> table;
+    int64_t n_tuples_scanned_before_adapting;
 public:
     // Class to keep track of the time/index measurements
     unique_ptr<Measurements> measurements;
