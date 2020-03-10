@@ -29,7 +29,6 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/quasii/slice.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/quasii.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_tree.cpp
-            ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_tree_recursive.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_node.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/uniform_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/genome_generator.cpp

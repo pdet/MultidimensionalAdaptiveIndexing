@@ -8,6 +8,7 @@
 #include <limits>
 #include <fstream>
 #include <map>
+#include <cassert>
 
 using namespace std;
 
