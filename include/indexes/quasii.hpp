@@ -13,7 +13,7 @@ using namespace std;
 class Quasii : public AbstractIndex
 {
 public:
-    static const size_t ID = 4;
+    static const size_t ID = 6;
     Quasii(std::map<std::string, std::string> config);
     ~Quasii();
 

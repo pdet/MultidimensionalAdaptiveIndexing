@@ -10,7 +10,7 @@
 class AverageKDTree : public AbstractIndex
 {
 public:
-    static const size_t ID = 3;
+    static const size_t ID = 4;
     AverageKDTree(std::map<std::string, std::string> config);
     ~AverageKDTree();
 

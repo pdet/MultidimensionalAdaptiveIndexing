@@ -11,7 +11,7 @@
 class CrackingKDTreePerDimension : public AbstractIndex
 {
     public:
-    static const size_t ID = 90;
+    static const size_t ID = 3;
     CrackingKDTreePerDimension(std::map<std::string, std::string> config);
     ~CrackingKDTreePerDimension();
 

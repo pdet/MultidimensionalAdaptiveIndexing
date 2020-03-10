@@ -11,7 +11,7 @@
 class CrackingKDTree : public AbstractIndex
 {
     public:
-    static const size_t ID = 92;
+    static const size_t ID = 2;
     CrackingKDTree(std::map<std::string, std::string> config);
     ~CrackingKDTree();
 

@@ -16,6 +16,16 @@ We compare it with Quasii (State of the Art), Full Scan, KDTree (medians and ave
 
 To be Done
 
+## Algorithm IDs
+
+* Full Scan (baseline): 0
+* Fast Full Scan: 1
+* CrackingKDTree: 2
+* CrackingKDTree (Per Dimension): 3
+* AverageKDTree: 4
+* MedianKDTree: 5
+* Quasii: 6
+
 ## Papers
 
 * Cracking KD-Tree: The First Multidimensional Adaptive Indexing (Position Paper). P. Holanda, M. Nerone, E. C. de Almeida and S. Manegold @ DATA 2018

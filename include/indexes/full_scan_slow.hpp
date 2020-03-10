@@ -8,7 +8,7 @@
 class FullScanSlow : public AbstractIndex
 {
 public:
-    const static size_t ID = -1;
+    const static size_t ID = 0;
     FullScanSlow(std::map<std::string, std::string> config);
     ~FullScanSlow();
 
