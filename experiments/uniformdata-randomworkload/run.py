@@ -4,7 +4,8 @@ import inspect
 
 
 REPETITIONS = 1
-PARTITION_SIZE = 1000
+PARTITION_SIZE = 10
+ALGORITHM_IDS = [1, 2, 3, 4, 5, 6]
 
 # script directory
 SCRIPT_PATH = os.path.dirname(
@@ -51,28 +52,31 @@ class Benchmark:
         Arguments:
             - results_file (string): file to save the results
         """
-        if os.path.exists(f'{SCRIPT_PATH}/results.csv'):
-            os.system(
-                f'mv {SCRIPT_PATH}/results.csv {SCRIPT_PATH}/results.csv.old'
-            )
+        os.system(
+            f'mkdir -p {self.CURRENT_DIR}/results'
+        )
 
         if not os.path.exists(self.BUILD_DIR):
             os.makedirs(self.BUILD_DIR)
 
         # Compile the code
         with cd(self.BUILD_DIR):
-            subprocess.call(["cmake", "-DCMAKE_BUILD_TYPE=Release", ".."])
+            subprocess.call(["cmake", "-DCMAKE_BUILD_TYPE=Debug", ".."])
             subprocess.call(["make", '-j'])
 
         with cd(self.BIN_DIR):
-            subprocess.call([
-                "./main",
-                "-w", f"{SCRIPT_PATH}/queries",
-                "-d", f"{SCRIPT_PATH}/data",
-                "-r", str(REPETITIONS),
-                "-s", self.CURRENT_DIR,
-                "-p", str(PARTITION_SIZE)
-            ])
+            cols = [2]
+            for col in cols:
+                for algorithm_id in ALGORITHM_IDS:
+                    subprocess.call([
+                        "./main",
+                        "-w", f"{self.CURRENT_DIR}/data/queries{col}",
+                        "-d", f"{self.CURRENT_DIR}/data/data{col}",
+                        "-i", str(algorithm_id),
+                        "-r", str(REPETITIONS),
+                        "-s", f"{self.CURRENT_DIR}/results/",
+                        "-p", str(PARTITION_SIZE)
+                        ])
 
     def clean(build_dir):
         # Run make clean
