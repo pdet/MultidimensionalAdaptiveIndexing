@@ -74,7 +74,7 @@ void FullScanSlow::scan_partition(
         if(first){
 
             for(int64_t row_id = low; row_id < high; row_id++){
-                auto value = t->columns.at(column)->at(row_id);
+                auto value = t->columns[column]->data[row_id];
                 if(low_pred <= value && value < high_pred)
                     qualifying_rows.push_back(row_id);
             }
@@ -84,7 +84,7 @@ void FullScanSlow::scan_partition(
             std::vector<int64_t> temp_qualifying_rows;
             temp_qualifying_rows.reserve(high - low + 1);
             for(auto row_id : qualifying_rows){
-                auto value = t->columns.at(column)->at(row_id);
+                auto value = t->columns[column]->data[row_id];
                 if(low_pred <= value && value < high_pred)
                     temp_qualifying_rows.push_back(row_id);
             }

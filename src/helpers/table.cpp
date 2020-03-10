@@ -9,12 +9,12 @@
 using namespace std;
 Table::Table(vector<vector<float> > &columns_to_be_copied){
     number_of_columns = columns_to_be_copied.size();
-    number_of_rows = columns_to_be_copied.at(0).size();
+    number_of_rows = columns_to_be_copied[0].size();
 
     columns.resize(number_of_columns);
     for (int64_t col = 0; col < number_of_columns; col++){
-        columns.at(col) = make_unique<Column>(
-            columns_to_be_copied.at(col)
+        columns[col] = make_unique<Column>(
+            columns_to_be_copied[col]
         );
     }
 }
@@ -22,7 +22,7 @@ Table::Table(vector<vector<float> > &columns_to_be_copied){
 Table::Table(int64_t number_of_columns) : number_of_columns(number_of_columns){
     columns.resize(number_of_columns);
     for(int64_t i = 0; i < number_of_columns; ++i){
-        columns.at(i) = make_unique<Column>();
+        columns[i] = make_unique<Column>();
     }
     number_of_rows = 0;
 }
@@ -34,12 +34,12 @@ Table::Table(Table *table_to_copy){
     // Allocate the columns
     columns.resize(number_of_columns);
     for(int64_t i = 0; i < number_of_columns; ++i){
-        columns.at(i) = make_unique<Column>();
+        columns[i] = make_unique<Column>();
     }
     // Copy the columns from one table to the other
     for (int64_t col_index = 0; col_index < table_to_copy->col_count(); col_index++)
-        columns.at(col_index) = make_unique<Column>(
-            *(table_to_copy->columns.at(col_index).get())
+        columns[col_index] = make_unique<Column>(
+            *(table_to_copy->columns[col_index].get())
         );
 }
 
@@ -50,12 +50,12 @@ Table::Table(const Table &other){
     // Allocate the columns
     columns.resize(number_of_columns);
     for(int64_t i = 0; i < number_of_columns; ++i){
-        columns.at(i) = make_unique<Column>();
+        columns[i] = make_unique<Column>();
     }
     // Copy the columns from one table to the other
     for (int64_t col_index = 0; col_index < other.col_count(); col_index++)
-        columns.at(col_index) = make_unique<Column>(
-            *(other.columns.at(col_index).get())
+        columns[col_index] = make_unique<Column>(
+            *(other.columns[col_index].get())
         );
 }
 
@@ -96,9 +96,9 @@ void Table::save_file(std::string path){
     for(size_t i = 0; i < number_of_rows; ++i){
         auto row = materialize_row(i);
         for(size_t j = 0; j < number_of_columns - 1; ++j){
-            file << row.at(j) << " "; 
+            file << row[j] << " "; 
         }
-        file << row.at(number_of_columns-1) << "\n";
+        file << row[number_of_columns-1] << "\n";
     }
 
     file.close();
@@ -114,7 +114,7 @@ void Table::append_column(Column col){
 vector<float> Table::materialize_row(int64_t row_index){
     vector<float> row(col_count());
     for(int64_t col = 0; col < col_count(); col++){
-        row.at(col) = columns.at(col)->at(row_index);
+        row[col] = columns[col]->data[row_index];
     }
     return row;
 }
@@ -122,19 +122,19 @@ vector<float> Table::materialize_row(int64_t row_index){
 void Table::append(vector<float> row){
     assert(row.size() == number_of_columns);
     for(int64_t col = 0; col < row.size(); col++){
-        columns.at(col)->append(row.at(col));
+        columns[col]->append(row[col]);
     }
     number_of_rows++;
 }
 
 void Table::exchange(int64_t index1, int64_t index2){
     for(int64_t column_index = 0; column_index < number_of_columns; ++column_index){
-        auto value1 = columns.at(column_index)->at(index1);
-        auto value2 = columns.at(column_index)->at(index2);
+        auto value1 = columns[column_index]->data[index1];
+        auto value2 = columns[column_index]->data[index2];
 
         auto tmp = value1;
-        columns.at(column_index)->assign(index1, value2);
-        columns.at(column_index)->assign(index2, tmp);
+        columns[column_index]->data[index1] = value2;
+        columns[column_index]->data[index2] = tmp;
     }
 }
 
@@ -150,11 +150,11 @@ int64_t Table::CrackTable(int64_t low, int64_t high, float element, int64_t c)
 
     while (x1 <= x2 && x2 > 0)
     {
-        if (columns.at(c)->at(x1) < element)
+        if (columns[c]->data[x1] < element)
             x1++;
         else
         {
-            while (x2 > 0 && x2 >= x1 && (columns.at(c)->at(x2) >= element))
+            while (x2 > 0 && x2 >= x1 && (columns[c]->data[x2] >= element))
                 x2--;
             if (x1 < x2)
             {

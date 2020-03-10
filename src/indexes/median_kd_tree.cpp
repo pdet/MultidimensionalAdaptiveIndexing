@@ -19,7 +19,7 @@ void MedianKDTree::initialize(Table *table_to_copy){
     table = make_unique<Table>(table_to_copy);
 
     // Initialize KD-Tree with medians
-    index = initialize_index();
+    initialize_index();
 
     auto end = measurements->time();
 
@@ -92,69 +92,52 @@ Table MedianKDTree::range_query(Query& query){
     return result;
 }
 
-unique_ptr<KDTree> MedianKDTree::initialize_index(){
-    unique_ptr<KDTree> index = make_unique<KDTree>(table->row_count());
+void MedianKDTree::initialize_index(){
+    index = make_unique<KDTree>(table->row_count());
     auto median_result_root = find_median(0, 0, table->row_count());
     auto median_root = median_result_root.first;
     auto position_root = median_result_root.second;
 
     index->root = index->create_node(0, median_root, position_root);
 
-    nodes_to_check.resize(0);
-    lower_limits.resize(0);
-    upper_limits.resize(0);
-    columns.resize(0);
+    initialize_index_recursion(index->root.get(), 0, table->row_count(), 0);
+}
 
-    nodes_to_check.push_back(index->root.get());
-    lower_limits.push_back(0);
-    upper_limits.push_back(table->row_count());
-    columns.push_back(0);
+void MedianKDTree::initialize_index_recursion(
+    KDNode* current, int64_t lower_limit, int64_t upper_limit, int64_t column
+){
+    auto new_col = (column + 1) % table->col_count();
+    if(current->position - lower_limit > minimum_partition_size){
+        auto average_result = find_median(column, lower_limit, current->position);
+        auto average = average_result.first;
+        auto position = average_result.second;
 
-    while(!nodes_to_check.empty()){
-        auto current = nodes_to_check.back();
-        nodes_to_check.pop_back();
+        if(!(position < lower_limit || position >= current->position)){
+            current->left_child = index->create_node(column, average, position);
 
-        auto lower_limit = lower_limits.back();
-        lower_limits.pop_back();
-
-        auto upper_limit = upper_limits.back();
-        upper_limits.pop_back();
-
-        auto column = (columns.back() + 1) % table->col_count();
-        columns.pop_back();
-
-        if(current->position - lower_limit > minimum_partition_size){
-            auto median_result = find_median(column, lower_limit, current->position);
-            auto median = median_result.first;
-            auto position = median_result.second;
-
-            if(!(position < lower_limit || position >= current->position)){
-                current->left_child = index->create_node(column, median, position);
-
-                nodes_to_check.push_back(current->left_child.get());
-                columns.push_back(column);
-                lower_limits.push_back(lower_limit);
-                upper_limits.push_back(current->position);
-            }
-        }
-
-        if(upper_limit - current->position > minimum_partition_size){
-            auto median_result = find_median(column, current->position, upper_limit);
-            auto median = median_result.first;
-            auto position = median_result.second;
-
-            if(!(position < current->position || position >= upper_limit)){
-                current->right_child = index->create_node(column, median, position);
-
-                nodes_to_check.push_back(current->right_child.get());
-                columns.push_back(column);
-                lower_limits.push_back(current->position);
-                upper_limits.push_back(upper_limit);
-            }
+            initialize_index_recursion(
+                    current->left_child.get(),
+                    lower_limit, current->position, 
+                    new_col
+                    );
         }
     }
 
-    return index;
+    if(upper_limit - current->position > minimum_partition_size){
+        auto average_result = find_median(column, current->position, upper_limit);
+        auto average = average_result.first;
+        auto position = average_result.second;
+
+        if(!(position < current->position || position >= upper_limit)){
+            current->right_child = index->create_node(column, average, position);
+
+            initialize_index_recursion(
+                    current->right_child.get(),
+                    current->position, upper_limit,
+                    new_col
+                    );
+        }
+    }
 }
 
 pair<float, int64_t> MedianKDTree::find_median(int64_t column, int64_t lower_limit, int64_t upper_limit){
@@ -164,7 +147,7 @@ pair<float, int64_t> MedianKDTree::find_median(int64_t column, int64_t lower_lim
     float element;
 
     do{
-        element = table->columns.at(column)->at((high+low)/2);
+        element = table->columns[column]->data[(high+low)/2];
         position = pivot_table(column, low, high, element, (high+low)/2);
 
         if (position <= low)
@@ -187,7 +170,7 @@ pair<float, int64_t> MedianKDTree::find_median(int64_t column, int64_t lower_lim
     // Loop in case the median is not unique, then get the first one
     for (; position > lower_limit; --position)
     {
-        if (table->columns.at(column)->at(position - 1) != table->columns.at(column)->at(position))
+        if (table->columns[column]->data[position - 1] != table->columns[column]->data[position])
             break;
     }
 
@@ -205,7 +188,7 @@ int64_t MedianKDTree::pivot_table(int64_t column, int64_t low, int64_t high, flo
 
     for (int64_t j = low; j < high; ++j)
     {
-        if (table->columns.at(column)->at(j) <= pivot)
+        if (table->columns[column]->data[j] <= pivot)
         {
             ++i;
             table->exchange(i, j);

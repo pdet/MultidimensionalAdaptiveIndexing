@@ -32,12 +32,8 @@ private:
     unique_ptr<KDTree> index;
     int64_t minimum_partition_size = 100;
 
-    // Variables to help with initialization
-    vector<int64_t> columns;
-    vector<int64_t> lower_limits, upper_limits;
-    vector<KDNode*> nodes_to_check;
-
-    unique_ptr<KDTree> initialize_index();
+    void initialize_index();
+    void initialize_index_recursion(KDNode* current, int64_t lower_limit, int64_t upper_limit, int64_t column);
 
     pair<float, int64_t> find_average(int64_t column, int64_t lower_limit, int64_t upper_limit);
 };

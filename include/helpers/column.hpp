@@ -14,10 +14,6 @@ public:
     Column(const Column &other);
 
     void append(float value);
-
-    float at(int64_t index);
-
-    void assign(int64_t index, float value);
 };
 
 #endif // COLUMN_H

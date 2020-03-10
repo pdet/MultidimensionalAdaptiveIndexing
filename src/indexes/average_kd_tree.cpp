@@ -18,7 +18,7 @@ void AverageKDTree::initialize(Table *table_to_copy){
     table = make_unique<Table>(table_to_copy);
 
     // Initialize KD-Tree with average
-    index = initialize_index();
+    initialize_index();
 
     auto end = measurements->time();
 
@@ -91,75 +91,59 @@ auto start = measurements->time();
     return result;
 }
 
-unique_ptr<KDTree> AverageKDTree::initialize_index(){
-    unique_ptr<KDTree> index = make_unique<KDTree>(table->row_count());
+
+void AverageKDTree::initialize_index(){
+    index = make_unique<KDTree>(table->row_count());
     auto average_result_root = find_average(0, 0, table->row_count());
     auto average_root = average_result_root.first;
     auto position_root = average_result_root.second;
 
     index->root = index->create_node(0, average_root, position_root);
 
-    nodes_to_check.resize(0);
-    lower_limits.resize(0);
-    upper_limits.resize(0);
-    columns.resize(0);
+    initialize_index_recursion(index->root.get(), 0, table->row_count(), 0);
+}
 
-    nodes_to_check.push_back(index->root.get());
-    lower_limits.push_back(0);
-    upper_limits.push_back(table->row_count());
-    columns.push_back(0);
+void AverageKDTree::initialize_index_recursion(
+    KDNode* current, int64_t lower_limit, int64_t upper_limit, int64_t column
+){
+    auto new_col = (column + 1) % table->col_count();
+    if(current->position - lower_limit > minimum_partition_size){
+        auto average_result = find_average(column, lower_limit, current->position);
+        auto average = average_result.first;
+        auto position = average_result.second;
 
-    while(!nodes_to_check.empty()){
-        auto current = nodes_to_check.back();
-        nodes_to_check.pop_back();
+        if(!(position < lower_limit || position >= current->position)){
+            current->left_child = index->create_node(column, average, position);
 
-        auto lower_limit = lower_limits.back();
-        lower_limits.pop_back();
-
-        auto upper_limit = upper_limits.back();
-        upper_limits.pop_back();
-
-        auto column = (columns.back() + 1) % table->col_count();
-        columns.pop_back();
-
-        if(current->position - lower_limit > minimum_partition_size){
-            auto average_result = find_average(column, lower_limit, current->position);
-            auto average = average_result.first;
-            auto position = average_result.second;
-
-            if(!(position < lower_limit || position >= current->position)){
-                current->left_child = index->create_node(column, average, position);
-
-                nodes_to_check.push_back(current->left_child.get());
-                columns.push_back(column);
-                lower_limits.push_back(lower_limit);
-                upper_limits.push_back(current->position);
-            }
-        }
-
-        if(upper_limit - current->position > minimum_partition_size){
-            auto average_result = find_average(column, current->position, upper_limit);
-            auto average = average_result.first;
-            auto position = average_result.second;
-
-            if(!(position < current->position || position >= upper_limit)){
-                current->right_child = index->create_node(column, average, position);
-
-                nodes_to_check.push_back(current->right_child.get());
-                columns.push_back(column);
-                lower_limits.push_back(current->position);
-                upper_limits.push_back(upper_limit);
-            }
+            initialize_index_recursion(
+                    current->left_child.get(),
+                    lower_limit, current->position, 
+                    new_col
+                    );
         }
     }
 
-    return index;
+    if(upper_limit - current->position > minimum_partition_size){
+        auto average_result = find_average(column, current->position, upper_limit);
+        auto average = average_result.first;
+        auto position = average_result.second;
+
+        if(!(position < current->position || position >= upper_limit)){
+            current->right_child = index->create_node(column, average, position);
+
+            initialize_index_recursion(
+                    current->right_child.get(),
+                    current->position, upper_limit,
+                    new_col
+                    );
+        }
+    }
 }
 
 pair<float, int64_t> AverageKDTree::find_average(int64_t column, int64_t lower_limit, int64_t upper_limit){
     float sum = 0.0;
     for (int64_t i = lower_limit; i < upper_limit; i++)
-        sum += table->columns.at(column)->at(i);
+        sum += table->columns[column]->data[i];
 
     auto average = sum/static_cast<float>(upper_limit-lower_limit+1);
 
