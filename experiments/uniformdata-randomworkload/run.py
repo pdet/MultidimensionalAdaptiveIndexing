@@ -65,10 +65,10 @@ class Benchmark:
             subprocess.call(["make", '-j'])
 
         with cd(self.BIN_DIR):
-            cols = [2]
+            cols = [2, 4, 8, 16]
             for col in cols:
                 for algorithm_id in ALGORITHM_IDS:
-                    subprocess.call([
+                    command = [
                         "./main",
                         "-w", f"{self.CURRENT_DIR}/data/queries{col}",
                         "-d", f"{self.CURRENT_DIR}/data/data{col}",
@@ -76,7 +76,9 @@ class Benchmark:
                         "-r", str(REPETITIONS),
                         "-s", f"{self.CURRENT_DIR}/results/",
                         "-p", str(PARTITION_SIZE)
-                        ])
+                        ]
+                    command = ' '.join(command)
+                    os.system(command)
 
     def clean(build_dir):
         # Run make clean
