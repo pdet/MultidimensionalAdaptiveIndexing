@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <vector>
 
-using namespace std;
 
 // Represents a range query with N predicates.
 // Each predicate can be:
@@ -17,9 +16,9 @@ private:
     int64_t number_of_predicates;
 
 public:
-    vector<Predicate> predicates;
+    std::vector<Predicate> predicates;
 
-    Query(vector<float> low, vector<float> high, vector<int64_t> column);
+    Query(std::vector<float> low, std::vector<float> high, std::vector<int64_t> column);
 
     Query(const Query& query);
 
