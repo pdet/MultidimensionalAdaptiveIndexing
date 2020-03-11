@@ -28,13 +28,19 @@ public:
 
     Slice(int64_t column, int64_t offset_begin, int64_t offset_end, float left_value, float right_value);
 
-    Slice(const Slice &other);
-
     // "Open" slice, covers the entire range
     Slice(int64_t column, int64_t offset_begin, int64_t offset_end);
 
+	Slice(const Slice&& other);
+
+	Slice& operator=(const Slice&& other);
+
     Slice();
     ~Slice();
+
+	Slice(const Slice& a);
+
+	Slice& operator=(const Slice& a);
 
     string label();
 

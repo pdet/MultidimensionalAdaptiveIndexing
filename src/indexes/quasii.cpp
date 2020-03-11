@@ -170,7 +170,7 @@ void Quasii::draw_index(std::string path){
 
 int64_t Quasii::count_slices(vector<Slice> &slices){
     int64_t number_of_slices = slices.size();
-    for(auto slice : slices){
+    for(auto& slice : slices){
         number_of_slices += count_slices(slice.children);
     }
     return number_of_slices;
@@ -184,12 +184,12 @@ vector<pair<int64_t, int64_t>> Quasii::search(Query& query){
     auto i = binarySearch(first_level_slices, predicate.low);
 
     while(i < static_cast<int64_t>(first_level_slices.size()) && first_level_slices[i].left_value < predicate.high){
-        slices_to_check.push_back(first_level_slices[i]);
+        slices_to_check.push_back(std::move(first_level_slices[i]));
         ++i;
     }
     while (!slices_to_check.empty())
     {
-        auto slice = slices_to_check.back();
+        auto& slice = slices_to_check.back();
         slices_to_check.pop_back();
 
         if(slice.children.empty()){
@@ -201,7 +201,7 @@ vector<pair<int64_t, int64_t>> Quasii::search(Query& query){
             auto i = binarySearch(slice.children, predicate.low);
 
             while(i < static_cast<int64_t>(slice.children.size()) && slice.children[i].left_value < predicate.high){
-                slices_to_check.push_back(slice.children[i]);
+                slices_to_check.push_back(std::move(slice.children[i]));
                 ++i;
             }
         }
@@ -290,13 +290,21 @@ void Quasii::build(vector<Slice> &slices, Query &query){
                 }
             }
         }
-        refined_slice_aux.insert(refined_slice_aux.end(), refined_slices.begin(), refined_slices.end());
+        refined_slice_aux.insert(
+            refined_slice_aux.end(),
+            std::make_move_iterator(refined_slices.begin()),
+            std::make_move_iterator(refined_slices.end())
+        );
         i++;
     }
 
     slices.erase(slices.begin() + index_start, slices.begin() + i);
 
-    slices.insert(slices.end(), refined_slice_aux.begin(), refined_slice_aux.end());
+    slices.insert(
+        slices.end(),
+        std::make_move_iterator(refined_slice_aux.begin()),
+        std::make_move_iterator(refined_slice_aux.end())
+    );
     sort(slices.begin(), slices.end(), less_than_offset());
 }
 
@@ -308,7 +316,7 @@ vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
     vector<Slice> refined_slices;
     // If the slice size is below the threshold then dont refine it
     if ((slice.offset_end - slice.offset_begin) <= dimensions_threshold[slice.column]){
-        refined_slices.push_back(slice);
+        refined_slices.push_back(std::move(slice));
         return refined_slices;
     }
 
@@ -334,10 +342,14 @@ vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
     for (auto &r_s : refined_slices){
         if(r_s.size() > dimensions_threshold[r_s.column] && r_s.intersects(low, high)){
             vector<Slice> refined_slice_aux = sliceArtificial(r_s);
-        result_slices.insert(result_slices.end(), refined_slice_aux.begin(), refined_slice_aux.end());
+        result_slices.insert(
+            result_slices.end(),
+            std::make_move_iterator(refined_slice_aux.begin()),
+            std::make_move_iterator(refined_slice_aux.end())
+        );
         }
         else{
-            result_slices.push_back(r_s);
+            result_slices.push_back(std::move(r_s));
         }
     }
     return result_slices;
@@ -366,23 +378,23 @@ vector<Slice> Quasii::sliceArtificial(Slice &slice){
             return result;
     }
 
-    slices_to_be_refined.push(slice);
+    slices_to_be_refined.push(std::move(slice));
 
     do{
-        Slice slice_ = slices_to_be_refined.top();
+        Slice& slice_ = slices_to_be_refined.top();
         slices_to_be_refined.pop();
 
         if(slice_.size() < threshold)
-            result.push_back(slice_);
+            result.push_back(std::move(slice_));
         else{
             vector<Slice> slices_refined = sliceTwoWay(
                 slice_, (slice_.right_value + slice_.left_value)/2.0
             );
             for(auto &s : slices_refined){
                 if(s.equal(slice))
-                    result.push_back(s);
+                    result.push_back(std::move(s));
                 else
-                    slices_to_be_refined.push(s);
+                    slices_to_be_refined.push(std::move(s));
             }
         }
 
