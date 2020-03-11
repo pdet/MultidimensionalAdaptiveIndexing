@@ -1,17 +1,18 @@
 #ifndef ABSTRACT_INDEX_H
 #define ABSTRACT_INDEX_H
 
-#include "../helpers/table.hpp"
 #include "../helpers/measurements.hpp"
 #include "../helpers/query.hpp"
-#include <vector>
+#include "../helpers/table.hpp"
+#include <index_table.hpp>
 #include <string>
+#include <vector>
 
 class AbstractIndex
 {
 protected:
     // Table with copy of the data
-    unique_ptr<Table> table;
+    unique_ptr<IdxTbl> table;
     int64_t n_tuples_scanned_before_adapting;
 public:
     // Class to keep track of the time/index measurements

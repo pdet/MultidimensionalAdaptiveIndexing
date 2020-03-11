@@ -18,7 +18,7 @@ void Quasii::initialize(Table *table_to_copy){
     auto start = measurements->time();
 
     // Copy the entire table
-    table = make_unique<Table>(table_to_copy);
+    table = make_unique<IdxTbl>(table_to_copy);
 
     // Initialize with one Slice that covers all the data
     first_level_slices.push_back(

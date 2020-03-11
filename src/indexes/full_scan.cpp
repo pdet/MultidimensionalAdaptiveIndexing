@@ -8,7 +8,7 @@ void FullScan::initialize(Table *table_to_copy){
     auto start = measurements->time();
 
     // Simply copies the pointer of the table, since it does not change anything
-    table = make_unique<Table>(table_to_copy);
+    table = make_unique<IdxTbl>(table_to_copy);
 
     auto end = measurements->time();
 
@@ -57,9 +57,7 @@ Table FullScan::range_query(Query& query){
     return result;
 }
 
-void FullScan::scan_partition(
-    Table *t, Query& query,
-    int64_t low, int64_t high,
+void FullScan::scan_partition(IdxTbl *t, Query& query,int64_t low, int64_t high,
     Table *table_to_store_results
 ){
     std::vector<int64_t> qualifying_rows;

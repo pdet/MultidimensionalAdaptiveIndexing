@@ -127,55 +127,6 @@ void Table::append(vector<float> row){
     number_of_rows++;
 }
 
-void Table::exchange(int64_t index1, int64_t index2){
-    for(int64_t column_index = 0; column_index < number_of_columns; ++column_index){
-        auto value1 = columns[column_index]->data[index1];
-        auto value2 = columns[column_index]->data[index2];
-
-        auto tmp = value1;
-        columns[column_index]->data[index1] = value2;
-        columns[column_index]->data[index2] = tmp;
-    }
-}
-
-// Cracks table from position i = low until i < high
-// on column (c) with key (element)
-// Returns in which position the list is greater or equal to key
-// In case of repetition, returns the first one, and all the others come
-// right after it
-int64_t Table::CrackTable(int64_t low, int64_t high, float element, int64_t c)
-{
-    int64_t x1 = low;
-    int64_t x2 = high - 1;
-
-    while (x1 <= x2 && x2 > 0)
-    {
-        if (columns[c]->data[x1] < element)
-            x1++;
-        else
-        {
-            while (x2 > 0 && x2 >= x1 && (columns[c]->data[x2] >= element))
-                x2--;
-            if (x1 < x2)
-            {
-                exchange(x1, x2);
-                x1++;
-                x2--;
-            }
-        }
-    }
-    return x1;
-}
-
-// Cracks table in three from position i = low until i < high
-// on column (c) with left key and right key
-// Returns a pair of positions indicating where each patition starts
-pair<int64_t, int64_t> Table::CrackTableInThree(int64_t low, int64_t high, float key_left, float key_right, int64_t c)
-{
-    auto p1 = CrackTable(low, high, key_left, c);
-    auto p2 = CrackTable(p1, high, key_right, c);
-    return make_pair(p1, p2);
-}
 
 int64_t Table::row_count() const{
     return number_of_rows;
