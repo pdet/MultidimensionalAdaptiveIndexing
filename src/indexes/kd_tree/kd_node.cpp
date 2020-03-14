@@ -41,3 +41,7 @@ int8_t KDNode::compare(Query& query){
         return +1;
     return 0;
 }
+
+bool KDNode::noChildren(){
+  return !(left_child.get() || right_child.get());
+}

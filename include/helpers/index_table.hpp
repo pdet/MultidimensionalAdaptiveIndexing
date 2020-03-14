@@ -23,7 +23,7 @@ public:
   //! this is used when the first query fully copies the data (e.g., Quasii, Cracking KD-Tree)
   IdxTbl(Table *table_to_copy);
   //! This just allocates the memory, no copy is done (e.g., PI)
-  IdxTbl(size_t number_of_columns, size_t number_of_rows){};
+  IdxTbl(size_t number_of_columns, size_t number_of_rows);
 
   int64_t row_count() const;
 

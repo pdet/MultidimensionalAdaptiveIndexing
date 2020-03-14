@@ -37,7 +37,7 @@ void Quasii::initialize(Table *table_to_copy){
     // ******************
 }
 
-void Quasii::adapt_index(Query& query){
+void Quasii::adapt_index(Table *originalTable,Query& query){
     // Before adapting calculate the scan overhead to measure how much the previous
     // queries helped this one
     auto partitions = search(query);
@@ -58,7 +58,7 @@ void Quasii::adapt_index(Query& query){
     );
 }
 
-Table Quasii::range_query(Query& query){
+Table Quasii::range_query(Table *originalTable,Query& query){
     // ******************
     auto start = measurements->time();
 

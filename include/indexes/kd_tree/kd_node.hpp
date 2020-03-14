@@ -27,12 +27,19 @@ public:
     // Greater or equal than key from this position forwards
     int64_t position;
 
+    //! Only used in progressive indexing
+    size_t current_start;
+    size_t current_end;
+    //! If we finish sorting this piece
+    bool sorted;
+
     KDNode(int64_t column, float key, int64_t position);
     KDNode(const KDNode &node);
     KDNode();
     ~KDNode();
     std::string label();
     int8_t compare(Query& query);
+    bool noChildren();
 };
 
 #endif // KDNODE_H

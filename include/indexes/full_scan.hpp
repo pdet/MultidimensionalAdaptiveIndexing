@@ -18,9 +18,9 @@ public:
 
     void initialize(Table *table_to_copy) override;
 
-    void adapt_index(Query& query) override;
+    void adapt_index(Table *originalTable,Query& query) override;
 
-    Table range_query(Query& query) override;
+    Table range_query(Table *originalTable,Query& query) override;
 
     static void scan_partition(
         IdxTbl *t, Query& query,

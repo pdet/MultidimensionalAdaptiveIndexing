@@ -23,8 +23,8 @@ public:
     }
     virtual ~AbstractIndex(){}
     virtual void initialize(Table *table_to_copy) = 0;
-    virtual void adapt_index(Query& query) = 0;
-    virtual Table range_query(Query& query) = 0;
+    virtual void adapt_index(Table *originalTable,Query& query) = 0;
+    virtual Table range_query(Table *originalTable,Query& query) = 0;
     virtual string name() = 0;
     virtual void draw_index(std::string path){}
 };

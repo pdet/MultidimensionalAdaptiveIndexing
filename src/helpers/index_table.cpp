@@ -19,6 +19,12 @@ IdxTbl::IdxTbl(Table *table_to_copy):number_of_rows(table_to_copy->row_count())
   }
 }
 
+IdxTbl::IdxTbl(size_t number_of_columns, size_t number_of_rows): number_of_columns(number_of_columns), number_of_rows(number_of_rows){
+  for (int64_t i = 0; i < number_of_columns; ++i) {
+    columns[i] = make_unique<IdxCol>(number_of_rows);
+  }
+}
+
 int64_t IdxTbl::row_count() const{
   return number_of_rows;
 }

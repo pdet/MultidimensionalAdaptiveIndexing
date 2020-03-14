@@ -29,7 +29,7 @@ void CrackingKDTree::initialize(Table *table_to_copy){
     // ******************
 }
 
-void CrackingKDTree::adapt_index(Query& query){
+void CrackingKDTree::adapt_index(Table *originalTable,Query& query){
     // Before adapting calculate the scan overhead to measure how much the previous
     // queries helped this one
     auto partitions = index->search(query);
@@ -51,7 +51,7 @@ void CrackingKDTree::adapt_index(Query& query){
 
 }
 
-Table CrackingKDTree::range_query(Query& query){
+Table CrackingKDTree::range_query(Table *originalTable,Query& query){
     // ******************
     auto start = measurements->time();
 

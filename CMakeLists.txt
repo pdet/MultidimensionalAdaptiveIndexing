@@ -21,6 +21,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/workload.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/table.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/index_table.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/progressive_indexing.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/full_scan.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/full_scan_slow.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/median_kd_tree.cpp
