@@ -25,7 +25,7 @@ void UniformGenerator::generate(std::string table_path, std::string query_path){
         for(int64_t j = 0; j < n_dimensions; ++j){
            row.at(j) = distr(generator); 
         }
-        table->append(row);
+        table->append(&(row[0]));
     }
 
     table->save_file(table_path);

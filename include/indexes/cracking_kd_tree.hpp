@@ -15,7 +15,7 @@ class CrackingKDTree : public AbstractIndex
     CrackingKDTree(std::map<std::string, std::string> config);
     ~CrackingKDTree();
 
-    string name() override{
+    std::string name() override{
         return "CrackingKDTree";
     }
 
@@ -23,14 +23,14 @@ class CrackingKDTree : public AbstractIndex
 
     void adapt_index(Query& query) override;
 
-    Table range_query(Query& query) override;
+    std::unique_ptr<Table> range_query(Query& query) override;
 
     void draw_index(std::string path) override{
         index->draw(path);
     }
 
 private:
-    unique_ptr<KDTree> index;
+    std::unique_ptr<KDTree> index;
     int64_t minimum_partition_size = 100;
 
     void adapt(Query& query);

@@ -8,8 +8,6 @@
 #include <string>
 #include <cstdint>
 
-using namespace std;
-
 class Quasii : public AbstractIndex
 {
 public:
@@ -17,7 +15,7 @@ public:
     Quasii(std::map<std::string, std::string> config);
     ~Quasii();
 
-    string name() override{
+    std::string name() override{
         return "Quasii";
     }
 
@@ -25,35 +23,35 @@ public:
 
     void adapt_index(Query& query) override;
 
-    Table range_query(Query& query) override;
+    std::unique_ptr<Table> range_query(Query& query) override;
 
     void draw_index(std::string path) override;
 
 private:
-    vector<Slice> first_level_slices;
+    std::vector<Slice> first_level_slices;
 
     int64_t last_level_threshold = 2000;
-    vector<int64_t> dimensions_threshold;
+    std::vector<int64_t> dimensions_threshold;
 
-    int64_t count_slices(vector<Slice> &slices);
+    int64_t count_slices(std::vector<Slice> &slices);
 
     void adapt(Query& query);
 
-    vector<pair<int64_t, int64_t> > search(Query& query);
-    int64_t binarySearch(const vector<Slice> &slice, float key);
+    std::vector<pair<int64_t, int64_t> > search(Query& query);
+    int64_t binarySearch(const std::vector<Slice> &slice, float key);
 
     int64_t predicate_index(int64_t column, Query &query);
 
     void calculate_level_thresholds();
 
-    void build(vector<Slice> &slices, Query &query);
+    void build(std::vector<Slice> &slices, Query &query);
 
-    vector<Slice> sliceArtificial(Slice &slice);
+    std::vector<Slice> sliceArtificial(Slice &slice);
 
-    vector<Slice> sliceTwoWay(Slice &slice, float key);
+    std::vector<Slice> sliceTwoWay(Slice &slice, float key);
 
-    vector<Slice> sliceThreeWay(Slice &slice, float low, float high);
+    std::vector<Slice> sliceThreeWay(Slice &slice, float low, float high);
 
-    vector<Slice> refine(Slice &slice, Predicate &predicate);
+    std::vector<Slice> refine(Slice &slice, Predicate &predicate);
 };
 #endif // QUASII_H

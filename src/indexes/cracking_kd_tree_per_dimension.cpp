@@ -3,6 +3,8 @@
 #include "cracking_kd_tree_per_dimension.hpp"
 #include <algorithm> // to check if all elements of a vector are true
 
+using namespace std;
+
 CrackingKDTreePerDimension::CrackingKDTreePerDimension(std::map<std::string, std::string> config){
     if(config.find("minimum_partition_size") == config.end())
         minimum_partition_size = 100;
@@ -16,7 +18,7 @@ void CrackingKDTreePerDimension::initialize(Table *table_to_copy){
     auto start = measurements->time();
 
     // Copy the entire table
-    table = make_unique<IdxTbl>(table_to_copy);
+    table = make_unique<Table>(table_to_copy);
 
     index = make_unique<KDTree>(table->row_count());
 
@@ -51,7 +53,7 @@ void CrackingKDTreePerDimension::adapt_index(Query& query){
 
 }
 
-Table CrackingKDTreePerDimension::range_query(Query& query){
+unique_ptr<Table> CrackingKDTreePerDimension::range_query(Query& query){
     // ******************
     auto start = measurements->time();
 
@@ -66,13 +68,8 @@ Table CrackingKDTreePerDimension::range_query(Query& query){
 
     start = measurements->time();
     // Scan the table and returns the row ids 
-    auto result = Table(1);
-    for (auto partition : partitions)
-    {
-        auto low = partition.first;
-        auto high = partition.second;
-        FullScan::scan_partition(table.get(), query, low, high, &result);
-    }
+    std::vector<bool> partition_skip (partitions.size(), false);
+    auto result = FullScan::scan_partition(table.get(), query,partitions, partition_skip);
 
     end = measurements->time();
     // ******************
@@ -95,13 +92,13 @@ Table CrackingKDTreePerDimension::range_query(Query& query){
     measurements->append(
         "scan_overhead_before_adapt",
         std::to_string(
-            n_tuples_scanned_before_adapting/static_cast<float>(result.row_count())
+            n_tuples_scanned_before_adapting/static_cast<float>(result->row_count())
         )
     );
     measurements->append(
         "scan_overhead_after_adapt",
         std::to_string(
-            result.row_count()/static_cast<float>(n_tuples_scanned)
+            result->row_count()/static_cast<float>(n_tuples_scanned)
         )
     );
 

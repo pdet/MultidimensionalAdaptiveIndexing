@@ -5,6 +5,8 @@
 #include <stack>
 #include <fstream>
 
+using namespace std;
+
 Quasii::Quasii(std::map<std::string, std::string> config){
     if(config.find("minimum_partition_size") == config.end())
         last_level_threshold  = 100;
@@ -18,7 +20,7 @@ void Quasii::initialize(Table *table_to_copy){
     auto start = measurements->time();
 
     // Copy the entire table
-    table = make_unique<IdxTbl>(table_to_copy);
+    table = make_unique<Table>(table_to_copy);
 
     // Initialize with one Slice that covers all the data
     first_level_slices.push_back(
@@ -58,7 +60,7 @@ void Quasii::adapt_index(Query& query){
     );
 }
 
-Table Quasii::range_query(Query& query){
+unique_ptr<Table> Quasii::range_query(Query& query){
     // ******************
     auto start = measurements->time();
 
@@ -73,13 +75,8 @@ Table Quasii::range_query(Query& query){
 
     start = measurements->time();
     // Scan the table and returns the row ids 
-    auto result = Table(1);
-    for (auto partition : partitions)
-    {
-        auto low = partition.first;
-        auto high = partition.second;
-        FullScan::scan_partition(table.get(), query, low, high, &result);
-    }
+    std::vector<bool> partition_skip (partitions.size(), false);
+    auto result = FullScan::scan_partition(table.get(), query,partitions, partition_skip);
 
     end = measurements->time();
     // ******************
@@ -108,14 +105,14 @@ Table Quasii::range_query(Query& query){
     measurements->append(
         "scan_overhead_before_adapt",
         std::to_string(
-            n_tuples_scanned_before_adapting/static_cast<float>(result.row_count())
+            n_tuples_scanned_before_adapting/static_cast<float>(result->row_count())
         )
     );
 
     measurements->append(
         "scan_overhead_after_adapt",
         std::to_string(
-            n_tuples_scanned/static_cast<float>(result.row_count())
+            n_tuples_scanned/static_cast<float>(result->row_count())
         )
     );
 
@@ -168,7 +165,7 @@ void Quasii::draw_index(std::string path){
     myfile.close();
 }
 
-int64_t Quasii::count_slices(vector<Slice> &slices){
+int64_t Quasii::count_slices(std::vector<Slice> &slices){
     int64_t number_of_slices = slices.size();
     for(auto& slice : slices){
         number_of_slices += count_slices(slice.children);
@@ -176,9 +173,9 @@ int64_t Quasii::count_slices(vector<Slice> &slices){
     return number_of_slices;
 }
 
-vector<pair<int64_t, int64_t>> Quasii::search(Query& query){
-    vector<pair<int64_t, int64_t>> partitions;
-    vector<Slice> slices_to_check;
+std::vector<pair<int64_t, int64_t>> Quasii::search(Query& query){
+    std::vector<pair<int64_t, int64_t>> partitions;
+    std::vector<Slice> slices_to_check;
 
     auto predicate = query.predicates[first_level_slices[0].column];
     auto i = binarySearch(first_level_slices, predicate.low);
@@ -210,7 +207,7 @@ vector<pair<int64_t, int64_t>> Quasii::search(Query& query){
 }
 
 // biggest who is less or equal to the key
-int64_t Quasii::binarySearch(const vector<Slice> &slice, float key){
+int64_t Quasii::binarySearch(const std::vector<Slice> &slice, float key){
     auto  min = (int64_t) 0;
     auto  max = static_cast<int64_t>(slice.size() - 1);
 
@@ -266,8 +263,8 @@ struct less_than_offset
     }
 };
 
-void Quasii::build(vector<Slice> &slices, Query &query){
-    vector<Slice> refined_slice_aux;
+void Quasii::build(std::vector<Slice> &slices, Query &query){
+    std::vector<Slice> refined_slice_aux;
     auto dim = slices[0].column;
     auto predicate = query.predicates[dim];
     auto low = predicate.low;
@@ -275,7 +272,7 @@ void Quasii::build(vector<Slice> &slices, Query &query){
     auto i = binarySearch(slices, low);
     auto index_start = i;
     while (i < static_cast<int64_t>(slices.size()) && slices[i].left_value <= high){
-        vector<Slice> refined_slices = refine(slices[i], predicate);
+        std::vector<Slice> refined_slices = refine(slices[i], predicate);
         for (auto &r_s : refined_slices){
             if(r_s.intersects(low, high)){
                 if(r_s.column == table->col_count() - 1)
@@ -309,11 +306,11 @@ void Quasii::build(vector<Slice> &slices, Query &query){
 }
 
 
-vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
+std::vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
     auto low = predicate.low;
     auto high = predicate.high;
-    vector<Slice> result_slices;
-    vector<Slice> refined_slices;
+    std::vector<Slice> result_slices;
+    std::vector<Slice> refined_slices;
     // If the slice size is below the threshold then dont refine it
     if ((slice.offset_end - slice.offset_begin) <= dimensions_threshold[slice.column]){
         refined_slices.push_back(std::move(slice));
@@ -341,7 +338,7 @@ vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
     }
     for (auto &r_s : refined_slices){
         if(r_s.size() > dimensions_threshold[r_s.column] && r_s.intersects(low, high)){
-            vector<Slice> refined_slice_aux = sliceArtificial(r_s);
+            std::vector<Slice> refined_slice_aux = sliceArtificial(r_s);
         result_slices.insert(
             result_slices.end(),
             std::make_move_iterator(refined_slice_aux.begin()),
@@ -366,8 +363,8 @@ vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
 // Choose the middle one based on the left and right values of the slice.
 // Keep cracking the new slices until the threshold is achieved.
 // Crack the child of the new slices also.
-vector<Slice> Quasii::sliceArtificial(Slice &slice){
-    vector<Slice> result;
+std::vector<Slice> Quasii::sliceArtificial(Slice &slice){
+    std::vector<Slice> result;
     stack<Slice> slices_to_be_refined;
     auto threshold = dimensions_threshold[slice.column];
 
@@ -387,7 +384,7 @@ vector<Slice> Quasii::sliceArtificial(Slice &slice){
         if(slice_.size() < threshold)
             result.push_back(std::move(slice_));
         else{
-            vector<Slice> slices_refined = sliceTwoWay(
+            std::vector<Slice> slices_refined = sliceTwoWay(
                 slice_, (slice_.right_value + slice_.left_value)/2.0
             );
             for(auto &s : slices_refined){
@@ -421,8 +418,8 @@ vector<Slice> Quasii::sliceArtificial(Slice &slice){
 //         |        ||          |
 //         |========||==========|
 
-vector<Slice> Quasii::sliceTwoWay(Slice &slice, float key){
-    vector<Slice> result;
+std::vector<Slice> Quasii::sliceTwoWay(Slice &slice, float key){
+    std::vector<Slice> result;
 
     auto pivot_index = table->CrackTable(
         slice.offset_begin, slice.offset_end, key, slice.column
@@ -470,8 +467,8 @@ vector<Slice> Quasii::sliceTwoWay(Slice &slice, float key){
 //         |        ||   ||       |
 //         |========||===||=======|
 
-vector<Slice> Quasii::sliceThreeWay(Slice &slice, float low, float high){
-    vector<Slice> result;
+std::vector<Slice> Quasii::sliceThreeWay(Slice &slice, float low, float high){
+    std::vector<Slice> result;
 
     auto crack_result = table->CrackTableInThree(
         slice.offset_begin, slice.offset_end, low, high, slice.column

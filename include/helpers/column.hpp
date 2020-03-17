@@ -6,12 +6,16 @@
 
 class Column{
 public:
-    std::vector<float> data;
-    Column(std::vector<float> column_to_copy);
+    float* data;
+    size_t size;
+    size_t capacity;
+    Column(float* column_to_copy, size_t column_size);
+
+    Column(size_t size);
 
     Column();
 
-    Column(const Column &other);
+    ~Column();
 
     void append(float value);
 };
