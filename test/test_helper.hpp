@@ -62,9 +62,11 @@ class TestHelper{
                 auto result_elements = result->columns[0]->data;
                 sort(expected_elements, expected_elements + expected->row_count());
                 sort(result_elements, result_elements + result->row_count());
-                for(auto i = 0; i < result->row_count(); ++i){
-                    CHECK(expected_elements[i] == result_elements[i]);
+                bool all_same = true;
+                for(auto i = 0; i < result->row_count() && all_same; ++i){
+                    all_same = expected_elements[i] == result_elements[i];
                 }
+                CHECK(all_same);
             }
 
         }
