@@ -34,7 +34,9 @@ void CrackingKDTree::initialize(Table *table_to_copy){
 void CrackingKDTree::adapt_index(Query& query){
     // Before adapting calculate the scan overhead to measure how much the previous
     // queries helped this one
-    auto partitions = index->search(query);
+    auto search_results= index->search(query);
+    auto partitions = search_results.first;
+    auto partition_skip = search_results.second;
     n_tuples_scanned_before_adapting = 0;
     for(auto &partition : partitions)
         n_tuples_scanned_before_adapting += partition.second - partition.first;
@@ -57,7 +59,9 @@ unique_ptr<Table> CrackingKDTree::range_query(Query& query){
     auto start = measurements->time();
 
     // Search on the index the correct partitions
-    auto partitions = index->search(query);
+    auto search_results= index->search(query);
+    auto partitions = search_results.first;
+    auto partition_skip = search_results.second;
 
     auto end = measurements->time();
     measurements->append(
@@ -67,7 +71,6 @@ unique_ptr<Table> CrackingKDTree::range_query(Query& query){
 
     start = measurements->time();
     // Scan the table and returns the row ids 
-    std::vector<bool> partition_skip (partitions.size(), false);
     auto result = FullScan::scan_partition(table.get(), query,partitions, partition_skip);
 
     end = measurements->time();
@@ -87,6 +90,16 @@ unique_ptr<Table> CrackingKDTree::range_query(Query& query){
     measurements->append("min_height", std::to_string(index->get_min_height()));
     measurements->append("memory_footprint", std::to_string(index->get_node_count() * sizeof(KDNode)));
     measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
+    measurements->append("partitions_scanned", std::to_string(partitions.size()));
+
+    auto skips = 0;
+    for(auto i = 0; i < partition_skip.size(); ++i){
+        if(partition_skip.at(i)){
+            skips += 1;
+        }
+    }
+    measurements->append("partitions_skipped", std::to_string(skips));
+
 
     measurements->append(
         "scan_overhead_before_adapt",

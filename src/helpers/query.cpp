@@ -34,3 +34,14 @@ Query::Query(){}
 int64_t Query::predicate_count(){
     return number_of_predicates;
 }
+
+bool Query::covers(vector<pair<float, float>> bounding_box){
+    for(auto i = 0; i < number_of_predicates; ++i){
+        auto &predicate = predicates.at(i);
+        auto &border = bounding_box.at(i);
+        if(predicate.low > border.first || predicate.high < border.second){
+            return false;
+        }
+    }
+    return true;
+}

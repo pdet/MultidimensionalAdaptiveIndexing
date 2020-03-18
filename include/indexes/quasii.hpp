@@ -37,9 +37,16 @@ private:
 
     void adapt(Query& query);
 
-    std::vector<pair<int64_t, int64_t> > search(Query& query);
+    pair<vector<pair<int64_t, int64_t>>, vector<bool>>
+    search(Query& query);
     int64_t binarySearch(const std::vector<Slice> &slice, float key);
-
+    void search_recursion(
+            Slice &slice,
+            Query &query,
+            vector<pair<int64_t, int64_t>> &partitions,
+            vector<bool> &partition_skip,
+            vector<pair<float, float>> partition_borders
+            );
     int64_t predicate_index(int64_t column, Query &query);
 
     void calculate_level_thresholds();

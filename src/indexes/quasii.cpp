@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <stack>
 #include <fstream>
+#include <limits>
 
 using namespace std;
 
@@ -42,7 +43,9 @@ void Quasii::initialize(Table *table_to_copy){
 void Quasii::adapt_index(Query& query){
     // Before adapting calculate the scan overhead to measure how much the previous
     // queries helped this one
-    auto partitions = search(query);
+    auto search_results= search(query);
+    auto partitions = search_results.first;
+    auto partition_skip = search_results.second;
     n_tuples_scanned_before_adapting = 0;
     for(auto &partition : partitions)
         n_tuples_scanned_before_adapting += partition.second - partition.first;
@@ -65,7 +68,9 @@ unique_ptr<Table> Quasii::range_query(Query& query){
     auto start = measurements->time();
 
     // Search on the index the correct partitions
-    auto partitions = search(query);
+    auto search_results= search(query);
+    auto partitions = search_results.first;
+    auto partition_skip = search_results.second;
 
     auto end = measurements->time();
     measurements->append(
@@ -75,7 +80,6 @@ unique_ptr<Table> Quasii::range_query(Query& query){
 
     start = measurements->time();
     // Scan the table and returns the row ids 
-    std::vector<bool> partition_skip (partitions.size(), false);
     auto result = FullScan::scan_partition(table.get(), query,partitions, partition_skip);
 
     end = measurements->time();
@@ -101,7 +105,15 @@ unique_ptr<Table> Quasii::range_query(Query& query){
         std::to_string(count_slices(first_level_slices) * sizeof(Slice))
     );
     measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
+    measurements->append("partitions_scanned", std::to_string(partitions.size()));
 
+    auto skips = 0;
+    for(auto i = 0; i < partition_skip.size(); ++i){
+        if(partition_skip.at(i)){
+            skips += 1;
+        }
+    }
+    measurements->append("partitions_skipped", std::to_string(skips));
     measurements->append(
         "scan_overhead_before_adapt",
         std::to_string(
@@ -119,52 +131,6 @@ unique_ptr<Table> Quasii::range_query(Query& query){
     return result;
 }
 
-void Quasii::draw_index(std::string path){
-    std::ofstream myfile(path.c_str());
-
-    myfile << "digraph Quasii{\n node [shape=record];\n";
-
-    std::vector<std::vector<Slice>*> slices;
-    slices.push_back(&first_level_slices);
-
-    while(!slices.empty()){
-        std::vector<Slice> *array_of_slices = slices.back();
-        slices.pop_back();
-
-        auto array_id = std::to_string(
-                    reinterpret_cast<size_t>(&((*array_of_slices)[0]))
-                );
-
-        // First we create the node
-        myfile << array_id + "[label=\"\n";
-        for(auto &slice : *array_of_slices){
-            myfile << "<" + std::to_string(reinterpret_cast<size_t>(&slice)) + ">";
-            myfile << slice.label(); 
-            myfile << "|";
-        }
-
-        myfile << "\"\n];\n";
-
-        // Then we link the nodes 
-        for(size_t i = 0; i < array_of_slices->size(); ++i){
-            auto &slice = array_of_slices->at(i);
-            auto slice_id = std::to_string(
-                    reinterpret_cast<size_t>(&(slice))
-                );
-            if(slice.children.empty()){}
-            else{
-                myfile << array_id + ":" + array_id + "->" + std::to_string(
-                    reinterpret_cast<size_t>(&(slice.children[0]))
-                ) + ";\n";
-                slices.push_back(&(slice.children));
-            }
-        }
-    }
-
-    myfile << "\n}";
-    myfile.close();
-}
-
 int64_t Quasii::count_slices(std::vector<Slice> &slices){
     int64_t number_of_slices = slices.size();
     for(auto& slice : slices){
@@ -173,37 +139,52 @@ int64_t Quasii::count_slices(std::vector<Slice> &slices){
     return number_of_slices;
 }
 
-std::vector<pair<int64_t, int64_t>> Quasii::search(Query& query){
+void Quasii::search_recursion(
+    Slice &slice,
+    Query &query,
+    vector<pair<int64_t, int64_t>> &partitions,
+    vector<bool> &partition_skip,
+    vector<pair<float, float>> partition_borders
+){
+    if(slice.children.empty()){
+        partitions.push_back(
+                make_pair(slice.offset_begin, slice.offset_end)
+                );
+        partition_skip.push_back(
+                query.covers(partition_borders)
+                );
+    }else{
+        auto predicate = query.predicates[slice.children[0].column];
+        auto i = binarySearch(slice.children, predicate.low);
+
+        while(i < static_cast<int64_t>(slice.children.size()) && slice.children[i].left_value < predicate.high){
+            partition_borders.at(slice.column).first = slice.left_value;
+            partition_borders.at(slice.column).second = slice.right_value;
+            search_recursion(slice.children[i], query, partitions, partition_skip, partition_borders);
+            ++i;
+        }
+    }
+}
+
+pair<vector<pair<int64_t, int64_t>>, vector<bool>> Quasii::search(Query& query){
     std::vector<pair<int64_t, int64_t>> partitions;
-    std::vector<Slice> slices_to_check;
+    std::vector<bool> partition_skip;
 
     auto predicate = query.predicates[first_level_slices[0].column];
     auto i = binarySearch(first_level_slices, predicate.low);
 
+    vector<pair<float, float>> partition_borders(query.predicate_count());
+    for(size_t i = 0; i < query.predicate_count(); ++i){
+        partition_borders.at(i) = make_pair(
+                numeric_limits<float>::lowest(),
+                numeric_limits<float>::max()
+                );
+    }
     while(i < static_cast<int64_t>(first_level_slices.size()) && first_level_slices[i].left_value < predicate.high){
-        slices_to_check.push_back(std::move(first_level_slices[i]));
+        search_recursion(first_level_slices[i], query, partitions, partition_skip, partition_borders);
         ++i;
     }
-    while (!slices_to_check.empty())
-    {
-        auto& slice = slices_to_check.back();
-        slices_to_check.pop_back();
-
-        if(slice.children.empty()){
-            partitions.push_back(
-                make_pair(slice.offset_begin, slice.offset_end)
-            );
-        }else{
-            auto predicate = query.predicates[slice.children[0].column];
-            auto i = binarySearch(slice.children, predicate.low);
-
-            while(i < static_cast<int64_t>(slice.children.size()) && slice.children[i].left_value < predicate.high){
-                slices_to_check.push_back(std::move(slice.children[i]));
-                ++i;
-            }
-        }
-    }
-    return partitions;
+    return make_pair(partitions, partition_skip);
 }
 
 // biggest who is less or equal to the key
@@ -503,3 +484,50 @@ std::vector<Slice> Quasii::sliceThreeWay(Slice &slice, float low, float high){
 
     return result;
 }
+
+void Quasii::draw_index(std::string path){
+    std::ofstream myfile(path.c_str());
+
+    myfile << "digraph Quasii{\n node [shape=record];\n";
+
+    std::vector<std::vector<Slice>*> slices;
+    slices.push_back(&first_level_slices);
+
+    while(!slices.empty()){
+        std::vector<Slice> *array_of_slices = slices.back();
+        slices.pop_back();
+
+        auto array_id = std::to_string(
+                    reinterpret_cast<size_t>(&((*array_of_slices)[0]))
+                );
+
+        // First we create the node
+        myfile << array_id + "[label=\"\n";
+        for(auto &slice : *array_of_slices){
+            myfile << "<" + std::to_string(reinterpret_cast<size_t>(&slice)) + ">";
+            myfile << slice.label(); 
+            myfile << "|";
+        }
+
+        myfile << "\"\n];\n";
+
+        // Then we link the nodes 
+        for(size_t i = 0; i < array_of_slices->size(); ++i){
+            auto &slice = array_of_slices->at(i);
+            auto slice_id = std::to_string(
+                    reinterpret_cast<size_t>(&(slice))
+                );
+            if(slice.children.empty()){}
+            else{
+                myfile << array_id + ":" + array_id + "->" + std::to_string(
+                    reinterpret_cast<size_t>(&(slice.children[0]))
+                ) + ";\n";
+                slices.push_back(&(slice.children));
+            }
+        }
+    }
+
+    myfile << "\n}";
+    myfile.close();
+}
+

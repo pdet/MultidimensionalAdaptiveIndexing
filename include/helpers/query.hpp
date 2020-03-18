@@ -23,7 +23,7 @@ public:
     Query(const Query& query);
 
     Query();
-
+    bool covers(std::vector<std::pair<float, float>> bounding_box);
     int64_t predicate_count();
 };
 #endif // QUERY_H
