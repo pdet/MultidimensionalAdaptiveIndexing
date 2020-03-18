@@ -8,8 +8,7 @@
 
 // Represents a range query with N predicates.
 // Each predicate can be:
-//      - Range query: x1 <= X < x2
-//      - Point query: x1 <= X < x1 * this is how a point query is represented.
+//      - Range query: x1 <= X <= x2
 class Query
 {
 private:

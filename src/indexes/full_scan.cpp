@@ -90,7 +90,7 @@ unique_ptr<Table> FullScan::scan_partition(
             size_t qualifying_index = 0;
             for(int64_t row_id = low; row_id < high; row_id++){
                 auto value = t->columns[column]->data[row_id];
-                if(low_pred <= value && value < high_pred){
+                if(low_pred <= value && value <= high_pred){
                     qualifying_rows[qualifying_index] = row_id;
                     qualifying_index++;
                 }
@@ -107,7 +107,7 @@ unique_ptr<Table> FullScan::scan_partition(
                 qualifying_index = 0;
                 for(auto i = 0; i < number_of_qualified_rows; ++i){
                     auto value = t->columns[column]->data[qualifying_rows[i]];
-                    if(low_pred <= value && value < high_pred){
+                    if(low_pred <= value && value <= high_pred){
                         qualifying_rows[qualifying_index] = qualifying_rows[i];
                         qualifying_index++;
                     }

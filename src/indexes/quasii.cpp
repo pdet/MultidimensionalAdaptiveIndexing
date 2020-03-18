@@ -157,7 +157,7 @@ void Quasii::search_recursion(
         auto predicate = query.predicates[slice.children[0].column];
         auto i = binarySearch(slice.children, predicate.low);
 
-        while(i < static_cast<int64_t>(slice.children.size()) && slice.children[i].left_value < predicate.high){
+        while(i < static_cast<int64_t>(slice.children.size()) && slice.children[i].left_value <= predicate.high){
             partition_borders.at(slice.column).first = slice.left_value;
             partition_borders.at(slice.column).second = slice.right_value;
             search_recursion(slice.children[i], query, partitions, partition_skip, partition_borders);
@@ -180,7 +180,7 @@ pair<vector<pair<int64_t, int64_t>>, vector<bool>> Quasii::search(Query& query){
                 numeric_limits<float>::max()
                 );
     }
-    while(i < static_cast<int64_t>(first_level_slices.size()) && first_level_slices[i].left_value < predicate.high){
+    while(i < static_cast<int64_t>(first_level_slices.size()) && first_level_slices[i].left_value <= predicate.high){
         search_recursion(first_level_slices[i], query, partitions, partition_skip, partition_borders);
         ++i;
     }
