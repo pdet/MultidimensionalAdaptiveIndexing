@@ -37,8 +37,8 @@ TEST_CASE( "UniformGenerator, 10000 rows, 5 dim, 0.1 sel, 10000 queries",
 
     baseline->initialize(table.get());
     for(size_t j = 0; j < workload.query_count(); ++j){
-        baseline->adapt_index(workload.queries.at(j));
-        auto result = baseline->range_query(workload.queries.at(j)).row_count();
+        baseline->adapt_index(table.get(),workload.queries.at(j));
+        auto result = baseline->range_query(table.get(),workload.queries.at(j))->row_count();
         REQUIRE(result == Approx(n_of_selected_rows).margin(error_margin));
     }
 }
@@ -75,8 +75,8 @@ TEST_CASE( "UniformGenerator, 10000 rows, 2 dim, 0.1 sel, 10000 queries",
 
     baseline->initialize(table.get());
     for(size_t j = 0; j < workload.query_count(); ++j){
-        baseline->adapt_index(workload.queries.at(j));
-        auto result = baseline->range_query(workload.queries.at(j)).row_count();
+        baseline->adapt_index(table.get(),workload.queries.at(j));
+        auto result = baseline->range_query(table.get(),workload.queries.at(j))->row_count();
         REQUIRE(result == Approx(n_of_selected_rows).margin(error_margin));
     }
 }

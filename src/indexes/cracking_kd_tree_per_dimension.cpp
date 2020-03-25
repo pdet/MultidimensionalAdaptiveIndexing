@@ -3,6 +3,8 @@
 #include "cracking_kd_tree_per_dimension.hpp"
 #include <algorithm> // to check if all elements of a vector are true
 
+using namespace std;
+
 CrackingKDTreePerDimension::CrackingKDTreePerDimension(std::map<std::string, std::string> config){
     if(config.find("minimum_partition_size") == config.end())
         minimum_partition_size = 100;
@@ -16,7 +18,7 @@ void CrackingKDTreePerDimension::initialize(Table *table_to_copy){
     auto start = measurements->time();
 
     // Copy the entire table
-    table = make_unique<IdxTbl>(table_to_copy);
+    table = make_unique<Table>(table_to_copy);
 
     index = make_unique<KDTree>(table->row_count());
 
@@ -29,10 +31,12 @@ void CrackingKDTreePerDimension::initialize(Table *table_to_copy){
     // ******************
 }
 
-void CrackingKDTreePerDimension::adapt_index(Query& query){
+void CrackingKDTreePerDimension::adapt_index(Table *originalTable,Query& query){
     // Before adapting calculate the scan overhead to measure how much the previous
     // queries helped this one
-    auto partitions = index->search(query);
+    auto search_results= index->search(query);
+    auto partitions = search_results.first;
+    auto partition_skip = search_results.second;
     n_tuples_scanned_before_adapting = 0;
     for(auto &partition : partitions)
         n_tuples_scanned_before_adapting += partition.second - partition.first;
@@ -51,12 +55,14 @@ void CrackingKDTreePerDimension::adapt_index(Query& query){
 
 }
 
-Table CrackingKDTreePerDimension::range_query(Query& query){
+unique_ptr<Table> CrackingKDTreePerDimension::range_query(Table *originalTable,Query& query){
     // ******************
     auto start = measurements->time();
 
     // Search on the index the correct partitions
-    auto partitions = index->search(query);
+    auto search_results= index->search(query);
+    auto partitions = search_results.first;
+    auto partition_skip = search_results.second;
 
     auto end = measurements->time();
     measurements->append(
@@ -66,13 +72,7 @@ Table CrackingKDTreePerDimension::range_query(Query& query){
 
     start = measurements->time();
     // Scan the table and returns the row ids 
-    auto result = Table(1);
-    for (auto partition : partitions)
-    {
-        auto low = partition.first;
-        auto high = partition.second;
-        FullScan::scan_partition(table.get(), query, low, high, &result);
-    }
+    auto result = FullScan::scan_partition(table.get(), query,partitions, partition_skip);
 
     end = measurements->time();
     // ******************
@@ -91,17 +91,25 @@ Table CrackingKDTreePerDimension::range_query(Query& query){
     measurements->append("min_height", std::to_string(index->get_min_height()));
     measurements->append("memory_footprint", std::to_string(index->get_node_count() * sizeof(KDNode)));
     measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
+    measurements->append("partitions_scanned", std::to_string(partitions.size()));
 
+    auto skips = 0;
+    for(auto i = 0; i < partition_skip.size(); ++i){
+        if(partition_skip.at(i)){
+            skips += 1;
+        }
+    }
+    measurements->append("partitions_skipped", std::to_string(skips));
     measurements->append(
         "scan_overhead_before_adapt",
         std::to_string(
-            n_tuples_scanned_before_adapting/static_cast<float>(result.row_count())
+            n_tuples_scanned_before_adapting/static_cast<float>(result->row_count())
         )
     );
     measurements->append(
         "scan_overhead_after_adapt",
         std::to_string(
-            result.row_count()/static_cast<float>(n_tuples_scanned)
+            result->row_count()/static_cast<float>(n_tuples_scanned)
         )
     );
 

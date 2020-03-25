@@ -8,8 +8,7 @@
 
 // Represents a range query with N predicates.
 // Each predicate can be:
-//      - Range query: x1 <= X < x2
-//      - Point query: x1 <= X < x1 * this is how a point query is represented.
+//      - Range query: x1 <= X <= x2
 class Query
 {
 private:
@@ -23,7 +22,7 @@ public:
     Query(const Query& query);
 
     Query();
-
+    bool covers(std::vector<std::pair<float, float>> bounding_box);
     int64_t predicate_count();
 };
 #endif // QUERY_H

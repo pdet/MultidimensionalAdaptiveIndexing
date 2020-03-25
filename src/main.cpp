@@ -63,8 +63,8 @@ int main(int argc, char** argv){
 
         index->initialize(table.get());
         for(size_t i = 0; i < workload.query_count(); ++i){
-            index->adapt_index(workload.queries.at(i));
-            index->range_query(workload.queries.at(i));
+            index->adapt_index(table.get(),workload.queries.at(i));
+            index->range_query(table.get(),workload.queries.at(i));
             //index->draw_index(results_path + '/' + index->name() + ".dot");
         }
 

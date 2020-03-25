@@ -10,15 +10,13 @@
 class ResultStruct {
   public:
     ResultStruct() : sum(0){};
-    int64_t sum = 0;
+    float sum = 0;
 
     void reserve(size_t capacity) { (void)capacity; }
 
-    inline void push_back(int64_t value) { sum += value; }
-    inline void push_back(IdxColEntry value) { sum += value.m_key; }
+    inline void push_back(double value) { sum += value; }
 
-    inline void maybe_push_back(IdxColEntry value, int maybe) { sum += maybe * value.m_key; }
-    inline void maybe_push_back(int64_t value, int maybe) { sum += maybe * value; }
+    inline void maybe_push_back(double value, int maybe) { sum += maybe * value; }
     inline void merge(ResultStruct other) { sum += other.sum; }
 };
 
@@ -44,7 +42,7 @@ class ProgressiveIndex: public AbstractIndex {
 
   void adapt_index(Table *originalTable,Query& query) override;
 
-  Table range_query(Table *originalTable,Query& query) override;
+  std::unique_ptr<Table> range_query(Table *originalTable,Query& query) override;
 
   void progressive_quicksort(Table *originalTable,Query& query);
 

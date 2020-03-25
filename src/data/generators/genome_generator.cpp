@@ -52,7 +52,7 @@ void GenomeGenerator::generate(std::string table_path, std::string workload_path
         for (int64_t j = 0; j < dimensions; ++j){
             data_point[j] = stof(line_tokens[j]);
         }
-        table->append(data_point);
+        table->append(&(data_point[0]));
         data_points[i] = data_point;
 
         i++;

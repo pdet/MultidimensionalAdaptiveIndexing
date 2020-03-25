@@ -15,15 +15,15 @@ class CrackingKDTreePerDimension : public AbstractIndex
     CrackingKDTreePerDimension(std::map<std::string, std::string> config);
     ~CrackingKDTreePerDimension();
 
-    string name() override{
+    std::string name() override{
         return "CrackingKDTreePerDimension";
     }
 
     void initialize(Table *table_to_copy) override;
 
-    void adapt_index(Query& query) override;
+    void adapt_index(Table *originalTable,Query& query) override;
 
-    Table range_query(Query& query) override;
+    std::unique_ptr<Table> range_query(Table *originalTable,Query& query) override;
 
     void draw_index(std::string path) override{
         index->draw(path);

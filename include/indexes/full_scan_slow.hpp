@@ -12,7 +12,7 @@ public:
     FullScanSlow(std::map<std::string, std::string> config);
     ~FullScanSlow();
 
-    string name() override{
+    std::string name() override{
         return "FullScanSlow(baseline)";
     }
 
@@ -20,12 +20,14 @@ public:
 
     void adapt_index(Table *originalTable,Query& query) override;
 
-    Table range_query(Table *originalTable,Query& query) override;
+  std::unique_ptr<Table> range_query(Table *originalTable,Query& query) override;
 
-    static void scan_partition(
-        IdxTbl *t, Query& query,
-        int64_t low, int64_t high,
-        Table *table_to_store_results
-    );
+    static std::unique_ptr<Table> scan_partition(
+            Table *t,
+            Query& query,
+            std::vector<std::pair<int64_t, int64_t> >& partitions,
+            std::vector<bool>& partition_skip
+            );
+
 };
 #endif // FULL_SCAN_SLOW_H

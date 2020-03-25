@@ -2,6 +2,8 @@
 #include "full_scan.hpp"
 #include "average_kd_tree.hpp"
 
+using namespace std;
+
 AverageKDTree::AverageKDTree(std::map<std::string, std::string> config){
     if(config.find("minimum_partition_size") == config.end())
         minimum_partition_size = 100;
@@ -15,7 +17,7 @@ void AverageKDTree::initialize(Table *table_to_copy){
     auto start = measurements->time();
 
     // Copy the entire table
-    table = make_unique<IdxTbl>(table_to_copy);
+    table = make_unique<Table>(table_to_copy);
 
     // Initialize KD-Tree with average
     initialize_index();
@@ -41,12 +43,14 @@ void AverageKDTree::adapt_index(Table *originalTable,Query& query){
     );
 }
 
-Table AverageKDTree::range_query(Table *originalTable,Query& query){
+unique_ptr<Table>  AverageKDTree::range_query(Table *originalTable,Query& query){
     // ******************
-auto start = measurements->time();
+    auto start = measurements->time();
 
     // Search on the index the correct partitions
-    auto partitions = index->search(query);
+    auto search_results= index->search(query);
+    auto partitions = search_results.first;
+    auto partition_skip = search_results.second;
 
     auto end = measurements->time();
     measurements->append(
@@ -56,13 +60,7 @@ auto start = measurements->time();
 
     start = measurements->time();
     // Scan the table and returns the row ids 
-    auto result = Table(1);
-    for (auto partition : partitions)
-    {
-        auto low = partition.first;
-        auto high = partition.second;
-        FullScan::scan_partition(table.get(), query, low, high, &result);
-    }
+    auto result = FullScan::scan_partition(table.get(), query,partitions, partition_skip);
 
     end = measurements->time();
     // ******************
@@ -81,11 +79,20 @@ auto start = measurements->time();
     measurements->append("min_height", std::to_string(index->get_min_height()));
     measurements->append("memory_footprint", std::to_string(index->get_node_count() * sizeof(KDNode)));
     measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
+    measurements->append("partitions_scanned", std::to_string(partitions.size()));
+
+    auto skips = 0;
+    for(auto i = 0; i < partition_skip.size(); ++i){
+        if(partition_skip.at(i)){
+            skips += 1;
+        }
+    }
+    measurements->append("partitions_skipped", std::to_string(skips));
 
     measurements->append(
         "scan_overhead",
         std::to_string(
-            n_tuples_scanned/static_cast<float>(result.row_count())
+            n_tuples_scanned/static_cast<float>(result->row_count())
         )
     );
     return result;

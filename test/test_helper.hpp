@@ -34,15 +34,15 @@ class TestHelper{
 
             INFO("Baseline (" << baseline->name() << ")");
 
-            vector<size_t> baseline_results(workload.query_count());
+            vector<unique_ptr<Table>> baseline_results;
             REQUIRE(workload.query_count() > 0);
 
             baseline->initialize(table.get());
             for(size_t j = 0; j < workload.query_count(); ++j){
-                baseline->adapt_index(workload.queries.at(j));
-                auto result = baseline->range_query(workload.queries.at(j));
-                baseline_results.at(j) = result.row_count();
-                REQUIRE(baseline_results.at(j) > 0);
+                baseline->adapt_index(table.get(),workload.queries.at(j));
+                auto result = baseline->range_query(table.get(),workload.queries.at(j));
+                baseline_results.push_back(std::move(result));
+                REQUIRE(baseline_results.at(j)->row_count() > 0);
             }
 
             INFO("Running (" << alg->name() << ")");
@@ -51,11 +51,22 @@ class TestHelper{
 
             alg->initialize(table.get());
             for(size_t j = 0; j < workload.query_count(); ++j){
-                alg->adapt_index(workload.queries.at(j));
+                alg->adapt_index(table.get(),workload.queries.at(j));
                 //alg->draw_index("./" + alg->name() + "/" + std::to_string(j) + ".dot");
-                auto result = alg->range_query(workload.queries.at(j)).row_count();
-                auto expected = baseline_results.at(j);
-                CHECK(expected == result);
+                auto result = alg->range_query(table.get(),workload.queries.at(j));
+                auto expected = baseline_results.at(j).get();
+                CHECK(expected->row_count() == result->row_count());
+
+                // check if the elements are the same
+                auto expected_elements = expected->columns[0]->data;
+                auto result_elements = result->columns[0]->data;
+                sort(expected_elements, expected_elements + expected->row_count());
+                sort(result_elements, result_elements + result->row_count());
+                bool all_same = true;
+                for(auto i = 0; i < result->row_count() && all_same; ++i){
+                    all_same = expected_elements[i] == result_elements[i];
+                }
+                CHECK(all_same);
             }
 
         }
