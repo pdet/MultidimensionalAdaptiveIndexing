@@ -1,4 +1,4 @@
-#include "kd_tree/kd_tree.hpp"
+#include "kd_tree.hpp"
 #include "full_scan.hpp"
 #include "median_kd_tree.hpp"
 
@@ -12,7 +12,6 @@ MedianKDTree::MedianKDTree(std::map<std::string, std::string> config){
 }
 MedianKDTree::~MedianKDTree(){}
 
-
 void MedianKDTree::initialize(Table *table_to_copy){
     // ******************
     auto start = measurements->time();
@@ -25,10 +24,13 @@ void MedianKDTree::initialize(Table *table_to_copy){
 
     auto end = measurements->time();
 
+
+
     measurements->append(
         "initialization_time",
         std::to_string(Measurements::difference(end, start))
-    );    // ******************
+    );
+    // ******************
 }
 
 void MedianKDTree::adapt_index(Query& query){

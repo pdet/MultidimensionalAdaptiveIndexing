@@ -8,6 +8,7 @@
 #include <limits>
 #include <fstream>
 #include <map>
+#include "full_scan.hpp"
 
 using namespace std;
 
@@ -296,3 +297,54 @@ void KDTree::draw(std::string path){
     myfile << "\n}";
     myfile.close();
 }
+
+bool KDTree::sanity_check_recursion(
+    Table* table, KDNode* current,
+    int64_t low, int64_t high,
+    vector<pair<float, float>> partition_borders
+){
+    if(current == nullptr){
+        // Scan Partition
+        // Transform partition_borders to query
+        auto query = Query(partition_borders);
+        // Scan using Full Scan
+        vector<pair<int64_t, int64_t>> partition;
+        partition.push_back(make_pair(low, high));
+
+        vector<bool> skip(1, false);
+
+        auto result = FullScan::scan_partition(table, query, partition, skip);
+        // Check if the number of returned tuples is equal to the number
+        //  of tuples in the partition
+        return result->row_count() == (high - low);
+    }
+
+    auto temporary_max = partition_borders.at(current->column).second;
+
+    partition_borders.at(current->column).second = current->key;
+    auto left_sanity = sanity_check_recursion(
+            table, current->left_child.get(),
+            low, current->position,
+            partition_borders
+            );
+
+    partition_borders.at(current->column).first = current->key;
+    partition_borders.at(current->column).second = temporary_max;
+    auto right_sanity = sanity_check_recursion(
+            table, current->right_child.get(),
+            current->position, high,
+            partition_borders
+        );
+    return left_sanity && right_sanity;
+}
+
+bool KDTree::sanity_check(Table* table){
+    vector<pair<float, float>> partition_borders(table->col_count());
+    for(size_t i = 0; i < table->col_count(); ++i){
+        partition_borders.at(i) = make_pair(
+                numeric_limits<float>::lowest(),
+                numeric_limits<float>::max()
+                );
+    }
+    return sanity_check_recursion(table, root.get(), 0, row_count, partition_borders); 
+   }

@@ -19,6 +19,8 @@ public:
 
     Query(std::vector<float> low, std::vector<float> high, std::vector<int64_t> column);
 
+    Query(std::vector<std::pair<float, float>> lows_and_highs);
+
     Query(const Query& query);
 
     Query();

@@ -16,6 +16,17 @@ Query::Query(vector<float> low, vector<float> high, vector<int64_t> column){
     }
 }
 
+Query::Query(vector<pair<float, float>> lows_and_highs){
+    number_of_predicates = lows_and_highs.size();
+    predicates.resize(number_of_predicates);
+    for (int64_t i = 0; i < number_of_predicates; i++)
+    {
+        predicates.at(i) = Predicate(
+            lows_and_highs.at(i).first, lows_and_highs.at(i).second, i
+        );
+    }
+}
+
 Query::Query(const Query& query){
     number_of_predicates = query.number_of_predicates;
     predicates.resize(number_of_predicates);
@@ -41,7 +52,7 @@ bool Query::covers(vector<pair<float, float>> bounding_box){
         auto &border = bounding_box.at(i);
         if(!(
             predicate.low <= border.first &&
-            predicate.high > border.second
+            predicate.high >= border.second
         )){
             return false;
         }
