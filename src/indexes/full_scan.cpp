@@ -1,6 +1,8 @@
 #include "full_scan.hpp"
 #include <vector>
 #include <cassert>
+#include <iostream>
+#include "bitvector.hpp"
 
 using namespace std;
 
@@ -80,49 +82,30 @@ unique_ptr<Table> FullScan::scan_partition(
                         );
             }
         }else{
-            int64_t* qualifying_rows = new int64_t[high - low + 1];
+            BitVector bit_vector(high-low, 1);
 
-            // First we fill the qualifying rows
-            auto column = query.predicates[0].column;
-            auto low_pred = query.predicates[0].low;
-            auto high_pred = query.predicates[0].high;
+            for(size_t col = 0; col < t->col_count(); ++col){
+                BitVector temp_bit_vector(high-low, 0);
+                auto low_pred = query.predicates[col].low;
+                auto high_pred = query.predicates[col].high;
 
-            size_t qualifying_index = 0;
-            for(int64_t row_id = low; row_id < high; row_id++){
-                auto value = t->columns[column]->data[row_id];
-                if(low_pred <= value && value <= high_pred){
-                    qualifying_rows[qualifying_index] = row_id;
-                    qualifying_index++;
-                }
-            }
-
-            // Skip the first predicate
-            size_t predicate_index = 1;
-            size_t number_of_qualified_rows = qualifying_index;
-            for(; predicate_index < query.predicate_count(); ++predicate_index){
-                auto column = query.predicates[predicate_index].column;
-                auto low_pred = query.predicates[predicate_index].low;
-                auto high_pred = query.predicates[predicate_index].high;
-
-                qualifying_index = 0;
-                for(auto i = 0; i < number_of_qualified_rows; ++i){
-                    auto value = t->columns[column]->data[qualifying_rows[i]];
+                for(size_t i = 0; i < bit_vector.size(); i++){
+                    auto value = t->columns[col]->data[i + low];
                     if(low_pred <= value && value <= high_pred){
-                        qualifying_rows[qualifying_index] = qualifying_rows[i];
-                        qualifying_index++;
+                        temp_bit_vector.set(i);
                     }
                 }
-                number_of_qualified_rows = qualifying_index;
+
+                bit_vector.bitwise_and(temp_bit_vector);
             }
 
-            for(auto i = 0; i < number_of_qualified_rows; ++i){
-                table_to_store_results->append(
-                        &(t->columns[0]->data[qualifying_rows[i]])
-                        );
+            for(size_t i = 0; i < bit_vector.size(); ++i){
+                if(bit_vector.get(i) == true){
+                    table_to_store_results->append(
+                            &(t->columns[0]->data[low + i])
+                            );
+                }
             }
-
-            delete[] qualifying_rows;
-
         }
     }
     return table_to_store_results;

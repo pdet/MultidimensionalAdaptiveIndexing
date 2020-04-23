@@ -23,7 +23,7 @@ class TestHelper{
                     n_queries
                     );
 
-            generator.generate(table_path, workload_path);
+            //generator.generate(table_path, workload_path);
 
             auto table = Table::read_file(table_path);
             auto workload = Workload::read_file(workload_path);

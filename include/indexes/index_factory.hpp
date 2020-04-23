@@ -3,6 +3,7 @@
 
 #include "abstract_index.hpp"
 #include "full_scan.hpp"
+#include "full_scan_candidate_list.hpp"
 #include "full_scan_slow.hpp"
 #include "median_kd_tree.hpp"
 #include "average_kd_tree.hpp"
@@ -28,6 +29,8 @@ public:
         switch(algorithm_id){
             case FullScan::ID:
                 return make_unique<FullScan>(config);
+            case FullScanCandidateList::ID:
+                return make_unique<FullScanCandidateList>(config);
             case FullScanSlow::ID:
                 return make_unique<FullScanSlow>(config);
             case MedianKDTree::ID:
