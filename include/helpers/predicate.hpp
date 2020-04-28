@@ -9,9 +9,9 @@ class Predicate
 public:
     float low;
     float high;
-    int64_t column;
+    size_t column;
 
-    Predicate(float low, float high, int64_t column);
+    Predicate(float low, float high, size_t column);
     Predicate();
     ~Predicate();
 };

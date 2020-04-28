@@ -13,17 +13,19 @@ class TestHelper{
                 float selectivity, int64_t n_queries,
                 size_t algorithm_id
                 ){
-            const string workload_path = "test_queries";
-            const string table_path = "test_data";
+            const string workload_path = "test_queries" + std::to_string(n_dimensions);
+            const string table_path = "test_data" + std::to_string(n_dimensions);
 
-            auto generator = UniformGenerator(
-                    n_rows,
-                    n_dimensions,
-                    selectivity,
-                    n_queries
-                    );
+            if(!(TestHelper::file_exists(workload_path) && TestHelper::file_exists(table_path))){
+                auto generator = UniformGenerator(
+                        n_rows,
+                        n_dimensions,
+                        selectivity,
+                        n_queries
+                        );
 
-            //generator.generate(table_path, workload_path);
+                generator.generate(table_path, workload_path);
+            }
 
             auto table = Table::read_file(table_path);
             auto workload = Workload::read_file(workload_path);
@@ -32,7 +34,7 @@ class TestHelper{
 
             auto baseline = IndexFactory::baselineIndex();
 
-            INFO("Baseline (" << baseline->name() << ")");
+            INFO("Baseline (" + baseline->name() + ")");
 
             vector<unique_ptr<Table>> baseline_results;
             REQUIRE(workload.query_count() > 0);
@@ -45,7 +47,7 @@ class TestHelper{
                 REQUIRE(baseline_results.at(j)->row_count() > 0);
             }
 
-            INFO("Running (" << alg->name() << ")");
+            INFO("Running (" + alg->name() + ")");
 
             //std::system(("mkdir -p ./'" + alg->name() + "'").c_str());
 
@@ -63,12 +65,21 @@ class TestHelper{
                 sort(expected_elements, expected_elements + expected->row_count());
                 sort(result_elements, result_elements + result->row_count());
                 bool all_same = true;
-                for(auto i = 0; i < result->row_count() && all_same; ++i){
+                for(size_t i = 0; i < result->row_count() && all_same; ++i){
                     all_same = expected_elements[i] == result_elements[i];
                 }
                 CHECK(all_same);
             }
 
+        }
+
+        inline static bool file_exists (const std::string& name) {
+            if (FILE *file = fopen(name.c_str(), "r")) {
+                fclose(file);
+                return true;
+            } else {
+                return false;
+            }
         }
 };
 

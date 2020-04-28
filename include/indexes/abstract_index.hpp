@@ -16,14 +16,14 @@ public:
     // Class to keep track of the time/index measurements
     std::unique_ptr<Measurements> measurements;
 
-    AbstractIndex(){
-        measurements = std::make_unique<Measurements>();
-    }
+    AbstractIndex()
+    : n_tuples_scanned_before_adapting(0),
+      measurements(std::make_unique<Measurements>()){}
     virtual ~AbstractIndex(){}
     virtual void initialize(Table *table_to_copy) = 0;
     virtual void adapt_index(Query& query) = 0;
     virtual std::unique_ptr<Table> range_query(Query& query) = 0;
     virtual std::string name() = 0;
-    virtual void draw_index(std::string path){}
+    virtual void draw_index(std::string){}
 };
 #endif // ABSTRACT_INDEX_H

@@ -51,7 +51,7 @@ void Measurements::save(std::string csv_name, int repetition){
     }
 
     // Append the results
-    for(int64_t i = 0; i < measurements[headers[0]].size(); ++i){
+    for(size_t i = 0; i < measurements[headers[0]].size(); ++i){
         for(auto const& header : headers){
             if(measurements[header].size() <= i)
                 csv_file << "0,";

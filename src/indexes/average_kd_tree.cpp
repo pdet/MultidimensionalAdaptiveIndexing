@@ -1,6 +1,6 @@
+#include "average_kd_tree.hpp"
 #include "kd_tree.hpp"
 #include "full_scan.hpp"
-#include "average_kd_tree.hpp"
 
 using namespace std;
 
@@ -31,7 +31,7 @@ void AverageKDTree::initialize(Table *table_to_copy){
     // ******************
 }
 
-void AverageKDTree::adapt_index(Query& query){
+void AverageKDTree::adapt_index(Query& /*query*/){
     // ******************
     auto start = measurements->time();
     // DOES ABSOLUTELY NOTHING HERE
@@ -82,7 +82,7 @@ unique_ptr<Table> AverageKDTree::range_query(Query& query){
     measurements->append("partitions_scanned", std::to_string(partitions.size()));
 
     auto skips = 0;
-    for(auto i = 0; i < partition_skip.size(); ++i){
+    for(size_t i = 0; i < partition_skip.size(); ++i){
         if(partition_skip.at(i)){
             skips += 1;
         }
@@ -111,7 +111,7 @@ void AverageKDTree::initialize_index(){
 }
 
 void AverageKDTree::initialize_index_recursion(
-    KDNode* current, int64_t lower_limit, int64_t upper_limit, int64_t column
+    KDNode* current, size_t lower_limit, size_t upper_limit, size_t column
 ){
     auto new_col = (column + 1) % table->col_count();
     if(current->position - lower_limit > minimum_partition_size){
@@ -147,9 +147,9 @@ void AverageKDTree::initialize_index_recursion(
     }
 }
 
-pair<float, int64_t> AverageKDTree::find_average(int64_t column, int64_t lower_limit, int64_t upper_limit){
+pair<float, size_t> AverageKDTree::find_average(size_t column, size_t lower_limit, size_t upper_limit){
     float sum = 0.0;
-    for (int64_t i = lower_limit; i < upper_limit; i++)
+    for (size_t i = lower_limit; i < upper_limit; i++)
         sum += table->columns[column]->data[i];
 
     auto average = sum/static_cast<float>(upper_limit-lower_limit+1);

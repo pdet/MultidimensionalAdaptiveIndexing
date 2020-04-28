@@ -24,7 +24,7 @@ class KDTree
         ~KDTree();
 
 
-        std::pair<std::vector<std::pair<int64_t, int64_t>>, std::vector<bool>>
+        std::pair<std::vector<std::pair<size_t, size_t>>, std::vector<bool>>
         search(Query& query);
 
         std::unique_ptr<KDNode> create_node(int64_t column, float key, int64_t position);
@@ -45,10 +45,10 @@ class KDTree
 
         void search_recursion(
                 KDNode *current,
-                int64_t lower_limit,
-                int64_t upper_limit,
+                size_t lower_limit,
+                size_t upper_limit,
                 Query& query,
-                std::vector<std::pair<int64_t, int64_t>> &partitions,
+                std::vector<std::pair<size_t, size_t>> &partitions,
                 std::vector<bool> &partition_skip,
                 std::vector<std::pair<float, float>> partition_borders
                 );
@@ -59,7 +59,7 @@ class KDTree
                 );
         bool sanity_check_recursion(
                 Table* table, KDNode* current,
-                int64_t low, int64_t high,
+                size_t low, size_t high,
                 std::vector<std::pair<float, float>> partition_borders
                 );
 };

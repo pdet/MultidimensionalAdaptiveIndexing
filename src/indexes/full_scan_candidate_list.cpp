@@ -4,7 +4,7 @@
 
 using namespace std;
 
-FullScanCandidateList::FullScanCandidateList(std::map<std::string, std::string> config){}
+FullScanCandidateList::FullScanCandidateList(std::map<std::string, std::string> /*config*/){}
 FullScanCandidateList::~FullScanCandidateList(){}
 
 void FullScanCandidateList::initialize(Table *table_to_copy){
@@ -21,7 +21,7 @@ void FullScanCandidateList::initialize(Table *table_to_copy){
     );
 }
 
-void FullScanCandidateList::adapt_index(Query& query){
+void FullScanCandidateList::adapt_index(Query& /*query*/){
     // Zero adaptation for full scan
     measurements->append(
         "adaptation_time",
@@ -36,7 +36,7 @@ std::unique_ptr<Table> FullScanCandidateList::range_query(Query& query){
 
 
     // Scan the table and returns a materialized view of the result.
-    std::vector<std::pair<int64_t, int64_t> > partitions;
+    std::vector<std::pair<size_t, size_t> > partitions;
     partitions.push_back(std::make_pair(0, table->row_count()));
     std::vector<bool> partition_skip (partitions.size(), false);
     auto result = FullScanCandidateList::scan_partition(table.get(), query, partitions, partition_skip);
@@ -64,23 +64,23 @@ std::unique_ptr<Table> FullScanCandidateList::range_query(Query& query){
 unique_ptr<Table> FullScanCandidateList::scan_partition(
     Table *t,
     Query& query,
-    std::vector<std::pair<int64_t, int64_t> >& partitions,
-    std::vector<bool>& partition_skip
+    std::vector<std::pair<size_t, size_t>> &partitions,
+    std::vector<bool> &partition_skip
 ){
     assert(partitions.size() == partition_skip.size());
     auto table_to_store_results = make_unique<Table>(1); 
-    for(auto i = 0; i < partitions.size(); ++i){
-        auto low = partitions[i].first;
-        auto high = partitions[i].second;
+    for(size_t partition_index = 0; partition_index < partitions.size(); ++partition_index){
+        auto low = partitions[partition_index].first;
+        auto high = partitions[partition_index].second;
 
-        if(partition_skip[i]){
-            for(auto i = low; i < high; ++i){
+        if(partition_skip[partition_index]){
+            for(size_t j = low; j < high; ++j){
                 table_to_store_results->append(
-                        &(t->columns[0]->data[i])
+                        &(t->columns[0]->data[j])
                         );
             }
         }else{
-            int64_t* qualifying_rows = new int64_t[high - low + 1];
+            std::unique_ptr<int64_t[]> qualifying_rows{new int64_t[high - low + 1]};
 
             // First we fill the qualifying rows
             auto column = query.predicates[0].column;
@@ -88,7 +88,7 @@ unique_ptr<Table> FullScanCandidateList::scan_partition(
             auto high_pred = query.predicates[0].high;
 
             size_t qualifying_index = 0;
-            for(int64_t row_id = low; row_id < high; row_id++){
+            for(size_t row_id = low; row_id < high; row_id++){
                 auto value = t->columns[column]->data[row_id];
                 if(low_pred <= value && value <= high_pred){
                     qualifying_rows[qualifying_index] = row_id;
@@ -105,7 +105,7 @@ unique_ptr<Table> FullScanCandidateList::scan_partition(
                 auto high_pred = query.predicates[predicate_index].high;
 
                 qualifying_index = 0;
-                for(auto i = 0; i < number_of_qualified_rows; ++i){
+                for(size_t i = 0; i < number_of_qualified_rows; ++i){
                     auto value = t->columns[column]->data[qualifying_rows[i]];
                     if(low_pred <= value && value <= high_pred){
                         qualifying_rows[qualifying_index] = qualifying_rows[i];
@@ -115,13 +115,11 @@ unique_ptr<Table> FullScanCandidateList::scan_partition(
                 number_of_qualified_rows = qualifying_index;
             }
 
-            for(auto i = 0; i < number_of_qualified_rows; ++i){
+            for(size_t i = 0; i < number_of_qualified_rows; ++i){
                 table_to_store_results->append(
                         &(t->columns[0]->data[qualifying_rows[i]])
                         );
             }
-
-            delete[] qualifying_rows;
 
         }
     }

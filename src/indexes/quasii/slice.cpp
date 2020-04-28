@@ -1,7 +1,7 @@
 #include "slice.hpp"
 #include <limits>
 
-Slice::Slice(int64_t c, int64_t offset_begin, int64_t offset_end, float left_value, float right_value)
+Slice::Slice(size_t c, size_t offset_begin, size_t offset_end, float left_value, float right_value)
 : column(c), offset_begin(offset_begin), offset_end(offset_end), left_value(left_value), right_value(right_value){
     children = vector<Slice>();
 }
@@ -45,7 +45,7 @@ Slice& Slice::operator=(const Slice& other){
 }
 
 // "Open" slice, covers the entire range
-Slice::Slice(int64_t column, int64_t offset_begin, int64_t offset_end)
+Slice::Slice(size_t column, size_t offset_begin, size_t offset_end)
     : column(column)
     , offset_begin(offset_begin)
     , offset_end(offset_end)
@@ -87,6 +87,6 @@ bool Slice::intersects(float low, float high){
     );
 }
 
-int64_t Slice::size(){
+size_t Slice::size(){
     return offset_end - offset_begin;
 }

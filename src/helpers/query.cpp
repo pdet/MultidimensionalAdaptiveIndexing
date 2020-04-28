@@ -1,11 +1,11 @@
-#include "predicate.hpp"
 #include "query.hpp"
+#include "predicate.hpp"
 #include <cstdint>
 #include <vector>
 
 using namespace std;
 
-Query::Query(vector<float> low, vector<float> high, vector<int64_t> column){
+Query::Query(vector<float> low, vector<float> high, vector<size_t> column){
     number_of_predicates = low.size();
     predicates.resize(number_of_predicates);
     for (int64_t i = 0; i < number_of_predicates; i++)
@@ -42,7 +42,7 @@ Query::Query(const Query& query){
 
 Query::Query(){}
 
-int64_t Query::predicate_count(){
+size_t Query::predicate_count(){
     return number_of_predicates;
 }
 

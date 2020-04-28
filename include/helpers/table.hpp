@@ -14,7 +14,7 @@ class Table{
     public:
         std::vector<std::unique_ptr<Column>> columns;
 
-        Table(int64_t number_of_columns);
+        Table(size_t number_of_columns);
 
         // this is used when the first query fully copies the data (e.g., Quasii, Cracking KD-Tree)
         Table(Table *table_to_copy);
@@ -30,11 +30,11 @@ class Table{
         void save_file(std::string path);
 
         // Cracking methods
-        std::pair<int64_t, int64_t> CrackTableInThree(int64_t low, int64_t high, float key_left, float key_right, int64_t c);
+        std::pair<size_t, size_t> CrackTableInThree(size_t low, size_t high, float key_left, float key_right, size_t c);
 
-        int64_t CrackTable(int64_t low, int64_t high, float element, int64_t c);
+        size_t CrackTable(size_t low, size_t high, float element, size_t c);
 
-        std::unique_ptr<float[]> materialize_row(int64_t row_index);
+        std::unique_ptr<float[]> materialize_row(size_t row_index);
 
         void append(float* row);
 

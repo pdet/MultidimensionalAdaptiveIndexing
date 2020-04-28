@@ -20,6 +20,6 @@ public:
 
     void save_file(string path); 
 
-    const size_t query_count();
+    size_t query_count() const;
 };
 #endif // WORKLOAD_H

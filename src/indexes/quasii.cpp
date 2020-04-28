@@ -45,7 +45,6 @@ void Quasii::adapt_index(Query& query){
     // queries helped this one
     auto search_results= search(query);
     auto partitions = search_results.first;
-    auto partition_skip = search_results.second;
     n_tuples_scanned_before_adapting = 0;
     for(auto &partition : partitions)
         n_tuples_scanned_before_adapting += partition.second - partition.first;
@@ -108,7 +107,7 @@ unique_ptr<Table> Quasii::range_query(Query& query){
     measurements->append("partitions_scanned", std::to_string(partitions.size()));
 
     auto skips = 0;
-    for(auto i = 0; i < partition_skip.size(); ++i){
+    for(size_t i = 0; i < partition_skip.size(); ++i){
         if(partition_skip.at(i)){
             skips += 1;
         }
@@ -131,7 +130,7 @@ unique_ptr<Table> Quasii::range_query(Query& query){
     return result;
 }
 
-int64_t Quasii::count_slices(std::vector<Slice> &slices){
+size_t Quasii::count_slices(std::vector<Slice> &slices){
     int64_t number_of_slices = slices.size();
     for(auto& slice : slices){
         number_of_slices += count_slices(slice.children);
@@ -142,7 +141,7 @@ int64_t Quasii::count_slices(std::vector<Slice> &slices){
 void Quasii::search_recursion(
     Slice &slice,
     Query &query,
-    vector<pair<int64_t, int64_t>> &partitions,
+    vector<pair<size_t, size_t>> &partitions,
     vector<bool> &partition_skip,
     vector<pair<float, float>> partition_borders
 ){
@@ -166,8 +165,8 @@ void Quasii::search_recursion(
     }
 }
 
-pair<vector<pair<int64_t, int64_t>>, vector<bool>> Quasii::search(Query& query){
-    std::vector<pair<int64_t, int64_t>> partitions;
+pair<vector<pair<size_t, size_t>>, vector<bool>> Quasii::search(Query& query){
+    std::vector<pair<size_t, size_t>> partitions;
     std::vector<bool> partition_skip;
 
     auto predicate = query.predicates[first_level_slices[0].column];

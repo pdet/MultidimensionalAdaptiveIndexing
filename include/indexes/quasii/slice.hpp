@@ -19,17 +19,17 @@ using namespace std;
 
 class Slice{
 public:
-    int64_t column;
-    int64_t offset_begin;
-    int64_t offset_end;
+    size_t column;
+    size_t offset_begin;
+    size_t offset_end;
     float left_value;
     float right_value;
     vector<Slice> children;
 
-    Slice(int64_t column, int64_t offset_begin, int64_t offset_end, float left_value, float right_value);
+    Slice(size_t column, size_t offset_begin, size_t offset_end, float left_value, float right_value);
 
     // "Open" slice, covers the entire range
-    Slice(int64_t column, int64_t offset_begin, int64_t offset_end);
+    Slice(size_t column, size_t offset_begin, size_t offset_end);
 
 	Slice(const Slice&& other);
 
@@ -48,7 +48,7 @@ public:
 
     bool intersects(float low, float high);
 
-    int64_t size();
+    size_t size();
 
 };
 

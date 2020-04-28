@@ -1,5 +1,5 @@
-#include "column.hpp"
 #include "table.hpp"
+#include "column.hpp"
 #include <cstdint>
 #include <iostream>
 #include <fstream>
@@ -7,9 +7,9 @@
 
 using namespace std;
 
-Table::Table(int64_t number_of_columns) : number_of_columns(number_of_columns){
+Table::Table(size_t number_of_columns) : number_of_columns(number_of_columns){
     columns.resize(number_of_columns);
-    for(int64_t i = 0; i < number_of_columns; ++i){
+    for(size_t i = 0; i < number_of_columns; ++i){
         columns[i] = make_unique<Column>();
     }
     number_of_rows = 0;
@@ -44,12 +44,12 @@ std::unique_ptr<Table> Table::read_file(std::string path){
         exit(-1);
     }
 
-    auto row = SplitString<float>::split(line, ' ');
+    auto row = SplitString<float>::split(line, " ");
     auto table = make_unique<Table>(row.size());
     table->append(&(row[0]));
 
     while(getline(file,line)){
-        row = SplitString<float>::split(line, ' ');
+        row = SplitString<float>::split(line, " ");
         table->append(&(row[0]));
     }
 
@@ -79,9 +79,9 @@ void Table::save_file(std::string path){
 
 Table::~Table(){}
 
-std::unique_ptr<float[]> Table::materialize_row(int64_t row_index){
+std::unique_ptr<float[]> Table::materialize_row(size_t row_index){
     auto row = make_unique<float[]>(number_of_rows);
-    for(int64_t col = 0; col < number_of_columns; col++){
+    for(size_t col = 0; col < number_of_columns; col++){
         row[col] = columns[col]->data[row_index];
     }
     return row;
@@ -103,7 +103,7 @@ size_t Table::col_count() const{
     return number_of_columns;
 }
 
-int64_t Table::CrackTable(int64_t low, int64_t high, float element, int64_t c)
+size_t Table::CrackTable(size_t low, size_t high, float element, size_t c)
 {
   int64_t x1 = low;
   int64_t x2 = high - 1;
@@ -127,7 +127,7 @@ int64_t Table::CrackTable(int64_t low, int64_t high, float element, int64_t c)
   return x1;
 }
 
-pair<int64_t, int64_t> Table::CrackTableInThree(int64_t low, int64_t high, float key_left, float key_right, int64_t c)
+pair<size_t, size_t> Table::CrackTableInThree(size_t low, size_t high, float key_left, float key_right, size_t c)
 {
   auto p1 = CrackTable(low, high, key_left, c);
   auto p2 = CrackTable(p1, high, key_right, c);
@@ -135,7 +135,7 @@ pair<int64_t, int64_t> Table::CrackTableInThree(int64_t low, int64_t high, float
 }
 
 void Table::exchange(size_t index1, size_t index2){
-  for(int64_t column_index = 0; column_index < number_of_columns; ++column_index){
+  for(size_t column_index = 0; column_index < number_of_columns; ++column_index){
     auto value1 = columns[column_index]->data[index1];
     auto value2 = columns[column_index]->data[index2];
 

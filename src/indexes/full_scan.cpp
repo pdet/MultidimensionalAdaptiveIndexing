@@ -6,7 +6,7 @@
 
 using namespace std;
 
-FullScan::FullScan(std::map<std::string, std::string> config){}
+FullScan::FullScan(std::map<std::string, std::string> /*config*/){}
 FullScan::~FullScan(){}
 
 void FullScan::initialize(Table *table_to_copy){
@@ -23,7 +23,7 @@ void FullScan::initialize(Table *table_to_copy){
     );
 }
 
-void FullScan::adapt_index(Query& query){
+void FullScan::adapt_index(Query& /*query*/){
     // Zero adaptation for full scan
     measurements->append(
         "adaptation_time",
@@ -38,7 +38,7 @@ std::unique_ptr<Table> FullScan::range_query(Query& query){
 
 
     // Scan the table and returns a materialized view of the result.
-    std::vector<std::pair<int64_t, int64_t> > partitions;
+    std::vector<std::pair<size_t, size_t> > partitions;
     partitions.push_back(std::make_pair(0, table->row_count()));
     std::vector<bool> partition_skip (partitions.size(), false);
     auto result = FullScan::scan_partition(table.get(), query, partitions, partition_skip);
@@ -66,19 +66,19 @@ std::unique_ptr<Table> FullScan::range_query(Query& query){
 unique_ptr<Table> FullScan::scan_partition(
     Table *t,
     Query& query,
-    std::vector<std::pair<int64_t, int64_t> >& partitions,
+    std::vector<std::pair<size_t, size_t> >& partitions,
     std::vector<bool>& partition_skip
 ){
     assert(partitions.size() == partition_skip.size());
     auto table_to_store_results = make_unique<Table>(1); 
-    for(auto i = 0; i < partitions.size(); ++i){
-        auto low = partitions[i].first;
-        auto high = partitions[i].second;
+    for(size_t partition_index = 0; partition_index < partitions.size(); ++partition_index){
+        auto low = partitions[partition_index].first;
+        auto high = partitions[partition_index].second;
 
-        if(partition_skip[i]){
-            for(auto i = low; i < high; ++i){
+        if(partition_skip[partition_index]){
+            for(size_t j = low; j < high; ++j){
                 table_to_store_results->append(
-                        &(t->columns[0]->data[i])
+                        &(t->columns[0]->data[j])
                         );
             }
         }else{

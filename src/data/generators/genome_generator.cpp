@@ -314,21 +314,21 @@ void GenomeGenerator::generate(std::string table_path, std::string workload_path
             default:
                 break;
         }
-        for(int64_t col = 0; col < cols.size(); ++col){
+        for(size_t col = 0; col < cols.size(); ++col){
             myfile << lb_queries[i][cols[col]];
             if(col + 1 != cols.size())
                 myfile << " ";
         }
         myfile << "\n";
 
-        for(int64_t col = 0; col < cols.size(); ++col){
+        for(size_t col = 0; col < cols.size(); ++col){
             myfile << ub_queries[i][cols[col]];
             if(col + 1 != cols.size())
                 myfile << " ";
         }
         myfile << "\n";
 
-        for(int64_t col = 0; col < cols.size(); ++col){
+        for(size_t col = 0; col < cols.size(); ++col){
             myfile << cols[col];
             if(col + 1 != cols.size())
                 myfile << " ";

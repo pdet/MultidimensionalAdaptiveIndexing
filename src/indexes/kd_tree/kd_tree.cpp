@@ -12,17 +12,15 @@
 
 using namespace std;
 
-KDTree::KDTree(int64_t row_count) : row_count(row_count){
-    root = nullptr;
-}
+KDTree::KDTree(int64_t row_count) : root(nullptr), row_count(row_count){}
 KDTree::~KDTree(){}
 
 void KDTree::search_recursion(
     KDNode *current,
-    int64_t lower_limit,
-    int64_t upper_limit,
+    size_t lower_limit,
+    size_t upper_limit,
     Query& query,
-    vector<pair<int64_t, int64_t>> &partitions,
+    vector<pair<size_t, size_t>> &partitions,
     vector<bool> &partition_skip,
     vector<pair<float, float>> partition_borders
 ){
@@ -119,13 +117,13 @@ void KDTree::search_recursion(
     }
 }
 
-pair<vector<pair<int64_t, int64_t>>, vector<bool>>
+pair<vector<pair<size_t, size_t>>, vector<bool>>
 KDTree::search(Query& query){
-    vector<pair<int64_t, int64_t>> partitions;
+    vector<pair<size_t, size_t>> partitions;
     vector<bool> partition_skip;
     if(root == nullptr){
         partitions.push_back(
-            make_pair(0, row_count-1)
+            make_pair(0u, row_count-1u)
         );
         partition_skip.push_back(false);
         return make_pair(partitions, partition_skip);
@@ -300,7 +298,7 @@ void KDTree::draw(std::string path){
 
 bool KDTree::sanity_check_recursion(
     Table* table, KDNode* current,
-    int64_t low, int64_t high,
+    size_t low, size_t high,
     vector<pair<float, float>> partition_borders
 ){
     if(current == nullptr){
@@ -308,7 +306,7 @@ bool KDTree::sanity_check_recursion(
         // Transform partition_borders to query
         auto query = Query(partition_borders);
         // Scan using Full Scan
-        vector<pair<int64_t, int64_t>> partition;
+        vector<pair<size_t, size_t>> partition;
         partition.push_back(make_pair(low, high));
 
         vector<bool> skip(1, false);

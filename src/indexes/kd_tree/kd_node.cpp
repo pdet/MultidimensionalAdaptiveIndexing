@@ -1,28 +1,20 @@
+#include "kd_node.hpp"
 #include <iostream>
 #include <cstdint>
 #include <utility>
 #include <vector>
-#include "kd_node.hpp"
 #include <string>
 
 using namespace std;
 
-KDNode::KDNode(int64_t column, float key, int64_t position)
-: key(key), column(column), position(position){
-    left_child = nullptr;
-    right_child = nullptr;
-}
+KDNode::KDNode(size_t column, float key, size_t position)
+: key(key), column(column), left_child(nullptr), right_child(nullptr), position(position){}
 
 KDNode::KDNode(const KDNode &node)
     : KDNode(node.column, node.key, node.position){}
 
-KDNode::KDNode(){
-    key = 0;
-    column = 0;
-    position = 0;
-    left_child = nullptr;
-    right_child = nullptr;
-}
+KDNode::KDNode()
+: key(0), column(0), left_child(nullptr), right_child(nullptr), position(0){}
 
 KDNode::~KDNode(){}
 

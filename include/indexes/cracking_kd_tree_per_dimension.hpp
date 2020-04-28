@@ -31,12 +31,12 @@ class CrackingKDTreePerDimension : public AbstractIndex
 
 private:
     unique_ptr<KDTree> index;
-    int64_t minimum_partition_size = 100;
+    size_t minimum_partition_size = 100;
 
     void adapt(Query& query);
     void adapt_recursion(
         KDNode *current, Query& query,
-        int64_t pivot_dim, float pivot, int64_t lower_limit, int64_t upper_limit
+        size_t pivot_dim, float pivot, size_t lower_limit, size_t upper_limit
     );
 };
 

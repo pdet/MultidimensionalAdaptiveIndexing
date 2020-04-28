@@ -1,6 +1,6 @@
+#include "cracking_kd_tree_per_dimension.hpp"
 #include "kd_node.hpp"
 #include "full_scan.hpp"
-#include "cracking_kd_tree_per_dimension.hpp"
 #include <algorithm> // to check if all elements of a vector are true
 
 using namespace std;
@@ -94,7 +94,7 @@ unique_ptr<Table> CrackingKDTreePerDimension::range_query(Query& query){
     measurements->append("partitions_scanned", std::to_string(partitions.size()));
 
     auto skips = 0;
-    for(auto i = 0; i < partition_skip.size(); ++i){
+    for(size_t i = 0; i < partition_skip.size(); ++i){
         if(partition_skip.at(i)){
             skips += 1;
         }
@@ -145,10 +145,10 @@ void CrackingKDTreePerDimension::adapt(Query& query){
 void CrackingKDTreePerDimension::adapt_recursion(
         KDNode *current,
         Query& query,
-        int64_t pivot_dim,
+        size_t pivot_dim,
         float pivot,
-        int64_t lower_limit,
-        int64_t upper_limit
+        size_t lower_limit,
+        size_t upper_limit
         ){
 
     // If the size of the partition is already too small then stop exploring it

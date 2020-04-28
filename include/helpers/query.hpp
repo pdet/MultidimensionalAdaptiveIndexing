@@ -17,7 +17,7 @@ private:
 public:
     std::vector<Predicate> predicates;
 
-    Query(std::vector<float> low, std::vector<float> high, std::vector<int64_t> column);
+    Query(std::vector<float> low, std::vector<float> high, std::vector<size_t> column);
 
     Query(std::vector<std::pair<float, float>> lows_and_highs);
 
@@ -25,6 +25,6 @@ public:
 
     Query();
     bool covers(std::vector<std::pair<float, float>> bounding_box);
-    int64_t predicate_count();
+    size_t predicate_count();
 };
 #endif // QUERY_H
