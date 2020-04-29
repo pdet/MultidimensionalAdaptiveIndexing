@@ -11,7 +11,7 @@ Column::Column(float* column_to_copy, size_t column_size){
     this->capacity = column_size;
 }
 
-Column::Column(size_t size) : size(size), capacity(size) {
+Column::Column(size_t capacity) : size(0), capacity(capacity) {
     data = (float*)malloc(sizeof(float) * this->capacity);
 }
 

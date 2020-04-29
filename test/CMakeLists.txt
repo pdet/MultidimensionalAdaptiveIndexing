@@ -31,6 +31,7 @@ set(TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/test/data/uniform_generator.cpp
     ${CMAKE_SOURCE_DIR}/test/helpers/bitvector.cpp
     ${CMAKE_SOURCE_DIR}/test/helpers/split_string.cpp
+    ${CMAKE_SOURCE_DIR}/test/helpers/table.cpp
     )
 add_executable(tests ${TEST_SOURCES})
 target_link_libraries(tests MDAI_lib)
