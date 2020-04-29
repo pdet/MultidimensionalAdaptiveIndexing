@@ -1,5 +1,6 @@
 #include "column.hpp"
 #include <vector>
+#include <cstdlib>
 
 Column::Column(float* column_to_copy, size_t column_size){
     data = (float*)malloc(sizeof(float) * column_size);

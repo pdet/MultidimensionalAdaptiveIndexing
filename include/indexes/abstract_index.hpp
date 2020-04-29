@@ -5,6 +5,7 @@
 #include "query.hpp"
 #include "table.hpp"
 #include <string>
+#include <cassert>
 
 class AbstractIndex
 {
