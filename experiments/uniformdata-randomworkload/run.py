@@ -1,3 +1,6 @@
+'''Runs the uniform data and workload experiment
+'''
+import sys
 import os
 import subprocess
 import inspect
@@ -5,7 +8,7 @@ import inspect
 
 REPETITIONS = 1
 PARTITION_SIZE = 10
-ALGORITHM_IDS = [1, 2, 3, 4, 5, 6]
+ALGORITHM_IDS = [1, 2, 3, 4, 5, 6, 111]
 
 # script directory
 SCRIPT_PATH = os.path.dirname(
@@ -16,17 +19,18 @@ SCRIPT_PATH = os.path.dirname(
 os.chdir(SCRIPT_PATH)
 
 
-class cd:
+class CD:
     """Context manager for changing the current working directory"""
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
+    def __init__(self, new_path):
+        self.new_path = os.path.expanduser(new_path)
+        self.saved_path = ''
 
     def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
+        self.saved_path = os.getcwd()
+        os.chdir(self.new_path)
 
     def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
+        os.chdir(self.saved_path)
 
 
 class Benchmark:
@@ -37,15 +41,15 @@ class Benchmark:
             self,
             build_dir="../../build",
             bin_dir="../../bin"
-            ):
+    ):
         """Benchmark Constructor
         Arguments:
             - build_dir (string): path to MDAI build dir
             - bin_dir (string): path to MDAI bin dir
         """
 
-        self.BUILD_DIR = build_dir
-        self.BIN_DIR = bin_dir
+        self.build_dir = build_dir
+        self.bin_dir = bin_dir
 
     def run(self):
         """Runs the benchmark, saves the results as a CSV file in results.csv
@@ -56,15 +60,15 @@ class Benchmark:
             f'mkdir -p {self.CURRENT_DIR}/results'
         )
 
-        if not os.path.exists(self.BUILD_DIR):
-            os.makedirs(self.BUILD_DIR)
+        if not os.path.exists(self.build_dir):
+            os.makedirs(self.build_dir)
 
         # Compile the code
-        with cd(self.BUILD_DIR):
-            subprocess.call(["cmake", "-DCMAKE_BUILD_TYPE=Debug", ".."])
+        with CD(self.build_dir):
+            subprocess.call(["cmake", "-DCMAKE_BUILD_TYPE=Release", ".."])
             subprocess.call(["make", '-j'])
 
-        with cd(self.BIN_DIR):
+        with CD(self.bin_dir):
             cols = [2, 4, 8, 16]
             for col in cols:
                 for algorithm_id in ALGORITHM_IDS:
@@ -80,18 +84,27 @@ class Benchmark:
                     command = ' '.join(command)
                     os.system(command)
 
+    @staticmethod
     def clean(build_dir):
+        '''Cleans the build directory
+        '''
         # Run make clean
-        with cd(build_dir):
+        with CD(build_dir):
             subprocess.call(["make", "clean"])
 
 
-if __name__ == "__main__":
-    BUILD_DIR = "../../build/"
-    BIN_DIR = "../../bin"
+def main():
+    ''' Main method
+    '''
+    build_dir = "../../build/"
+    bin_dir = "../../bin"
 
-    benchmark = Benchmark(BUILD_DIR, BIN_DIR)
+    benchmark = Benchmark(build_dir, bin_dir)
     benchmark.run()
-    # Benchmark.clean(BUILD_DIR)
+    # benchmark.clean(build_dir)
 
-    exit(0)
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
