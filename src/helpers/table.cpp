@@ -67,11 +67,10 @@ void Table::save_file(std::string path){
     }
 
     for(size_t i = 0; i < number_of_rows; ++i){
-        auto row = materialize_row(i);
         for(size_t j = 0; j < number_of_columns - 1; ++j){
-            file << row[j] << " "; 
+            file << columns[j]->data[i] << " "; 
         }
-        file << row[number_of_columns-1] << "\n";
+        file << columns[number_of_columns-1]->data[i] << "\n";
     }
 
     file.close();
