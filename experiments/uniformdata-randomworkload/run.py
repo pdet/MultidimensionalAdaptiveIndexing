@@ -7,7 +7,7 @@ import inspect
 
 
 REPETITIONS = 1
-PARTITION_SIZE = 10
+PARTITION_SIZE = 1024
 ALGORITHM_IDS = [1, 2, 3, 4, 5, 6, 111]
 
 # script directory
