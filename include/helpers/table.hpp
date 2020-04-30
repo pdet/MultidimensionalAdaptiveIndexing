@@ -8,9 +8,6 @@
 #include <memory>
 
 class Table{
-    private:
-        size_t number_of_rows;
-        size_t number_of_columns;
     public:
         std::vector<std::unique_ptr<Column>> columns;
 

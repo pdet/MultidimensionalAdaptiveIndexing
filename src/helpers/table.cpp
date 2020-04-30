@@ -7,16 +7,15 @@
 
 using namespace std;
 
-Table::Table(size_t number_of_columns) : number_of_columns(number_of_columns){
+Table::Table(size_t number_of_columns){
     columns.resize(number_of_columns);
     for(size_t i = 0; i < number_of_columns; ++i){
         columns[i] = make_unique<Column>();
     }
-    number_of_rows = 0;
 }
 
 Table::Table(size_t number_of_columns, size_t number_of_rows)
-: number_of_rows(number_of_rows), number_of_columns(number_of_columns) {
+{
     columns.resize(number_of_columns);
     for(size_t i = 0; i < number_of_columns; ++i){
         columns[i] = make_unique<Column>(number_of_rows);
@@ -24,8 +23,8 @@ Table::Table(size_t number_of_columns, size_t number_of_rows)
 }
 
 Table::Table(Table *table_to_copy){
-    number_of_rows = table_to_copy->row_count();
-    number_of_columns = table_to_copy->col_count();
+    auto number_of_rows = table_to_copy->row_count();
+    auto number_of_columns = table_to_copy->col_count();
 
     // Allocate the columns
     columns.resize(number_of_columns);
@@ -39,6 +38,8 @@ Table::Table(Table *table_to_copy){
         );
     }
 }
+
+Table::~Table(){}
 
 std::unique_ptr<Table> Table::read_file(std::string path){
     ifstream file(path.c_str(), ios::in | ios::binary);
@@ -78,47 +79,43 @@ void Table::save_file(std::string path){
     }
 
     // Write number of columns
-    uint64_t n_cols = number_of_columns;
+    uint64_t n_cols = col_count();
     file.write(reinterpret_cast<const char*>(&n_cols), sizeof(uint64_t));
 
     // Write number of rows
-    uint64_t n_rows = number_of_rows;
+    uint64_t n_rows = row_count();
     file.write(reinterpret_cast<const char*>(&n_rows), sizeof(uint64_t));
-    for(size_t i = 0; i < number_of_rows; ++i){
-        for(size_t j = 0; j < number_of_columns - 1; ++j){
+    for(size_t i = 0; i < n_rows; ++i){
+        for(size_t j = 0; j < n_cols; ++j){
             file.write(reinterpret_cast<const char*>(&(columns[j]->data[i])), sizeof(float));
         }
-        file.write(reinterpret_cast<const char*>(&(columns[number_of_columns-1]->data[i])), sizeof(float));
     }
-
     file.close();
 }
 
-Table::~Table(){}
-
 std::unique_ptr<float[]> Table::materialize_row(size_t row_index){
-    auto row = make_unique<float[]>(number_of_rows);
-    for(size_t col = 0; col < number_of_columns; col++){
+    auto row = make_unique<float[]>(row_count());
+    for(size_t col = 0; col < col_count(); col++){
         row[col] = columns[col]->data[row_index];
     }
     return row;
 }
 
 void Table::append(float* row){
-    for(size_t col = 0; col < number_of_columns; col++){
+    for(size_t col = 0; col < col_count(); col++){
         columns[col]->append(row[col]);
     }
 }
 
 
 size_t Table::row_count() const{
-    if(number_of_columns == 0)
+    if(col_count() == 0)
         return 0;
     return columns[0]->size;
 }
 
 size_t Table::col_count() const{
-    return number_of_columns;
+    return columns.size();
 }
 
 size_t Table::CrackTable(size_t low, size_t high, float element, size_t c)
@@ -153,7 +150,7 @@ pair<size_t, size_t> Table::CrackTableInThree(size_t low, size_t high, float key
 }
 
 void Table::exchange(size_t index1, size_t index2){
-    for(size_t column_index = 0; column_index < number_of_columns; ++column_index){
+    for(size_t column_index = 0; column_index < col_count(); ++column_index){
         auto value1 = columns[column_index]->data[index1];
         auto value2 = columns[column_index]->data[index2];
 
