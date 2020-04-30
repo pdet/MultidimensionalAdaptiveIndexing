@@ -1,6 +1,7 @@
 #include "column.hpp"
 #include <vector>
 #include <cstdlib>
+#include <cassert>
 
 Column::Column(float* column_to_copy, size_t column_size){
     data = (float*)malloc(sizeof(float) * column_size);
@@ -12,6 +13,7 @@ Column::Column(float* column_to_copy, size_t column_size){
 }
 
 Column::Column(size_t capacity) : size(0), capacity(capacity) {
+    assert(capacity > 0);
     data = (float*)malloc(sizeof(float) * this->capacity);
 }
 
