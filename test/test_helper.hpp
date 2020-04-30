@@ -13,8 +13,8 @@ class TestHelper{
                 float selectivity, int64_t n_queries,
                 size_t algorithm_id
                 ){
-            const string workload_path = "test_queries" + std::to_string(n_dimensions);
-            const string table_path = "test_data" + std::to_string(n_dimensions);
+            const string workload_path = "test_data/test_queries" + std::to_string(n_dimensions);
+            const string table_path = "test_data/test_data" + std::to_string(n_dimensions);
 
             if(!(TestHelper::file_exists(workload_path) && TestHelper::file_exists(table_path))){
                 auto generator = UniformGenerator(
