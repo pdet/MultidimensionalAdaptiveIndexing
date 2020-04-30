@@ -17,23 +17,23 @@ class KDTree
     public:
 
         unique_ptr<KDNode> root; // Root of the tree
-        int64_t row_count;
+        size_t row_count;
 
 
-        KDTree(int64_t row_count);
+        KDTree(size_t row_count);
         ~KDTree();
 
 
         std::pair<std::vector<std::pair<size_t, size_t>>, std::vector<bool>>
         search(Query& query);
 
-        std::unique_ptr<KDNode> create_node(int64_t column, float key, int64_t position);
+        std::unique_ptr<KDNode> create_node(size_t column, float key, size_t position);
 
-        int64_t get_node_count();
+        size_t get_node_count();
 
-        int64_t get_max_height();
+        size_t get_max_height();
 
-        int64_t get_min_height();
+        size_t get_min_height();
 
         void draw(std::string path);
 
@@ -41,7 +41,7 @@ class KDTree
 
     private:
 
-        int64_t number_of_nodes = 0;
+        size_t number_of_nodes = 0;
 
         void search_recursion(
                 KDNode *current,

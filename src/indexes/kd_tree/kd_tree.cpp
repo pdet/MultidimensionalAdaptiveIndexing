@@ -12,7 +12,7 @@
 
 using namespace std;
 
-KDTree::KDTree(int64_t row_count) : root(nullptr), row_count(row_count){}
+KDTree::KDTree(size_t row_count) : root(nullptr), row_count(row_count){}
 KDTree::~KDTree(){}
 
 void KDTree::search_recursion(
@@ -145,7 +145,7 @@ KDTree::search(Query& query){
     return make_pair(partitions, partition_skip);
 }
 
-unique_ptr<KDNode> KDTree::create_node(int64_t column, float key, int64_t position){
+unique_ptr<KDNode> KDTree::create_node(size_t column, float key, size_t position){
     auto node = make_unique<KDNode>(
                 column, key, position 
             );
@@ -153,17 +153,17 @@ unique_ptr<KDNode> KDTree::create_node(int64_t column, float key, int64_t positi
     return node;
 }
 
-int64_t KDTree::get_node_count(){
+size_t KDTree::get_node_count(){
     return number_of_nodes;
 }
 
-int64_t KDTree::get_max_height(){
+size_t KDTree::get_max_height(){
     if(root == nullptr)
         return 0;
     vector<KDNode*> nodes;
-    vector<int64_t> heights;
+    vector<size_t> heights;
 
-    int64_t max_height = 0;
+    size_t max_height = 0;
 
     nodes.push_back(root.get());
     heights.push_back(1);
@@ -194,14 +194,14 @@ int64_t KDTree::get_max_height(){
     return max_height;
 }
 
-int64_t KDTree::get_min_height(){
+size_t KDTree::get_min_height(){
     if(root == nullptr)
         return 0;
 
     vector<KDNode*> nodes;
-    vector<int64_t> heights;
+    vector<size_t> heights;
 
-    int64_t min_height = numeric_limits<int64_t>::max();
+    size_t min_height = numeric_limits<size_t>::max();
 
     nodes.push_back(root.get());
     heights.push_back(1);
@@ -241,7 +241,7 @@ void KDTree::draw(std::string path){
     if(root != nullptr){
 
         vector<KDNode*> nodes;
-        vector<int64_t> heights;
+        vector<size_t> heights;
         size_t n_nulls = 0;
         nodes.push_back(root.get());
 
