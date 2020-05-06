@@ -17,6 +17,7 @@ class Table{
 
         // This just allocates the memory, no copy is done (e.g., PI)
         Table(size_t number_of_columns, size_t number_of_rows);
+
         inline void push_back(double value);
 
         inline void maybe_push_back(double value,size_t column_idx, int maybe);
