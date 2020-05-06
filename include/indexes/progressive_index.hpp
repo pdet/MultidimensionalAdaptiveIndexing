@@ -44,9 +44,9 @@ class ProgressiveIndex: public AbstractIndex {
 
   std::unique_ptr<Table> range_query(Table *originalTable,Query& query) override;
 
-  void progressive_quicksort(Table *originalTable,Query& query);
+  unique_ptr<Table> progressive_quicksort(Table *originalTable,Query& query);
 
-  //! Progressive Avl Index Root
+  //! Progressive KD-Tree Index Root
     unique_ptr<KDTree> tree;
     size_t current_position = 0;
 
@@ -58,9 +58,13 @@ class ProgressiveIndex: public AbstractIndex {
     double interactivity_threshold = 0;
     ProgressiveIndex() :  tree(nullptr), current_position(0){};
 
-    void initializeRoot(int64_t pivot, size_t tableSize) {
+    void initializeRoot(float pivot, size_t tableSize) {
         assert(!tree);
         tree = std::make_unique<KDTree>(tableSize);
+        tree->root = make_unique<KDNode>(0,pivot,0,tableSize);
     }
     double get_costmodel_delta_quicksort(std::vector<int64_t>& originalColumn, int64_t low, int64_t high, double delta);
+
+private:
+    unique_ptr<Table> progressive_quicksort_create(Table *originalTable,Query& query, ssize_t& remaining_swaps);
 };

@@ -33,3 +33,12 @@ void Column::append(float value){
     data[size] = value;
     size++;
 }
+
+void Column::maybe_append(float value, int maybe){
+    if(size == capacity){
+        this->capacity *= 2;
+        data = (float *) realloc(data, sizeof(float) * this->capacity);
+    }
+    data[size] = value;
+    size += maybe;
+}

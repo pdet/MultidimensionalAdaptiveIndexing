@@ -57,6 +57,7 @@ class TestHelper{
                 //alg->draw_index("./" + alg->name() + "/" + std::to_string(j) + ".dot");
                 auto result = alg->range_query(table.get(),workload.queries.at(j));
                 auto expected = baseline_results.at(j).get();
+
                 CHECK(expected->row_count() == result->row_count());
 
                 // check if the elements are the same

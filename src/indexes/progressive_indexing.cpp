@@ -233,54 +233,60 @@ bool isTest = false;
 //    }
 //    return results;
 //}
-//
-//ResultStruct ProgressiveIndex::progressive_quicksort_create(vector<int64_t>& column, ProgressiveIndex& progressiveIndex, ssize_t& remaining_swaps, int64_t low,
-//                                          int64_t high) {
-//    ResultStruct results;
-//    auto indexColumn = progressiveIndex.column->data;
-//    auto root = (QSAVLNode*)progressiveIndex.tree->root.get();
-//    //! for the initial run, we write the indices instead of swapping them
-//    //! because the current array has not been initialized yet
-//    //! first look through the part we have already pivoted
-//    //! for data that matches the points
-//    if (low <= root->pivot) {
-//        for (size_t i = 0; i < root->current_start; i++) {
-//            int matching = indexColumn[i] >= low && indexColumn[i] < high;
-//            results.maybe_push_back(indexColumn[i], matching);
-//        }
-//    }
-//    if (high >= root->pivot) {
-//        for (size_t i = root->current_end + 1; i < column.size(); i++) {
-//            int matching = indexColumn[i] >= low && indexColumn[i] < high;
-//            results.maybe_push_back(indexColumn[i], matching);
-//        }
-//    }
-//
-//    //! now we start filling the index with at most remaining_swap entries
-//    size_t next_index = min(progressiveIndex.current_position + remaining_swaps, column.size());
-//    remaining_swaps -= next_index - progressiveIndex.current_position;
-//    for (size_t i = progressiveIndex.current_position; i < next_index; i++) {
-//        int matching = column[i] >= low && column[i] < high;
-//        results.maybe_push_back(column[i], matching);
-//
-//        int bigger_pivot = column[i] >= root->pivot;
-//        int smaller_pivot = 1 - bigger_pivot;
-//
-//        indexColumn[root->current_start].m_key = column[i];
-//        indexColumn[root->current_start].m_rowId = i;
-//        indexColumn[root->current_end].m_key = column[i];
-//        indexColumn[root->current_end].m_rowId = i;
-//
-//        root->current_start += smaller_pivot;
-//        root->current_end -= bigger_pivot;
-//    }
-//    progressiveIndex.current_position = next_index;
-//
-//    //! Check if we are finished with the initial run
-//    if (next_index == column.size()) {
+
+unique_ptr<Table>
+ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &query, ssize_t &remaining_swaps) {
+    unique_ptr<Table> results = make_unique<Table>(query.predicate_count());
+    auto root = tree->root.get();
+    //! Creation Phase only partitions first dimension
+    size_t dim = 0;
+    size_t table_size = originalTable->row_count();
+    auto low = query.predicates[dim].low;
+    auto high = query.predicates[dim].high;
+    auto indexColumn = table->columns[dim]->data;
+    auto originalColumn = originalTable->columns[dim]->data;
+    //! for the initial run, we write the indices instead of swapping them
+    //! because the current array has not been initialized yet
+    //! first look through the part we have already pivoted
+    //! for data that matches the points
+    if (low <= root->key) {
+        for (size_t i = 0; i < root->current_start; i++) {
+            int matching = indexColumn[i] >= low && indexColumn[i] < high;
+            results->maybe_push_back(indexColumn[i], matching, dim);
+        }
+    }
+    if (high >= root->key) {
+        for (size_t i = root->current_end + 1; i < table_size; i++) {
+            int matching = indexColumn[i] >= low && indexColumn[i] < high;
+            results->maybe_push_back(indexColumn[i], matching, dim);
+        }
+
+    }
+    //! now we start filling the index with at most remaining_swap entries
+    size_t initial_low = root->current_start;
+        size_t next_index = min(current_position + remaining_swaps, table_size);
+        size_t initial_high = root->current_end;
+        remaining_swaps -= next_index - current_position;
+        for (size_t i = current_position; i < next_index; i++) {
+            int matching = indexColumn[i] >= low && indexColumn[i] < high;
+            results->maybe_push_back(indexColumn[i], matching,dim);
+
+            int bigger_pivot = indexColumn[i] >= root->key;
+            int smaller_pivot = 1 - bigger_pivot;
+
+            indexColumn[root->current_start] = originalColumn[i];
+            indexColumn[root->current_end] = originalColumn[i];
+
+            root->current_start += smaller_pivot;
+            root->current_end -= bigger_pivot;
+        }
+        current_position = next_index;
+        //! Check if we are finished with the initial run
+    if (next_index == table_size) {
+        assert(0);
 //        assert(root->current_start >= root->current_end);
-//        //! construct the left and right side of the root node
-//        int64_t pivot = progressiveIndex.column->size / 4;
+//        //! construct the left and right side of the root node on next dimension
+//        int64_t pivot = table_size / 2;
 //        size_t current_start = 0;
 //        size_t current_end = root->current_end;
 //
@@ -291,69 +297,70 @@ bool isTest = false;
 //        current_start = current_end + 1;
 //        current_end = progressiveIndex.column->size - 1;
 //        root->setRight(make_unique<QSAVLNode>(pivot, current_start, current_end));
-//    } else {
-//        //! we have done all the swapping for this run
-//        //! now we query the remainder of the data
-//        for (size_t i = progressiveIndex.current_position; i < column.size(); i++) {
-//            int matching = column[i] >= low && column[i] < high;
-//            results.maybe_push_back(column[i], matching);
-//        }
-//    }
-//    return results;
-//}
-//
-//void ProgressiveIndex::progressive_quicksort(Table *originalTable,Query& query) {
-//    //! Amount of work we are allowed to do
-//    ssize_t remaining_swaps = (ssize_t)(table->row_count() * delta);
-//
-//    //! Creation Phase
-//    //! If the node has no children we are stil in the creation phase
-//    assert(tree->root);
-//    if (tree->root->noChildren()) {
-//        //! Creation Phase
-//        //! TODO: We might still have swaps left to do after the  creation phase Need to implement a smooth transition
-//        progressive_quicksort_create(originalTable, query, remaining_swaps);
-//    } else if (!tree->root->sorted) { //! If the root is not marked as sort we still have refinement to do!
-//        //! Refinement Phase
+    } else {
+        //! we have done all the swapping for this run
+        //! now we query the remainder of the data
+        for (size_t i = current_position; i < table_size; i++) {
+            int matching = originalColumn[i] >= low && originalColumn[i] < high;
+            results->maybe_push_back(originalColumn[i], matching,dim);
+        }
+    }
+    //! Now we have to filter the remaining columns
+    for(dim = 1; dim < query.predicate_count(); ++dim){
+        low = query.predicates[dim].low;
+        high = query.predicates[dim].high;
+        auto indexColumn = table->columns[dim]->data;
+        auto originalColumn = originalTable->columns[dim]->data;
+        //! First we copy the elements of the other columns, until where we stopped skipping
+        for (size_t i = 0)
+
+    }
+    //! We scan the rest
+    return results;
+}
+
+unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Table *originalTable, Query &query) {
+    //! Amount of work we are allowed to do
+    ssize_t remaining_swaps = (ssize_t) (table->row_count() * delta);
+
+    //! Creation Phase
+    //! If the node has no children we are stil in the creation phase
+    assert(tree->root);
+    if (tree->root->noChildren()) {
+        //! Creation Phase
+        return progressive_quicksort_create(originalTable, query, remaining_swaps);
+    }
+    else if (!tree->root->finished) { //! If the root is not marked as sort we still have refinement to do!
+        //! Refinement Phase
+        assert(0);
 //        progressive_quicksort_refine(query, remaining_swaps);
-//    }
-//    //! We are in the consolidation phase no more indexing to be done.
-//}
-//
-//void ProgressiveIndex::progressive_scan(Table *originalTable,Query& query) {
-//  assert(tree->root);
-//  if (tree->root->noChildren()) {
-//    //! Creation Phase Scan
-//    progressive_quicksort_create(originalTable, query);
-//  } else {
-//    //! Regular Scan
-//    progressive_quicksort_refine(query);
-//  }
-//}
+    }
+    //! We are in the consolidation phase no more indexing to be done, just scan it.
+    assert(0);
+}
 
-
-double ProgressiveIndex::get_costmodel_delta_quicksort(vector<int64_t>& originalColumn, int64_t low, int64_t high, double delta) {
-return 0.0;
+double ProgressiveIndex::get_costmodel_delta_quicksort(vector<int64_t> &originalColumn, int64_t low, int64_t high,
+                                                       double delta) {
+    return 0.0;
 }
 
 //! Here we just malloc the table and initialize the root
-void ProgressiveIndex::initialize(Table *table_to_copy){
-  auto start = measurements->time();
-  //! FIXME: Guarantee that pivot is avg
-  table = make_unique<Table>(table_to_copy->col_count(),table_to_copy->row_count());
-  initializeRoot(table_to_copy->row_count()/2,table_to_copy->row_count());
-  auto end = measurements->time();
-  measurements->append(
-      "initialization_time",
-      std::to_string(Measurements::difference(end, start))
-  );
+void ProgressiveIndex::initialize(Table *table_to_copy) {
+    auto start = measurements->time();
+    table = make_unique<Table>(table_to_copy->col_count(), table_to_copy->row_count());
+    initializeRoot(table_to_copy->row_count() / 2, table_to_copy->row_count());
+    auto end = measurements->time();
+    measurements->append(
+            "initialization_time",
+            std::to_string(Measurements::difference(end, start))
+    );
 }
 
-void ProgressiveIndex::adapt_index(Table *originalTable,Query& query){
-
-
+//! Here we don't do anything since adapt and scan are the same process in progressive indexing
+void ProgressiveIndex::adapt_index(Table *originalTable, Query &query) {
+    return;
 }
 
-unique_ptr<Table> ProgressiveIndex::range_query(Table *originalTable,Query& query){
-
+unique_ptr<Table> ProgressiveIndex::range_query(Table *originalTable, Query &query) {
+    return progressive_quicksort(originalTable, query);
 }

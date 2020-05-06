@@ -16,8 +16,7 @@ UniformGenerator::UniformGenerator(
 
 void UniformGenerator::generate(std::string table_path, std::string query_path){
     // Generate Data
-    std::random_device rand_dev;
-    std::mt19937 generator(rand_dev());
+    std::mt19937 generator(0);
     std::uniform_int_distribution<int> distr(0, n_rows);
 
     for(size_t i = 0; i < n_rows; ++i){
@@ -34,8 +33,7 @@ void UniformGenerator::generate(std::string table_path, std::string query_path){
     // Generator Queries
     float per_column_selectivity = std::pow(selectivity, 1.0/n_dimensions);
 
-    std::random_device rand_dev_query;
-    std::mt19937 generator_query(rand_dev_query());
+    std::mt19937 generator_query(1);
     std::uniform_int_distribution<int> distr_query(
         0, n_rows*(1-per_column_selectivity)
     );
