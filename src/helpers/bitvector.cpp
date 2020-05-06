@@ -8,7 +8,6 @@ BitVector::BitVector() {
     bits = nullptr;
 }
 BitVector::BitVector(size_t number_of_bits) : number_of_bits(number_of_bits){
-    assert(number_of_bits >= 0);
     // need to watch out for integer division
     vector_size = ceil(number_of_bits/static_cast<float>(type_size));
     bits = new b_type[vector_size];
@@ -20,7 +19,6 @@ BitVector::BitVector(size_t number_of_bits) : number_of_bits(number_of_bits){
 
 BitVector::BitVector(size_t number_of_bits, bool default_value)
 : number_of_bits(number_of_bits){
-    assert(number_of_bits >= 0);
     // need to watch out for integer division
     vector_size = ceil(number_of_bits/static_cast<float>(type_size));
     bits = new b_type[vector_size];

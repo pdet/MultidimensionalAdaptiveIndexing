@@ -1,8 +1,6 @@
 #include "full_scan.hpp"
 #include <vector>
 #include <cassert>
-#include <iostream>
-#include "bitvector.hpp"
 
 using namespace std;
 
@@ -61,53 +59,4 @@ std::unique_ptr<Table>  FullScan::range_query(Table *originalTable,Query& query)
     );
 
     return result;
-}
-
-unique_ptr<Table> FullScan::scan_partition(
-    Table *t,
-    Query& query,
-    std::vector<std::pair<size_t, size_t> >& partitions,
-    std::vector<bool>& partition_skip
-){
-    assert(partitions.size() == partition_skip.size());
-    auto table_to_store_results = make_unique<Table>(1); 
-    for(size_t partition_index = 0; partition_index < partitions.size(); ++partition_index){
-        auto low = partitions[partition_index].first;
-        auto high = partitions[partition_index].second;
-
-        if(partition_skip[partition_index]){
-            for(size_t j = low; j < high; ++j){
-                table_to_store_results->append(
-                        &(t->columns[0]->data[j])
-                        );
-            }
-        }else{
-            BitVector bit_vector(high-low, 1);
-
-            for(size_t col = 0; col < t->col_count(); ++col){
-                BitVector temp_bit_vector(high-low, 0);
-                auto low_pred = query.predicates[col].low;
-                auto high_pred = query.predicates[col].high;
-
-                for(size_t i = 0; i < bit_vector.size(); i++){
-                    auto value = t->columns[col]->data[i + low];
-                    if(low_pred <= value && value <= high_pred){
-                        temp_bit_vector.set(i);
-                    }
-                }
-
-                bit_vector.bitwise_and(temp_bit_vector);
-            }
-
-            for(size_t i = 0; i < bit_vector.size(); ++i){
-                if(bit_vector.get(i) == true){
-                    table_to_store_results->append(
-                            &(t->columns[0]->data[low + i])
-                            );
-                }
-            }
-        }
-    }
-    return table_to_store_results;
-
 }
