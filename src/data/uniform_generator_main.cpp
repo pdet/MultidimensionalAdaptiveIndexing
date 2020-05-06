@@ -46,27 +46,26 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    
+bool error = false;
     if(n_of_rows == -1){
-        std::cout << "Errors:" << std::endl;
         std::cout << "-r <n_of_rows> required" << std::endl;
-        usage();
-        exit(-1);
+        error = true;
     }
     if(dimensions == -1){
-        std::cout << "Errors:" << std::endl;
         std::cout << "-d <dimensions> required" << std::endl;
-        usage();
-        exit(-1);
+        error = true;
     }
     if(selectivity == -1){
-        std::cout << "Errors:" << std::endl;
         std::cout << "-s <selectivity> required" << std::endl;
-        usage();
-        exit(-1);
+        error = true;
     }
     if(number_of_queries == -1){
-        std::cout << "Errors:" << std::endl;
         std::cout << "-q <number_of_queries> required" << std::endl;
+        error = true;   
+    }
+
+    if(error){
         usage();
         exit(-1);
     }
