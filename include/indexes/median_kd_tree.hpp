@@ -32,14 +32,14 @@ public:
 
 private:
     std::unique_ptr<KDTree> index;
-    int64_t minimum_partition_size = 100;
+    size_t minimum_partition_size = 100;
 
     void initialize_index();
-    void initialize_index_recursion(KDNode* current, int64_t lower_limit, int64_t upper_limit, int64_t column);
+    void initialize_index_recursion(KDNode* current, size_t lower_limit, size_t upper_limit, size_t column);
 
-    std::pair<float, int64_t> find_median(int64_t column, int64_t lower_limit, int64_t upper_limit);
+    std::pair<float, size_t> find_median(size_t column, size_t lower_limit, size_t upper_limit);
 
     // Returns the position on where the pivot would end
-    int64_t pivot_table(int64_t column, int64_t low, int64_t high, float pivot, int64_t pivot_position);
+    size_t pivot_table(size_t column, size_t low, size_t high, float pivot, size_t pivot_position);
 };
 #endif // MEDIAN_KD_TREE_H

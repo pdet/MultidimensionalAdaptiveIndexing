@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.11)
 project(MultidimensionalAdaptiveIndex)
 set (CMAKE_CXX_STANDARD 14)
-add_definitions("-Wall")
+add_definitions("-Wall -Wextra -Wpedantic")
+
+# generate a compilation database
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 # Setting output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
@@ -20,7 +23,9 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/query.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/workload.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/table.cpp
+            ${CMAKE_SOURCE_DIR}/src/helpers/bitvector.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/full_scan.cpp
+            ${CMAKE_SOURCE_DIR}/src/indexes/full_scan_candidate_list.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/full_scan_slow.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/progressive_indexing.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/median_kd_tree.cpp

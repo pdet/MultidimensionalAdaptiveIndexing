@@ -18,14 +18,15 @@ void UniformGenerator::generate(std::string table_path, std::string query_path){
     // Generate Data
     std::random_device rand_dev;
     std::mt19937 generator(rand_dev());
-    std::uniform_int_distribution<int> distr(0, n_rows);
+    std::uniform_int_distribution<float> distr(0, n_rows);
 
-    for(int64_t i = 0; i < n_rows; ++i){
-        std::vector<float> row(n_dimensions);
-        for(int64_t j = 0; j < n_dimensions; ++j){
-           row.at(j) = distr(generator); 
+    for(size_t i = 0; i < n_rows; ++i){
+        float* row = new float[n_dimensions];
+        for(size_t j = 0; j < n_dimensions; ++j){
+           row[j] = distr(generator); 
         }
-        table->append(&(row[0]));
+        table->append(row);
+        delete[] row;
     }
 
     table->save_file(table_path);
@@ -35,16 +36,16 @@ void UniformGenerator::generate(std::string table_path, std::string query_path){
 
     std::random_device rand_dev_query;
     std::mt19937 generator_query(rand_dev_query());
-    std::uniform_int_distribution<int> distr_query(
+    std::uniform_int_distribution<float> distr_query(
         0, n_rows*(1-per_column_selectivity)
     );
 
-    for(int64_t i = 0; i < n_queries; ++i){
+    for(size_t i = 0; i < n_queries; ++i){
         std::vector<float> lows(n_dimensions);
         std::vector<float> highs(n_dimensions);
-        std::vector<int64_t> cols(n_dimensions);
+        std::vector<size_t> cols(n_dimensions);
 
-        for(int64_t j = 0; j < n_dimensions; ++j){
+        for(size_t j = 0; j < n_dimensions; ++j){
             lows.at(j) = distr_query(generator_query);
             highs.at(j) = lows.at(j) + (int64_t)(n_rows * per_column_selectivity);
             cols.at(j) = j;

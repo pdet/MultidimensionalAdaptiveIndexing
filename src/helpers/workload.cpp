@@ -24,9 +24,9 @@ Workload Workload::read_file(string path){
         getline(file, high_line);
         getline(file, col_line);
 
-        auto lows = SplitString<float>::split(low_line, ' ');
-        auto highs = SplitString<float>::split(high_line, ' ');
-        auto cols = SplitString<int64_t>::split(col_line, ' ');
+        auto lows = SplitString<float>::split(low_line, " ");
+        auto highs = SplitString<float>::split(high_line, " ");
+        auto cols = SplitString<size_t>::split(col_line, " ");
 
         workload.append(
             Query(lows, highs, cols)
@@ -45,7 +45,7 @@ void Workload::save_file(string path){
     for(auto& query : queries){
         auto dimensions = query.predicate_count();
         // Write the lows
-        for(int64_t j = 0; j < query.predicate_count(); ++j){
+        for(size_t j = 0; j < query.predicate_count(); ++j){
            file << query.predicates.at(j).low; 
            if(j + 1 != dimensions)
                file << " ";
@@ -53,7 +53,7 @@ void Workload::save_file(string path){
         file << std::endl;
 
         // Write the highs
-        for(int64_t j = 0; j < query.predicate_count(); ++j){
+        for(size_t j = 0; j < query.predicate_count(); ++j){
            file << query.predicates.at(j).high; 
            if(j + 1 != dimensions)
                file << " ";
@@ -61,7 +61,7 @@ void Workload::save_file(string path){
         file << std::endl;
 
         // Write the cols
-        for(int64_t j = 0; j < query.predicate_count(); ++j){
+        for(size_t j = 0; j < query.predicate_count(); ++j){
            file << query.predicates.at(j).column; 
            if(j + 1 != dimensions)
                file << " ";
@@ -71,6 +71,6 @@ void Workload::save_file(string path){
     file.close();
 }
 
-const size_t Workload::query_count(){
+size_t Workload::query_count() const{
     return queries.size();
 }

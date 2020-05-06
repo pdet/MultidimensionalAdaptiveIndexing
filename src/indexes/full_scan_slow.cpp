@@ -3,7 +3,7 @@
 
 using namespace std;
 
-FullScanSlow::FullScanSlow(std::map<std::string, std::string> config){}
+FullScanSlow::FullScanSlow(std::map<std::string, std::string> /*config*/){}
 FullScanSlow::~FullScanSlow(){}
 
 void FullScanSlow::initialize(Table *table_to_copy){
@@ -65,10 +65,10 @@ unique_ptr<Table> FullScanSlow::scan_partition(
         std::vector<bool>& partition_skip
 ){
     assert(partitions.size() == partition_skip.size());
-    auto table_to_store_results = make_unique<Table>(1);
-    for(auto i = 0; i < partitions.size(); ++i){
-        auto low = partitions[i].first;
-        auto high = partitions[i].second;
+    auto table_to_store_results = make_unique<Table>(1); 
+    for(size_t partition_index = 0; partition_index < partitions.size(); ++partition_index){
+        auto low = partitions[partition_index].first;
+        auto high = partitions[partition_index].second;
         std::vector<int64_t> qualifying_rows;
         qualifying_rows.reserve(high - low + 1);
 

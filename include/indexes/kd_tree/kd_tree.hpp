@@ -1,7 +1,8 @@
 #ifndef KDTREE_H
 #define KDTREE_H
 
-#include "../../helpers/query.hpp"
+#include "query.hpp"
+#include "table.hpp"
 #include "kd_node.hpp"
 
 #include <iostream>
@@ -11,51 +12,55 @@
 #include <limits>
 #include <string>
 
-namespace std{
+class KDTree
+{
+    public:
 
-    class KDTree
-    {
-        public:
-
-            unique_ptr<KDNode> root; // Root of the tree
-            int64_t row_count;
+        unique_ptr<KDNode> root; // Root of the tree
+        size_t row_count;
 
 
-            KDTree(int64_t row_count);
-            ~KDTree();
+        KDTree(size_t row_count);
+        ~KDTree();
 
-            
-            pair<vector<pair<int64_t, int64_t>>, vector<bool>>
-            search(Query& query);
 
-            unique_ptr<KDNode> create_node(int64_t column, float key, int64_t position);
+        std::pair<std::vector<std::pair<size_t, size_t>>, std::vector<bool>>
+        search(Query& query);
 
-            int64_t get_node_count();
+        std::unique_ptr<KDNode> create_node(size_t column, float key, size_t position);
 
-            int64_t get_max_height();
+        size_t get_node_count();
 
-            int64_t get_min_height();
+        size_t get_max_height();
 
-            void draw(std::string path);
+        size_t get_min_height();
 
-        private:
+        void draw(std::string path);
 
-            int64_t number_of_nodes = 0;
+        bool sanity_check(Table* table);
 
-            void search_recursion(
-                    KDNode *current,
-                    int64_t lower_limit,
-                    int64_t upper_limit,
-                    Query& query,
-                    vector<pair<int64_t, int64_t>> &partitions,
-                    vector<bool> &partition_skip,
-                    vector<pair<float, float>> partition_borders
-                    );
-            // Checks if a partition is completely inside the query
-            bool partition_inside_query(
-                    Query& query,
-                    vector<pair<float, float>> &partition_borders
-                    );
-    };
-}
+    private:
+
+        size_t number_of_nodes = 0;
+
+        void search_recursion(
+                KDNode *current,
+                size_t lower_limit,
+                size_t upper_limit,
+                Query& query,
+                std::vector<std::pair<size_t, size_t>> &partitions,
+                std::vector<bool> &partition_skip,
+                std::vector<std::pair<float, float>> partition_borders
+                );
+        // Checks if a partition is completely inside the query
+        bool partition_inside_query(
+                Query& query,
+                std::vector<std::pair<float, float>> &partition_borders
+                );
+        bool sanity_check_recursion(
+                Table* table, KDNode* current,
+                size_t low, size_t high,
+                std::vector<std::pair<float, float>> partition_borders
+                );
+};
 #endif // KDTREE_H

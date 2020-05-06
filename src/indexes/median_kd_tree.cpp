@@ -1,6 +1,6 @@
-#include "kd_tree/kd_tree.hpp"
-#include "full_scan.hpp"
 #include "median_kd_tree.hpp"
+#include "kd_tree.hpp"
+#include "full_scan.hpp"
 
 using namespace std;
 
@@ -11,7 +11,6 @@ MedianKDTree::MedianKDTree(std::map<std::string, std::string> config){
         minimum_partition_size = std::stoi(config["minimum_partition_size"]);
 }
 MedianKDTree::~MedianKDTree(){}
-
 
 void MedianKDTree::initialize(Table *table_to_copy){
     // ******************
@@ -24,6 +23,8 @@ void MedianKDTree::initialize(Table *table_to_copy){
     initialize_index();
 
     auto end = measurements->time();
+
+
 
     measurements->append(
         "initialization_time",
@@ -83,7 +84,7 @@ unique_ptr<Table> MedianKDTree::range_query(Table *originalTable,Query& query){
     measurements->append("partitions_scanned", std::to_string(partitions.size()));
 
     auto skips = 0;
-    for(auto i = 0; i < partition_skip.size(); ++i){
+    for(size_t i = 0; i < partition_skip.size(); ++i){
         if(partition_skip.at(i)){
             skips += 1;
         }
@@ -111,7 +112,7 @@ void MedianKDTree::initialize_index(){
 }
 
 void MedianKDTree::initialize_index_recursion(
-    KDNode* current, int64_t lower_limit, int64_t upper_limit, int64_t column
+    KDNode* current, size_t lower_limit, size_t upper_limit, size_t column
 ){
     auto new_col = (column + 1) % table->col_count();
     if(current->position - lower_limit > minimum_partition_size){
@@ -147,10 +148,10 @@ void MedianKDTree::initialize_index_recursion(
     }
 }
 
-pair<float, int64_t> MedianKDTree::find_median(int64_t column, int64_t lower_limit, int64_t upper_limit){
-    int64_t low = lower_limit;
-    int64_t high = upper_limit - 1;
-    int64_t position;
+pair<float, size_t > MedianKDTree::find_median(size_t column, size_t lower_limit, size_t upper_limit){
+    auto low = lower_limit;
+    auto high = upper_limit - 1;
+    size_t position;
     float element;
 
     do{
@@ -185,7 +186,7 @@ pair<float, int64_t> MedianKDTree::find_median(int64_t column, int64_t lower_lim
 }
 
 // Returns the position on where the pivot would end
-int64_t MedianKDTree::pivot_table(int64_t column, int64_t low, int64_t high, float pivot, int64_t pivot_position)
+size_t MedianKDTree::pivot_table(size_t column, size_t low, size_t high, float pivot, size_t pivot_position)
 {
 //  This method only works if we use the last element as the pivot
 //  So we change the pivot to the last position
@@ -193,7 +194,7 @@ int64_t MedianKDTree::pivot_table(int64_t column, int64_t low, int64_t high, flo
 
     int64_t i = low - 1;
 
-    for (int64_t j = low; j < high; ++j)
+    for (size_t j = low; j < high; ++j)
     {
         if (table->columns[column]->data[j] <= pivot)
         {

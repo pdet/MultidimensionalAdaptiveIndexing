@@ -11,7 +11,7 @@ public:
     size_t capacity;
     Column(float* column_to_copy, size_t column_size);
 
-    Column(size_t size);
+    Column(size_t capacity);
 
     Column();
 

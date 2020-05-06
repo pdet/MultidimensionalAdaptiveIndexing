@@ -7,23 +7,49 @@
 #include <iostream>
 #include <sstream>
 
-namespace std {
-    template <class T>
-        class SplitString 
+template <class T>
+class SplitString 
+{
+    public:
+        static std::vector<T> split(const std::string& s, std::string delimiter)
         {
-            public:
-                static vector<T> split(const string& s, char delimiter)
-                {
-                    string buf;                         // Have a buffer string
-                    stringstream ss(s.c_str());         // Insert the string into a stream
+            size_t pos_start = 0;
+            size_t pos_end;
+            size_t delim_len = delimiter.length();
+            std::string token;
+            std::vector<T> res;
 
-                    vector<T> tokens;               // Create vector to hold our words
+            while ((pos_end = s.find (delimiter, pos_start)) != std::string::npos) {
+                token = s.substr (pos_start, pos_end - pos_start);
+                pos_start = pos_end + delim_len;
+                if(token.size() == 0) continue;
+                res.push_back (SplitString<T>::from_string(token));
+            }
 
-                    while (ss >> buf)
-                        tokens.push_back(atof(buf.c_str()));
+            res.push_back(SplitString<T>::from_string(s.substr (pos_start)));
+            return res;
+        }
 
-                    return tokens;
-                }
-        };
+        static T from_string(const std::string &s);
+};
+
+
+template<>
+inline int64_t SplitString<int64_t>::from_string(const std::string &s)
+{
+    return std::stoi(s);
 }
-#endif // SPLIT_STRING_H
+
+template<>
+inline size_t SplitString<size_t>::from_string(const std::string &s)
+{
+    return std::stoi(s);
+}
+
+template<>
+inline float SplitString<float>::from_string(const std::string &s)
+{
+    return std::stof(s);
+}
+
+#endif //SPLIT_STRING_H

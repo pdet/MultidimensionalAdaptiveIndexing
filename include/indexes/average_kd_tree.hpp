@@ -1,7 +1,7 @@
 #ifndef AVERAGE_KD_TREE_H
 #define AVERAGE_KD_TREE_H
 
-#include "kd_tree/kd_tree.hpp"
+#include "kd_tree.hpp"
 #include "full_scan.hpp"
 #include "abstract_index.hpp"
 #include <string>
@@ -30,11 +30,11 @@ public:
 
 private:
     std::unique_ptr<KDTree> index;
-    int64_t minimum_partition_size = 100;
+    size_t minimum_partition_size = 100;
 
     void initialize_index();
-    void initialize_index_recursion(KDNode* current, int64_t lower_limit, int64_t upper_limit, int64_t column);
+    void initialize_index_recursion(KDNode* current, size_t lower_limit, size_t upper_limit, size_t column);
 
-    pair<float, int64_t> find_average(int64_t column, int64_t lower_limit, int64_t upper_limit);
+    pair<float, size_t> find_average(size_t column, size_t lower_limit, size_t upper_limit);
 };
 #endif // AVERAGE_KD_TREE_H

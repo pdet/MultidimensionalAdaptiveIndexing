@@ -30,24 +30,24 @@ public:
 private:
     std::vector<Slice> first_level_slices;
 
-    int64_t last_level_threshold = 2000;
-    std::vector<int64_t> dimensions_threshold;
+    size_t last_level_threshold = 2000;
+    std::vector<size_t> dimensions_threshold;
 
-    int64_t count_slices(std::vector<Slice> &slices);
+    size_t count_slices(std::vector<Slice> &slices);
 
     void adapt(Query& query);
 
-    pair<vector<pair<int64_t, int64_t>>, vector<bool>>
+    pair<vector<pair<size_t, size_t>>, vector<bool>>
     search(Query& query);
     int64_t binarySearch(const std::vector<Slice> &slice, float key);
     void search_recursion(
             Slice &slice,
             Query &query,
-            vector<pair<int64_t, int64_t>> &partitions,
+            vector<pair<size_t, size_t>> &partitions,
             vector<bool> &partition_skip,
             vector<pair<float, float>> partition_borders
             );
-    int64_t predicate_index(int64_t column, Query &query);
+    size_t predicate_index(size_t column, Query &query);
 
     void calculate_level_thresholds();
 

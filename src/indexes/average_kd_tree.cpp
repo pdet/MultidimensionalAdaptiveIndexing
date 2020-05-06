@@ -1,6 +1,6 @@
-#include "kd_node.hpp"
-#include "full_scan.hpp"
 #include "average_kd_tree.hpp"
+#include "kd_tree.hpp"
+#include "full_scan.hpp"
 
 using namespace std;
 
@@ -82,7 +82,7 @@ unique_ptr<Table>  AverageKDTree::range_query(Table *originalTable,Query& query)
     measurements->append("partitions_scanned", std::to_string(partitions.size()));
 
     auto skips = 0;
-    for(auto i = 0; i < partition_skip.size(); ++i){
+    for(size_t i = 0; i < partition_skip.size(); ++i){
         if(partition_skip.at(i)){
             skips += 1;
         }
@@ -111,16 +111,16 @@ void AverageKDTree::initialize_index(){
 }
 
 void AverageKDTree::initialize_index_recursion(
-    KDNode* current, int64_t lower_limit, int64_t upper_limit, int64_t column
+    KDNode* current, size_t lower_limit, size_t upper_limit, size_t column
 ){
     auto new_col = (column + 1) % table->col_count();
     if(current->position - lower_limit > minimum_partition_size){
-        auto average_result = find_average(new_col, lower_limit, current->position);
+        auto average_result = find_average(column, lower_limit, current->position);
         auto average = average_result.first;
         auto position = average_result.second;
 
-        if(position > lower_limit && position < upper_limit - 1){
-            current->left_child = index->create_node(new_col, average, position);
+        if(!(position < lower_limit || position >= current->position)){
+            current->left_child = index->create_node(column, average, position);
 
             initialize_index_recursion(
                     current->left_child.get(),
@@ -131,12 +131,12 @@ void AverageKDTree::initialize_index_recursion(
     }
 
     if(upper_limit - current->position > minimum_partition_size){
-        auto average_result = find_average(new_col, current->position, upper_limit);
+        auto average_result = find_average(column, current->position, upper_limit);
         auto average = average_result.first;
         auto position = average_result.second;
 
-        if(position > lower_limit && position < upper_limit - 1){
-            current->right_child = index->create_node(new_col, average, position);
+        if(!(position < current->position || position >= upper_limit)){
+            current->right_child = index->create_node(column, average, position);
 
             initialize_index_recursion(
                     current->right_child.get(),
@@ -147,9 +147,9 @@ void AverageKDTree::initialize_index_recursion(
     }
 }
 
-pair<float, int64_t> AverageKDTree::find_average(int64_t column, int64_t lower_limit, int64_t upper_limit){
+pair<float, size_t> AverageKDTree::find_average(size_t column, size_t lower_limit, size_t upper_limit){
     float sum = 0.0;
-    for (int64_t i = lower_limit; i < upper_limit; i++)
+    for (size_t i = lower_limit; i < upper_limit; i++)
         sum += table->columns[column]->data[i];
 
     auto average = sum/static_cast<float>(upper_limit-lower_limit+1);

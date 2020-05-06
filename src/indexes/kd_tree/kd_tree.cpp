@@ -8,20 +8,19 @@
 #include <limits>
 #include <fstream>
 #include <map>
+#include "full_scan.hpp"
 
 using namespace std;
 
-KDTree::KDTree(int64_t row_count) : row_count(row_count){
-    root = nullptr;
-}
+KDTree::KDTree(size_t row_count) : root(nullptr), row_count(row_count){}
 KDTree::~KDTree(){}
 
 void KDTree::search_recursion(
     KDNode *current,
-    int64_t lower_limit,
-    int64_t upper_limit,
+    size_t lower_limit,
+    size_t upper_limit,
     Query& query,
-    vector<pair<int64_t, int64_t>> &partitions,
+    vector<pair<size_t, size_t>> &partitions,
     vector<bool> &partition_skip,
     vector<pair<float, float>> partition_borders
 ){
@@ -118,13 +117,13 @@ void KDTree::search_recursion(
     }
 }
 
-pair<vector<pair<int64_t, int64_t>>, vector<bool>>
+pair<vector<pair<size_t, size_t>>, vector<bool>>
 KDTree::search(Query& query){
-    vector<pair<int64_t, int64_t>> partitions;
+    vector<pair<size_t, size_t>> partitions;
     vector<bool> partition_skip;
     if(root == nullptr){
         partitions.push_back(
-            make_pair(0, row_count-1)
+            make_pair(0u, row_count-1u)
         );
         partition_skip.push_back(false);
         return make_pair(partitions, partition_skip);
@@ -146,7 +145,7 @@ KDTree::search(Query& query){
     return make_pair(partitions, partition_skip);
 }
 
-unique_ptr<KDNode> KDTree::create_node(int64_t column, float key, int64_t position){
+unique_ptr<KDNode> KDTree::create_node(size_t column, float key, size_t position){
     auto node = make_unique<KDNode>(
                 column, key, position 
             );
@@ -154,17 +153,17 @@ unique_ptr<KDNode> KDTree::create_node(int64_t column, float key, int64_t positi
     return node;
 }
 
-int64_t KDTree::get_node_count(){
+size_t KDTree::get_node_count(){
     return number_of_nodes;
 }
 
-int64_t KDTree::get_max_height(){
+size_t KDTree::get_max_height(){
     if(root == nullptr)
         return 0;
     vector<KDNode*> nodes;
-    vector<int64_t> heights;
+    vector<size_t> heights;
 
-    int64_t max_height = 0;
+    size_t max_height = 0;
 
     nodes.push_back(root.get());
     heights.push_back(1);
@@ -195,14 +194,14 @@ int64_t KDTree::get_max_height(){
     return max_height;
 }
 
-int64_t KDTree::get_min_height(){
+size_t KDTree::get_min_height(){
     if(root == nullptr)
         return 0;
 
     vector<KDNode*> nodes;
-    vector<int64_t> heights;
+    vector<size_t> heights;
 
-    int64_t min_height = numeric_limits<int64_t>::max();
+    size_t min_height = numeric_limits<size_t>::max();
 
     nodes.push_back(root.get());
     heights.push_back(1);
@@ -242,7 +241,7 @@ void KDTree::draw(std::string path){
     if(root != nullptr){
 
         vector<KDNode*> nodes;
-        vector<int64_t> heights;
+        vector<size_t> heights;
         size_t n_nulls = 0;
         nodes.push_back(root.get());
 
@@ -296,3 +295,54 @@ void KDTree::draw(std::string path){
     myfile << "\n}";
     myfile.close();
 }
+
+bool KDTree::sanity_check_recursion(
+    Table* table, KDNode* current,
+    size_t low, size_t high,
+    vector<pair<float, float>> partition_borders
+){
+    if(current == nullptr){
+        // Scan Partition
+        // Transform partition_borders to query
+        auto query = Query(partition_borders);
+        // Scan using Full Scan
+        vector<pair<size_t, size_t>> partition;
+        partition.push_back(make_pair(low, high));
+
+        vector<bool> skip(1, false);
+
+        auto result = FullScan::scan_partition(table, query, partition, skip);
+        // Check if the number of returned tuples is equal to the number
+        //  of tuples in the partition
+        return result->row_count() == (high - low);
+    }
+
+    auto temporary_max = partition_borders.at(current->column).second;
+
+    partition_borders.at(current->column).second = current->key;
+    auto left_sanity = sanity_check_recursion(
+            table, current->left_child.get(),
+            low, current->position,
+            partition_borders
+            );
+
+    partition_borders.at(current->column).first = current->key;
+    partition_borders.at(current->column).second = temporary_max;
+    auto right_sanity = sanity_check_recursion(
+            table, current->right_child.get(),
+            current->position, high,
+            partition_borders
+        );
+    return left_sanity && right_sanity;
+}
+
+bool KDTree::sanity_check(Table* table){
+    vector<pair<float, float>> partition_borders(table->col_count());
+    for(size_t i = 0; i < table->col_count(); ++i){
+        partition_borders.at(i) = make_pair(
+                numeric_limits<float>::lowest(),
+                numeric_limits<float>::max()
+                );
+    }
+    return sanity_check_recursion(table, root.get(), 0, row_count, partition_borders); 
+   }
