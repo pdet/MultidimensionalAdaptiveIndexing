@@ -18,9 +18,9 @@ public:
 
     void initialize(Table *table_to_copy) override;
 
-    void adapt_index(Query& query) override;
+    void adapt_index(Table *originalTable, Query& query) override;
 
-    std::unique_ptr<Table> range_query(Query& query) override;
+    std::unique_ptr<Table> range_query(Table *originalTable,Query& query) override;
 
     static std::unique_ptr<Table> scan_partition(
             Table *t,

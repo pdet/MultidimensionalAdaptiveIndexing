@@ -23,7 +23,6 @@ void FullScan::initialize(Table *table_to_copy){
     );
 }
 
-void FullScan::adapt_index(Query& /*query*/){
 void FullScan::adapt_index(Table *originalTable,Query& query){
     // Zero adaptation for full scan
     measurements->append(
