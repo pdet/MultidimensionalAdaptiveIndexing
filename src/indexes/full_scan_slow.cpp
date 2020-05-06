@@ -62,9 +62,8 @@ unique_ptr<Table> FullScanSlow::scan_partition(
         Table *t,
         Query& query,
         std::vector<std::pair<int64_t, int64_t> >& partitions,
-        std::vector<bool>& partition_skip
+        std::vector<bool>& /*partition_skip*/
 ){
-    assert(partitions.size() == partition_skip.size());
     auto table_to_store_results = make_unique<Table>(1); 
     for(size_t partition_index = 0; partition_index < partitions.size(); ++partition_index){
         auto low = partitions[partition_index].first;
