@@ -28,6 +28,10 @@ public:
         index->draw(path);
     }
 
+    bool sanity_check() override{
+        return index->sanity_check(table.get());
+    }
+
 private:
     std::unique_ptr<KDTree> index;
     size_t minimum_partition_size = 100;

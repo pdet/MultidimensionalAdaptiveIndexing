@@ -54,6 +54,7 @@ class TestHelper{
 
             alg->initialize(table.get());
             for(size_t j = 0; j < workload.query_count(); ++j){
+                CHECK(alg->sanity_check());
                 alg->adapt_index(workload.queries.at(j));
                 //alg->draw_index("./" + alg->name() + "/" + std::to_string(j) + ".dot");
                 auto result = alg->range_query(workload.queries.at(j));

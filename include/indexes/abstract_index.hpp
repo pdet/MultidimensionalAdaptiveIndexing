@@ -26,5 +26,6 @@ public:
     virtual std::unique_ptr<Table> range_query(Query& query) = 0;
     virtual std::string name() = 0;
     virtual void draw_index(std::string){}
+    virtual bool sanity_check(){return true;}
 };
 #endif // ABSTRACT_INDEX_H
