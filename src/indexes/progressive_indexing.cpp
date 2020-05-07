@@ -257,71 +257,75 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
     //! We start by getting a candidate list to the upper part of our indexed table
     if (low <= root->key) {
         for (size_t i = 0; i < root->current_start; i++) {
-            int matching = indexColumn[i] >= low && indexColumn[i] < high;
-            if (matching) {
-                up.push_back(i);
+            int matching = indexColumn[i] >= low && indexColumn[i] <= high;
+            up.maybe_push_back(i,matching);
+        }
+        for (dim = 1; dim < query.predicate_count(); ++dim) {
+            if (up.size == 0) {
+                break;
             }
+            CandidateList new_up(up.size);
+            low = query.predicates[dim].low;
+            high = query.predicates[dim].high;
+            indexColumn = table->columns[dim]->data;
+            for (size_t i = 0; i < up.size; i++) {
+                int matching = indexColumn[up.get(i)] >= low && indexColumn[up.get(i)] <= high;
+                new_up.maybe_push_back(up.get(i), matching);
+            }
+            up.initialize(new_up);
         }
     }
-    for (dim = 1; dim < query.predicate_count(); ++dim) {
-        CandidateList new_up(up.size);
+
+    CandidateList down;
+    //! We now get a candidate list to the bottom part of our indexed table
+    if (high >= root->key) {
+        dim = 0;
         low = query.predicates[dim].low;
         high = query.predicates[dim].high;
         indexColumn = table->columns[dim]->data;
-        for (size_t i = 0; i < up.size; i++) {
-            int matching = indexColumn[up.get(i)] >= low && indexColumn[up.get(i)] < high;
-            new_up.maybe_push_back(i, matching);
-        }
-        up.initialize(new_up);
-    }
-    CandidateList down;
-
-    //! We now get a candidate list to the bottom part of our indexed table
-    dim = 0;
-    low = query.predicates[dim].low;
-    high = query.predicates[dim].high;
-    indexColumn = table->columns[dim]->data;
-    if (high >= root->key) {
         for (size_t i = root->current_end + 1; i < table_size; i++) {
-            int matching = indexColumn[i] >= low && indexColumn[i] < high;
+            int matching = indexColumn[i] >= low && indexColumn[i] <= high;
             down.maybe_push_back(i, matching);
         }
-
-    }
-    for (dim = 1; dim < query.predicate_count(); ++dim) {
-        CandidateList new_down(down.size);
-        low = query.predicates[dim].low;
-        high = query.predicates[dim].high;
-        indexColumn = table->columns[dim]->data;
-        for (size_t i = 0; i < up.size; i++) {
-            int matching = indexColumn[up.get(i)] >= low && indexColumn[up.get(i)] < high;
-            new_down.maybe_push_back(i, matching);
+        for (dim = 1; dim < query.predicate_count(); ++dim) {
+            if (down.size == 0) {
+                break;
+            }
+            CandidateList new_down(down.size);
+            low = query.predicates[dim].low;
+            high = query.predicates[dim].high;
+            indexColumn = table->columns[dim]->data;
+            for (size_t i = 0; i < down.size; i++) {
+                int matching = indexColumn[down.get(i)] >= low && indexColumn[down.get(i)] <= high;
+                new_down.maybe_push_back(down.get(i), matching);
+            }
+            down.initialize(new_down);
         }
-        down.initialize(new_down);
     }
     //! Now we start filling our candidate list that points to the original table
     //! It has elements from when we start swapping in this partition till the end of the table
-    //!Candidate Lists from Original Table
-    CandidateList original_swap;
+    //! Here we use a bitvector instead of a candidate list
+    BitVector mid_bit_vec = BitVector(remaining_swaps);
     dim = 0;
     low = query.predicates[dim].low;
     high = query.predicates[dim].high;
     indexColumn = table->columns[dim]->data;
     //! now we start filling the index with at most remaining_swap entries
     size_t initial_low = root->current_start;
+    size_t initial_current_pos = current_position;
     size_t next_index = min(current_position + remaining_swaps, table_size);
     size_t initial_high = root->current_end;
     remaining_swaps -= next_index - current_position;
-    size_t goDown_idx = 0;
+    size_t bit_idx = 0;
     for (size_t i = current_position; i < next_index; i++) {
-        int matching = indexColumn[i] >= low && indexColumn[i] < high;
-        original_swap.maybe_push_back(i, matching);
+        int matching = originalColumn[i] >= low && originalColumn[i] <= high;
+        mid_bit_vec.set(bit_idx, matching);
         int bigger_pivot = indexColumn[i] >= root->key;
         int smaller_pivot = 1 - bigger_pivot;
 
         indexColumn[root->current_start] = originalColumn[i];
         indexColumn[root->current_end] = originalColumn[i];
-        goDown.set(goDown_idx++, smaller_pivot);
+        goDown.set(bit_idx++, smaller_pivot);
         root->current_start += smaller_pivot;
         root->current_end -= bigger_pivot;
     }
@@ -333,36 +337,37 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
         size_t initial_low_cur = initial_low;
         size_t initial_high_cur = initial_high;
         //! First we copy the elements of the other columns, until where we stopped skipping
-        size_t bit_idx = 0;
+        bit_idx = 0;
         for (size_t i = current_position; i < next_index; i++) {
-            CandidateList new_original_swap(original_swap.size);
-            int matching = indexColumn[i] >= low && indexColumn[i] < high;
-            new_original_swap.maybe_push_back(i, matching);
-            indexColumn[initial_low] = originalColumn[i];
-            indexColumn[initial_high] = originalColumn[i];
+            if (mid_bit_vec.get(bit_idx)) {
+                int matching = originalColumn[i] >= low && originalColumn[i] <= high;
+                mid_bit_vec.set(bit_idx, matching);
+            }
+            indexColumn[initial_low_cur] = originalColumn[i];
+            indexColumn[initial_high_cur] = originalColumn[i];
             initial_low_cur += goDown.get(bit_idx);
             initial_high_cur -= goDown.get(bit_idx++);
-            original_swap.initialize(new_original_swap);
         }
     }
     current_position = next_index;
     //! Check if we are finished with the initial run
     CandidateList original;
     if (next_index == table_size) {
-        assert(0);
-//        assert(root->current_start >= root->current_end);
-//        //! construct the left and right side of the root node on next dimension
-//        int64_t pivot = table_size / 2;
-//        size_t current_start = 0;
-//        size_t current_end = root->current_end;
-//
-//        root->setLeft(make_unique<QSAVLNode>(pivot, current_start, current_end));
-//
-//        //! Right node
-//        pivot = (progressiveIndex.column->size / 4) * 3;
-//        current_start = current_end + 1;
-//        current_end = progressiveIndex.column->size - 1;
-//        root->setRight(make_unique<QSAVLNode>(pivot, current_start, current_end));
+        dim = 1;
+        indexColumn = table->columns[dim]->data;
+        assert(root->current_start >= root->current_end);
+        //! construct the left and right side of the root node on next dimension
+        int64_t pivot = indexColumn[root->current_start/2];
+        size_t current_start = 0;
+        size_t current_end = root->current_end;
+
+        root->setLeft(make_unique<KDNode>(pivot, current_start, current_end));
+
+        //! Right node
+        pivot = indexColumn[(root->current_start+table_size)/2];
+        current_start = current_end + 1;
+        current_end = table_size - 1;
+        root->setRight(make_unique<KDNode>(pivot, current_start, current_end));
     } else {
         //! we have done all the swapping for this run
         //! now we query the remainder of the data
@@ -371,47 +376,52 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
         high = query.predicates[dim].high;
         originalColumn = originalTable->columns[dim]->data;
         for (size_t i = current_position; i < table_size; i++) {
-            int matching = originalColumn[i] >= low && originalColumn[i] < high;
-            original.maybe_push_back(i,matching);
+            int matching = originalColumn[i] >= low && originalColumn[i] <= high;
+            original.maybe_push_back(i, matching);
         }
         for (dim = 1; dim < query.predicate_count(); ++dim) {
             CandidateList new_original(original.size);
             low = query.predicates[dim].low;
             high = query.predicates[dim].high;
             originalColumn = originalTable->columns[dim]->data;
-            for (size_t i = current_position; i < table_size; i++) {
-                int matching = originalColumn[i] >= low && originalColumn[i] < high;
-               new_original.maybe_push_back(i,matching);
+            for (size_t i = 0; i < original.size; i++) {
+                int matching = originalColumn[original.get(i)] >= low && originalColumn[original.get(i)] <= high;
+                new_original.maybe_push_back(original.get(i), matching);
             }
             original.initialize(new_original);
         }
     }
     //! Now we create the results
     //! Iterate candidate lists that point to index
-    float sum = 0;
+    double sum = 0;
+    float count = up.size + down.size + original.size;
     dim = 0;
     originalColumn = originalTable->columns[dim]->data;
-     indexColumn = table->columns[dim]->data;
-    for (size_t i = 0; i < up.size; i ++){
+    indexColumn = table->columns[dim]->data;
+    for (size_t i = 0; i < up.size; i++) {
         sum += indexColumn[up.get(i)];
     }
-    for (size_t i = 0; i < down.size; i ++){
+    for (size_t i = 0; i < down.size; i++) {
         sum += indexColumn[down.get(i)];
     }
-    for (size_t i = 0; i < original_swap.size; i ++){
-        sum += originalColumn[original_swap.get(i)];
+    for (size_t i = 0; i < mid_bit_vec.size(); i++) {
+        if (mid_bit_vec.get(i)) {
+            count++;
+            sum += originalColumn[initial_current_pos + i];
+        }
     }
-    for (size_t i = 0; i < original.size; i ++){
+    for (size_t i = 0; i < original.size; i++) {
         sum += originalColumn[original.get(i)];
     }
-    unique_ptr<Table> results = make_unique<Table>(1);
-    results->push_back(sum);
-    return results;
+    auto t = make_unique<Table>(2);
+    float row[2] = {static_cast<float>(sum), static_cast<float>(count)};
+    t->append(row);
+    return t;
 }
 
 unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Table *originalTable, Query &query) {
     //! Amount of work we are allowed to do
-    ssize_t remaining_swaps = (ssize_t) (table->row_count() * delta);
+    ssize_t remaining_swaps = (ssize_t) (originalTable->row_count() * delta);
 
     //! Creation Phase
     //! If the node has no children we are stil in the creation phase
@@ -421,12 +431,21 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Table *originalTable, 
         return progressive_quicksort_create(originalTable, query, remaining_swaps);
     } else if (!tree->root->finished) { //! If the root is not marked as sort we still have refinement to do!
         //! Refinement Phase
-        assert(0);
+        assert(0 && "Refinement Not Yet Implemented");
 //        progressive_quicksort_refine(query, remaining_swaps);
     }
     //! We are in the consolidation phase no more indexing to be done, just scan it.
     assert(0);
 }
+
+ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
+    if (config.find("minimum_partition_size") == config.end())
+        minimum_partition_size = 100;
+    else
+        minimum_partition_size = std::stoi(config["minimum_partition_size"]);
+}
+
+ProgressiveIndex::~ProgressiveIndex() {}
 
 double ProgressiveIndex::get_costmodel_delta_quicksort(vector<int64_t> &originalColumn, int64_t low, int64_t high,
                                                        double delta) {

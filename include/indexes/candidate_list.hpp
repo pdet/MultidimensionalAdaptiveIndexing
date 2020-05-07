@@ -13,6 +13,7 @@ public:
     unique_ptr<uint32_t *>data;
 
     CandidateList(size_t total_capacity = 0) {
+        data = make_unique<uint32_t*>();
         if (total_capacity == 0) {
             this->size = 0;
             this->capacity = 1024;
@@ -23,7 +24,7 @@ public:
         *data = (uint32_t *) malloc(sizeof(uint32_t) * this->capacity);
     };
 
-    ~CandidateList();
+    ~CandidateList(){};
 
     void push_back(uint32_t value) {
         if (size == capacity) {
@@ -40,7 +41,7 @@ public:
             *data = (uint32_t *) realloc(*data, sizeof(uint32_t) * this->capacity);
         }
         (*data)[size] = value;
-        size=+match;
+        size+=match;
     }
 
     void initialize(CandidateList list) {

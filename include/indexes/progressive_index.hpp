@@ -34,10 +34,12 @@ class RefinementScan{
 class ProgressiveIndex: public AbstractIndex {
 
   public:
+    static const size_t ID = 7;
   string name() override{
     return "ProgressiveIndexing";
   }
-
+  ProgressiveIndex(std::map<std::string, std::string> config);
+  ~ProgressiveIndex();
   void initialize(Table *table_to_copy) override;
 
   void adapt_index(Table *originalTable,Query& query) override;
@@ -66,5 +68,6 @@ class ProgressiveIndex: public AbstractIndex {
     double get_costmodel_delta_quicksort(std::vector<int64_t>& originalColumn, int64_t low, int64_t high, double delta);
 
 private:
+    size_t minimum_partition_size = 100;
     unique_ptr<Table> progressive_quicksort_create(Table *originalTable,Query& query, ssize_t& remaining_swaps);
 };

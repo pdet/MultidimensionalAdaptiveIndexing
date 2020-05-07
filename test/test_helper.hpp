@@ -67,7 +67,7 @@ class TestHelper{
                 // Check if the sum is the same
                 auto expected_sum = expected->columns[0]->data[0];
                 auto result_sum = result->columns[0]->data[0];
-                CHECK(expected_sum == result_sum);
+                REQUIRE(expected_sum == result_sum);
             }
 
         }

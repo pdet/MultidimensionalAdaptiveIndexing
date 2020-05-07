@@ -92,8 +92,8 @@ unique_ptr<Table>  CrackingKDTree::range_query(Table *originalTable,Query& query
     measurements->append("partitions_scanned", std::to_string(partitions.size()));
 
     auto skips = 0;
-    for(size_t i = 0; i < partition_skip.size(); ++i){
-        if(partition_skip.at(i)){
+    for(auto && i : partition_skip){
+        if(i){
             skips += 1;
         }
     }
@@ -285,7 +285,6 @@ void CrackingKDTree::adapt_recursion(
                 break;
             default:
                 assert(false);
-                break;
-        } 
+        }
     }
 }

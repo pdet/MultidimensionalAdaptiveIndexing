@@ -4,6 +4,7 @@
 #include <utility>
 #include <vector>
 #include <string>
+#include <assert.h>
 
 using namespace std;
 
@@ -36,4 +37,13 @@ int8_t KDNode::compare(Query& query){
 
 bool KDNode::noChildren(){
   return !(left_child.get() || right_child.get());
+}
+
+void KDNode::setLeft(std::unique_ptr<KDNode> child){
+    assert(!this->left_child);
+    this->left_child = move(child);
+}
+void KDNode::setRight(std::unique_ptr<KDNode> child){
+    assert(!this->right_child);
+    this->right_child = move(child);
 }

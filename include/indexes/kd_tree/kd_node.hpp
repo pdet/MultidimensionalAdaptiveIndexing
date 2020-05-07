@@ -50,7 +50,8 @@ public:
     std::string label();
 
     int8_t compare(Query &query);
-
+    void setLeft(std::unique_ptr<KDNode> child);
+    void setRight(std::unique_ptr<KDNode> child);
     bool noChildren();
 };
 

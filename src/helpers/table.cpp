@@ -12,7 +12,6 @@ Table::Table(size_t number_of_columns){
     for(size_t i = 0; i < number_of_columns; ++i){
         columns[i] = make_unique<Column>();
     }
-    cur_row = 0;
 }
 
 Table::Table(size_t number_of_columns, size_t number_of_rows)
@@ -21,7 +20,6 @@ Table::Table(size_t number_of_columns, size_t number_of_rows)
     for(size_t i = 0; i < number_of_columns; ++i){
         columns[i] = make_unique<Column>(number_of_rows);
     }
-    cur_row = 0;
 }
 
 Table::Table(Table *table_to_copy){
@@ -39,7 +37,6 @@ Table::Table(Table *table_to_copy){
             table_to_copy->columns[col_index]->data, number_of_rows
         );
     }
-    cur_row = 0;
 }
 
 void Table::maybe_push_back(double value,size_t column_idx, int maybe){
