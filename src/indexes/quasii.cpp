@@ -40,7 +40,7 @@ void Quasii::initialize(Table *table_to_copy){
     // ******************
 }
 
-void Quasii::adapt_index(Query& query){
+void Quasii::adapt_index(Table *originalTable,Query& query){
     // Before adapting calculate the scan overhead to measure how much the previous
     // queries helped this one
     auto search_results= search(query);
@@ -62,7 +62,7 @@ void Quasii::adapt_index(Query& query){
     );
 }
 
-unique_ptr<Table> Quasii::range_query(Query& query){
+unique_ptr<Table>  Quasii::range_query(Table *originalTable,Query& query){
     // ******************
     auto start = measurements->time();
 
@@ -507,13 +507,13 @@ void Quasii::draw_index(std::string path){
         myfile << array_id + "[label=\"\n";
         for(auto &slice : *array_of_slices){
             myfile << "<" + std::to_string(reinterpret_cast<size_t>(&slice)) + ">";
-            myfile << slice.label(); 
+            myfile << slice.label();
             myfile << "|";
         }
 
         myfile << "\"\n];\n";
 
-        // Then we link the nodes 
+        // Then we link the nodes
         for(size_t i = 0; i < array_of_slices->size(); ++i){
             auto &slice = array_of_slices->at(i);
             auto slice_id = std::to_string(

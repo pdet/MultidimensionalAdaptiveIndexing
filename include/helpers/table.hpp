@@ -10,7 +10,6 @@
 class Table{
     public:
         std::vector<std::unique_ptr<Column>> columns;
-
         Table(size_t number_of_columns);
 
         // this is used when the first query fully copies the data (e.g., Quasii, Cracking KD-Tree)
@@ -19,6 +18,9 @@ class Table{
         // This just allocates the memory, no copy is done (e.g., PI)
         Table(size_t number_of_columns, size_t number_of_rows);
 
+        inline void push_back(double value);
+
+        inline void maybe_push_back(double value,size_t column_idx, int maybe);
         ~Table();
 
         // File handling methods

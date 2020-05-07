@@ -32,7 +32,7 @@ void CrackingKDTree::initialize(Table *table_to_copy){
     // ******************
 }
 
-void CrackingKDTree::adapt_index(Query& query){
+void CrackingKDTree::adapt_index(Table *originalTable,Query& query){
     // Before adapting calculate the scan overhead to measure how much the previous
     // queries helped this one
     auto search_results= index->search(query);
@@ -54,7 +54,7 @@ void CrackingKDTree::adapt_index(Query& query){
             );
 }
 
-unique_ptr<Table> CrackingKDTree::range_query(Query& query){
+unique_ptr<Table>  CrackingKDTree::range_query(Table *originalTable,Query& query){
     // ******************
     auto start = measurements->time();
 
@@ -93,8 +93,8 @@ unique_ptr<Table> CrackingKDTree::range_query(Query& query){
     measurements->append("partitions_scanned", std::to_string(partitions.size()));
 
     auto skips = 0;
-    for(size_t i = 0; i < partition_skip.size(); ++i){
-        if(partition_skip.at(i)){
+    for(auto && i : partition_skip){
+        if(i){
             skips += 1;
         }
     }
@@ -288,7 +288,6 @@ void CrackingKDTree::adapt_recursion(
                 break;
             default:
                 assert(false);
-                break;
-        } 
+        }
     }
 }

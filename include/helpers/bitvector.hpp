@@ -32,7 +32,7 @@ public:
     {
         std::string str;
         for(size_t i = 0; i < size(); ++i){
-            if(get(i) == true){
+            if(get(i)){
                 str+= '1';
             }else{
                 str+='0';
@@ -51,7 +51,6 @@ inline BitVector::BitVector(size_t number_of_bits) : number_of_bits(number_of_bi
     for(size_t i = 0; i < number_of_bits; ++i){
         bits[i] = false;
     }
-
 }
 
 inline BitVector::BitVector(size_t number_of_bits, bool default_value)
@@ -59,14 +58,8 @@ inline BitVector::BitVector(size_t number_of_bits, bool default_value)
     // need to watch out for integer division
     bits = std::unique_ptr<char[]> {new char[number_of_bits]}; 
     // if default value is true set all values to true 
-    if(default_value == true){
-        for(size_t i = 0; i < number_of_bits; ++i){
-            bits[i] = true;
-        }
-    }else{
-        for(size_t i = 0; i < number_of_bits; ++i){
-            bits[i] = false;
-        }
+    for (size_t i = 0; i < number_of_bits; ++i) {
+        bits[i] = default_value;
     }
 }
 
