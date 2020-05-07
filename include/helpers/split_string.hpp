@@ -49,7 +49,7 @@ inline size_t SplitString<size_t>::from_string(const std::string &s)
 template<>
 inline float SplitString<float>::from_string(const std::string &s)
 {
-    return std::stof(s);
+    return std::stod(s);
 }
 
 #endif //SPLIT_STRING_H
