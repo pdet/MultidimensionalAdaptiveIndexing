@@ -4,6 +4,7 @@
 #include "measurements.hpp"
 #include "query.hpp"
 #include "table.hpp"
+#include <index_table.hpp>
 #include <string>
 #include <cassert>
 
@@ -22,8 +23,8 @@ public:
       measurements(std::make_unique<Measurements>()){}
     virtual ~AbstractIndex(){}
     virtual void initialize(Table *table_to_copy) = 0;
-    virtual void adapt_index(Query& query) = 0;
-    virtual std::unique_ptr<Table> range_query(Query& query) = 0;
+    virtual void adapt_index(Table *originalTable,Query& query) = 0;
+    virtual std::unique_ptr<Table> range_query(Table *originalTable,Query& query) = 0;
     virtual std::string name() = 0;
     virtual void draw_index(std::string){}
     virtual bool sanity_check(){return true;}

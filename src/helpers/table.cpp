@@ -39,6 +39,10 @@ Table::Table(Table *table_to_copy){
     }
 }
 
+void Table::maybe_push_back(double value,size_t column_idx, int maybe){
+    columns[column_idx]->maybe_append(value,maybe);
+}
+
 Table::~Table(){}
 
 std::unique_ptr<Table> Table::read_file(std::string path){

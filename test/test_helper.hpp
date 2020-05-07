@@ -41,8 +41,8 @@ class TestHelper{
 
             baseline->initialize(table.get());
             for(size_t j = 0; j < workload.query_count(); ++j){
-                baseline->adapt_index(workload.queries.at(j));
-                auto result = baseline->range_query(workload.queries.at(j));
+                baseline->adapt_index(table.get(),workload.queries.at(j));
+                auto result = baseline->range_query(table.get(),workload.queries.at(j));
                 baseline_results.push_back(std::move(result));
                 REQUIRE(baseline_results.at(j)->columns[0]->data[0] > 0);
                 REQUIRE(baseline_results.at(j)->columns[1]->data[0] > 0);
@@ -55,9 +55,9 @@ class TestHelper{
             alg->initialize(table.get());
             for(size_t j = 0; j < workload.query_count(); ++j){
                 CHECK(alg->sanity_check());
-                alg->adapt_index(workload.queries.at(j));
+                alg->adapt_index(table.get(),workload.queries.at(j));
                 //alg->draw_index("./" + alg->name() + "/" + std::to_string(j) + ".dot");
-                auto result = alg->range_query(workload.queries.at(j));
+                auto result = alg->range_query(table.get(),workload.queries.at(j));
                 auto expected = baseline_results.at(j).get();
 
                 // Check to see if the same amount of tuples was scanned

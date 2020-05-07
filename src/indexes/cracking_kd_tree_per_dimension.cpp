@@ -31,7 +31,7 @@ void CrackingKDTreePerDimension::initialize(Table *table_to_copy){
     // ******************
 }
 
-void CrackingKDTreePerDimension::adapt_index(Query& query){
+void CrackingKDTreePerDimension::adapt_index(Table *originalTable,Query& query){
     // Before adapting calculate the scan overhead to measure how much the previous
     // queries helped this one
     auto search_results= index->search(query);
@@ -55,7 +55,7 @@ void CrackingKDTreePerDimension::adapt_index(Query& query){
 
 }
 
-unique_ptr<Table> CrackingKDTreePerDimension::range_query(Query& query){
+unique_ptr<Table> CrackingKDTreePerDimension::range_query(Table *originalTable,Query& query){
     // ******************
     auto start = measurements->time();
 

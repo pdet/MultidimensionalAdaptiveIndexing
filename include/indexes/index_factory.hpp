@@ -10,7 +10,7 @@
 #include "quasii.hpp"
 #include "cracking_kd_tree.hpp"
 #include "cracking_kd_tree_per_dimension.hpp"
-
+#include "progressive_index.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -43,6 +43,8 @@ public:
                 return make_unique<AverageKDTree>(config);
             case Quasii::ID:
                 return make_unique<Quasii>(config);
+            case ProgressiveIndex::ID:
+                return make_unique<ProgressiveIndex>(config);
             default:
                 throw std::invalid_argument("Invalid Algorithm ID");
                 assert(false);

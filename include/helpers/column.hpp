@@ -18,6 +18,8 @@ public:
     ~Column();
 
     void append(float value);
+
+    void maybe_append(float value, int maybe);
 };
 
 #endif // COLUMN_H
