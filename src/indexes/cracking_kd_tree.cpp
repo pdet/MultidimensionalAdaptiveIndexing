@@ -2,6 +2,7 @@
 #include "kd_node.hpp"
 #include "full_scan.hpp"
 #include <algorithm> // to check if all elements of a vector are true
+#include <limits>
 
 using namespace std;
 
@@ -131,21 +132,23 @@ void CrackingKDTree::adapt(Query& query){
     }
 
     for(size_t dim = 0; dim < query.predicate_count(); ++dim){
-        adapt_recursion(
-                index->root.get(),
-                query,
-                dim, query.predicates[dim].low,
-                0, table->row_count()
-                );
+        if(query.predicates[dim].low >= std::numeric_limits<float>::min())
+            adapt_recursion(
+                    index->root.get(),
+                    query,
+                    dim, query.predicates[dim].low,
+                    0, table->row_count()
+                    );
     }
 
     for(size_t dim = 0; dim < query.predicate_count(); ++dim){
-        adapt_recursion(
-                index->root.get(),
-                query,
-                dim, query.predicates[dim].high,
-                0, table->row_count()
-                );
+        if(query.predicates[dim].high <= std::numeric_limits<float>::max())
+            adapt_recursion(
+                    index->root.get(),
+                    query,
+                    dim, query.predicates[dim].high,
+                    0, table->row_count()
+                    );
     }
 }
 
