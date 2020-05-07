@@ -1,34 +1,59 @@
-#ifndef TEST_HELPER_H 
-#define TEST_HELPER_H
+#ifndef TESTER_H 
+#define TESTER_H
 
 #include "index_factory.hpp"
-#include "uniform_generator.hpp"
+#include "workload.hpp"
+#include "table.hpp"
 #include <string>
 #include <cstdlib>
+#include <dirent.h> // to list directories
+#include <algorithm> // to sort
 
-class TestHelper{
+class Tester{
     public:
-        static void test(
-                int64_t n_rows, int64_t n_dimensions,
-                float selectivity, int64_t n_queries,
-                size_t algorithm_id
-                ){
-            const string workload_path = "test_data/test_queries" + std::to_string(n_dimensions);
-            const string table_path = "test_data/test_data" + std::to_string(n_dimensions);
-
-            if(!(TestHelper::file_exists(workload_path) && TestHelper::file_exists(table_path))){
-                auto generator = UniformGenerator(
-                        n_rows,
-                        n_dimensions,
-                        selectivity,
-                        n_queries
-                        );
-
-                generator.generate(table_path, workload_path);
+        static void test(size_t algorithm_id){ 
+            const string data_folder = "../test/test_data/data";
+            const string query_folder = "../test/test_data/queries";
+            auto data_files = list_files(data_folder);
+            auto query_files = list_files(query_folder);
+            for(size_t i = 0; i < data_files.size(); ++i){
+                test_algorithm(
+                    "../test/test_data/data/"+data_files.at(i),
+                    "../test/test_data/queries/"+query_files.at(i),
+                    algorithm_id
+                );
             }
+        }
 
+        inline static vector<string> list_files(string folder){
+            vector<string> files;
+            DIR *dir;
+            struct dirent *ent;
+            if ((dir = opendir (folder.c_str())) != NULL) {
+                /* print all the files and directories within directory */
+                while ((ent = readdir (dir)) != NULL) {
+                    if(string(ent->d_name) == "." || string(ent->d_name) == "..")
+                        continue;
+                    files.push_back(ent->d_name);
+                }
+                closedir (dir);
+            } else {
+                INFO("Couldn't open directory " + folder);
+            }
+            sort(files.begin(), files.end());
+            return files;
+        }
+
+        inline static void test_algorithm(string table_path, string workload_path, size_t algorithm_id){
             auto table = Table::read_file(table_path);
             auto workload = Workload::read_file(workload_path);
+
+            INFO("Table info:");
+            INFO("Row count: " + to_string(table->row_count()));
+            INFO("Col count: " + to_string(table->col_count()));
+
+            INFO("Workload info");
+            INFO("Number of queries: " + to_string(workload.query_count()));
 
             auto alg = IndexFactory::getIndex(algorithm_id);
 
@@ -44,8 +69,6 @@ class TestHelper{
                 baseline->adapt_index(workload.queries.at(j));
                 auto result = baseline->range_query(workload.queries.at(j));
                 baseline_results.push_back(std::move(result));
-                REQUIRE(baseline_results.at(j)->columns[0]->data[0] > 0);
-                REQUIRE(baseline_results.at(j)->columns[1]->data[0] > 0);
             }
 
             INFO("Running (" + alg->name() + ")");
@@ -83,4 +106,4 @@ class TestHelper{
         }
 };
 
-#endif // TEST_HELPER_H
+#endif // TESTER_H

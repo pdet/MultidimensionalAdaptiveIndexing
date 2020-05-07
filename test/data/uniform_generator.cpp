@@ -6,8 +6,8 @@
 
 TEST_CASE( "UniformGenerator, 10000 rows, 5 dim, 0.1 sel, 10000 queries",
            "[UniformGenerator]" ) {
-    const string workload_path = "test_data/uniform_generator_queries";
-    const string table_path = "test_data/uniform_generator_data";
+    const string workload_path = "uniform_generator_queries";
+    const string table_path = "uniform_generator_data";
 
     int64_t n_of_rows = 10000;
     int64_t dimensions = 5;
@@ -44,8 +44,8 @@ TEST_CASE( "UniformGenerator, 10000 rows, 5 dim, 0.1 sel, 10000 queries",
 }
 TEST_CASE( "UniformGenerator, 10000 rows, 2 dim, 0.1 sel, 10000 queries",
            "[UniformGenerator]" ) {
-    const string workload_path = "test_data/uniform_generator_queries";
-    const string table_path = "test_data/uniform_generator_data";
+    const string workload_path = "uniform_generator_queries";
+    const string table_path = "uniform_generator_data";
 
     int64_t n_of_rows = 10000;
     int64_t dimensions = 22;
