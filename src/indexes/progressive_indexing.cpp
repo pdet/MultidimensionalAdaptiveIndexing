@@ -238,7 +238,6 @@ bool isTest = false;
 
 unique_ptr<Table>
 ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &query, ssize_t &remaining_swaps) {
-    unique_ptr<Table> results = make_unique<Table>(query.predicate_count());
     auto root = tree->root.get();
     //! Creation Phase only partitions first dimension
     size_t dim = 0;
@@ -249,22 +248,19 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
     auto originalColumn = originalTable->columns[dim]->data;
     //! If we go up or down for next filters
     BitVector goDown = BitVector(remaining_swaps);
-//    BitVector candidateList = BitVector(table_size);
     //! Candidate Lists from Index
-    CandidateList up, down, mid;
-    //!Candidate List from Original Table
-    CandidateList original;
+    CandidateList up;
     //! for the initial run, we write the indices instead of swapping them
     //! because the current array has not been initialized yet
     //! first look through the part we have already pivoted
     //! for data that matches the points
+    //! We start by getting a candidate list to the upper part of our indexed table
     if (low <= root->key) {
         for (size_t i = 0; i < root->current_start; i++) {
             int matching = indexColumn[i] >= low && indexColumn[i] < high;
             if (matching) {
                 up.push_back(i);
             }
-//            results->maybe_push_back(indexColumn[i], matching, dim);
         }
     }
     for (dim = 1; dim < query.predicate_count(); ++dim) {
@@ -278,6 +274,9 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
         }
         up.initialize(new_up);
     }
+    CandidateList down;
+
+    //! We now get a candidate list to the bottom part of our indexed table
     dim = 0;
     low = query.predicates[dim].low;
     high = query.predicates[dim].high;
@@ -300,6 +299,10 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
         }
         down.initialize(new_down);
     }
+    //! Now we start filling our candidate list that points to the original table
+    //! It has elements from when we start swapping in this partition till the end of the table
+    //!Candidate Lists from Original Table
+    CandidateList original_swap;
     dim = 0;
     low = query.predicates[dim].low;
     high = query.predicates[dim].high;
@@ -312,7 +315,7 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
     size_t goDown_idx = 0;
     for (size_t i = current_position; i < next_index; i++) {
         int matching = indexColumn[i] >= low && indexColumn[i] < high;
-        mid.maybe_push_back(i, matching);
+        original_swap.maybe_push_back(i, matching);
         int bigger_pivot = indexColumn[i] >= root->key;
         int smaller_pivot = 1 - bigger_pivot;
 
@@ -330,28 +333,21 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
         size_t initial_low_cur = initial_low;
         size_t initial_high_cur = initial_high;
         //! First we copy the elements of the other columns, until where we stopped skipping
-        for (size_t i = 0; i < goDown_idx; i++) {
+        size_t bit_idx = 0;
+        for (size_t i = current_position; i < next_index; i++) {
+            CandidateList new_original_swap(original_swap.size);
+            int matching = indexColumn[i] >= low && indexColumn[i] < high;
+            new_original_swap.maybe_push_back(i, matching);
             indexColumn[initial_low] = originalColumn[i];
             indexColumn[initial_high] = originalColumn[i];
-            initial_low_cur += goDown.get(i);
-            initial_high_cur -= goDown.get(i);
+            initial_low_cur += goDown.get(bit_idx);
+            initial_high_cur -= goDown.get(bit_idx++);
+            original_swap.initialize(new_original_swap);
         }
     }
-
-    for (dim = 1; dim < query.predicate_count(); ++dim) {
-        CandidateList new_mid(mid.size);
-        low = query.predicates[dim].low;
-        high = query.predicates[dim].high;
-        indexColumn = table->columns[dim]->data;
-        for (size_t i = 0; i < up.size; i++) {
-            int matching = indexColumn[up.get(i)] >= low && indexColumn[up.get(i)] < high;
-            new_mid.maybe_push_back(i, matching);
-        }
-        mid.initialize(new_mid);
-    }
-
     current_position = next_index;
     //! Check if we are finished with the initial run
+    CandidateList original;
     if (next_index == table_size) {
         assert(0);
 //        assert(root->current_start >= root->current_end);
@@ -391,7 +387,25 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
         }
     }
     //! Now we create the results
-    results->push_back()
+    //! Iterate candidate lists that point to index
+    float sum = 0;
+    dim = 0;
+    originalColumn = originalTable->columns[dim]->data;
+     indexColumn = table->columns[dim]->data;
+    for (size_t i = 0; i < up.size; i ++){
+        sum += indexColumn[up.get(i)];
+    }
+    for (size_t i = 0; i < down.size; i ++){
+        sum += indexColumn[down.get(i)];
+    }
+    for (size_t i = 0; i < original_swap.size; i ++){
+        sum += originalColumn[original_swap.get(i)];
+    }
+    for (size_t i = 0; i < original.size; i ++){
+        sum += originalColumn[original.get(i)];
+    }
+    unique_ptr<Table> results = make_unique<Table>(1);
+    results->push_back(sum);
     return results;
 }
 

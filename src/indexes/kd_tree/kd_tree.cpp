@@ -314,7 +314,7 @@ bool KDTree::sanity_check_recursion(
         auto result = FullScan::scan_partition(table, query, partition, skip);
         // Check if the number of returned tuples is equal to the number
         //  of tuples in the partition
-        return result->row_count() == (high - low);
+        return result.second == (high - low);
     }
 
     auto temporary_max = partition_borders.at(current->column).second;

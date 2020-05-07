@@ -44,7 +44,8 @@ class TestHelper{
                 baseline->adapt_index(table.get(),workload.queries.at(j));
                 auto result = baseline->range_query(table.get(),workload.queries.at(j));
                 baseline_results.push_back(std::move(result));
-                REQUIRE(baseline_results.at(j)->row_count() > 0);
+                REQUIRE(baseline_results.at(j)->columns[0]->data[0] > 0);
+                REQUIRE(baseline_results.at(j)->columns[1]->data[0] > 0);
             }
 
             INFO("Running (" + alg->name() + ")");
@@ -58,18 +59,15 @@ class TestHelper{
                 auto result = alg->range_query(table.get(),workload.queries.at(j));
                 auto expected = baseline_results.at(j).get();
 
-                CHECK(expected->row_count() == result->row_count());
+                // Check to see if the same amount of tuples was scanned
+                auto expected_tuples_scanned = expected->columns[1]->data[0];
+                auto result_tuples_scanned = result->columns[1]->data[0];
+                CHECK(expected_tuples_scanned == result_tuples_scanned);
 
-                // check if the elements are the same
-                auto expected_elements = expected->columns[0]->data;
-                auto result_elements = result->columns[0]->data;
-                sort(expected_elements, expected_elements + expected->row_count());
-                sort(result_elements, result_elements + result->row_count());
-                bool all_same = true;
-                for(size_t i = 0; i < result->row_count() && all_same; ++i){
-                    all_same = expected_elements[i] == result_elements[i];
-                }
-                CHECK(all_same);
+                // Check if the sum is the same
+                auto expected_sum = expected->columns[0]->data[0];
+                auto result_sum = result->columns[0]->data[0];
+                CHECK(expected_sum == result_sum);
             }
 
         }

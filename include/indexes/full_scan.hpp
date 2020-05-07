@@ -23,7 +23,7 @@ public:
 
   std::unique_ptr<Table> range_query(Table *originalTable,Query& query) override;
 
-    static std::unique_ptr<Table> scan_partition(
+    static std::pair<double, size_t> scan_partition(
             Table *t,
             Query& query,
             std::vector<std::pair<size_t, size_t> >& partitions,
@@ -31,23 +31,23 @@ public:
             );
 };
 
-inline std::unique_ptr<Table> FullScan::scan_partition(
+inline std::pair<double, size_t> FullScan::scan_partition(
     Table *t,
     Query& query,
     std::vector<std::pair<size_t, size_t> >& partitions,
     std::vector<bool>& partition_skip
 ){
     assert(partitions.size() == partition_skip.size());
-    auto table_to_store_results = std::make_unique<Table>(1); 
+    double sum = 0.0;
+    size_t tuples_summed = 0;
     for(size_t partition_index = 0; partition_index < partitions.size(); ++partition_index){
         auto low = partitions[partition_index].first;
         auto high = partitions[partition_index].second;
 
         if(partition_skip[partition_index]){
             for(size_t j = low; j < high; ++j){
-                table_to_store_results->append(
-                        &(t->columns[0]->data[j])
-                        );
+                sum += (t->columns[0]->data[j]);
+                tuples_summed++;
             }
         }else{
             size_t partition_size = high-low;
@@ -78,14 +78,13 @@ inline std::unique_ptr<Table> FullScan::scan_partition(
 
             for(size_t i = 0; i < bit_vector.size(); ++i){
                 if(bit_vector.get(i)){
-                    table_to_store_results->append(
-                            &(t->columns[0]->data[low + i])
-                            );
+                    sum += (t->columns[0]->data[i + low]);
+                    tuples_summed++;
                 }
             }
         }
     }
-    return table_to_store_results;
+    return std::make_pair(sum, tuples_summed);
 
 }
 #endif // FULL_SCAN_H

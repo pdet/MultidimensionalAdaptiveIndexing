@@ -93,11 +93,14 @@ unique_ptr<Table> MedianKDTree::range_query(Table *originalTable,Query& query){
     measurements->append(
         "scan_overhead",
         std::to_string(
-            n_tuples_scanned/static_cast<float>(result->row_count())
+            n_tuples_scanned/static_cast<float>(result.second)
         )
     );
 
-    return result;
+    auto t = make_unique<Table>(2);
+    float row[2] = {static_cast<float>(result.first), static_cast<float>(result.second)};
+    t->append(row);
+    return t;
 }
 
 void MedianKDTree::initialize_index(){

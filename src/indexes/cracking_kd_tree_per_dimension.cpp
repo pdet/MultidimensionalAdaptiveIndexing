@@ -103,17 +103,20 @@ unique_ptr<Table> CrackingKDTreePerDimension::range_query(Table *originalTable,Q
     measurements->append(
         "scan_overhead_before_adapt",
         std::to_string(
-            n_tuples_scanned_before_adapting/static_cast<float>(result->row_count())
+            n_tuples_scanned_before_adapting/static_cast<float>(result.second)
         )
     );
     measurements->append(
         "scan_overhead_after_adapt",
         std::to_string(
-            n_tuples_scanned/static_cast<float>(result->row_count())
+            n_tuples_scanned/static_cast<float>(result.second)
         )
     );
 
-    return result;
+    auto t = make_unique<Table>(2);
+    float row[2] = {static_cast<float>(result.first), static_cast<float>(result.second)};
+    t->append(row);
+    return t;
 }
 
 void CrackingKDTreePerDimension::adapt(Query& query){ 

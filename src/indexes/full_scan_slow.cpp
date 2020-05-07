@@ -34,7 +34,7 @@ std::unique_ptr<Table> FullScanSlow::range_query(Table *originalTable,Query& que
 
 
     // Scan the table and returns the row_ids
-    std::vector<std::pair<int64_t, int64_t> > partitions;
+    std::vector<std::pair<size_t, size_t> > partitions;
     partitions.push_back(std::make_pair(0, table->row_count()));
     std::vector<bool> partition_skip (partitions.size(), false);
     auto result = FullScanSlow::scan_partition(table.get(), query, partitions, partition_skip);
@@ -52,25 +52,28 @@ std::unique_ptr<Table> FullScanSlow::range_query(Table *originalTable,Query& que
     measurements->append(
         "scan_overhead",
         std::to_string(
-            table->row_count()/static_cast<float>(result->row_count())
+            table->row_count()/static_cast<float>(result.second)
         )
     );
-    return result;
+    auto t = make_unique<Table>(2);
+    float row[2] = {static_cast<float>(result.first), static_cast<float>(result.second)};
+    t->append(row);
+    return t;
 }
 
-unique_ptr<Table> FullScanSlow::scan_partition(
+pair<double, size_t> FullScanSlow::scan_partition(
         Table *t,
         Query& query,
-        std::vector<std::pair<int64_t, int64_t> >& partitions,
+        std::vector<std::pair<size_t, size_t> >& partitions,
         std::vector<bool>& /*partition_skip*/
 ){
-    auto table_to_store_results = make_unique<Table>(1); 
+    double sum = 0.0;
+    size_t tuples_summed = 0.0;
     for(size_t partition_index = 0; partition_index < partitions.size(); ++partition_index){
         auto low = partitions[partition_index].first;
         auto high = partitions[partition_index].second;
         std::vector<int64_t> qualifying_rows;
         qualifying_rows.reserve(high - low + 1);
-
         bool first = true;
 
         for(auto predicate : query.predicates){
@@ -81,7 +84,7 @@ unique_ptr<Table> FullScanSlow::scan_partition(
             // First time we have to fill the qualyfing rows
             if(first){
 
-                for(int64_t row_id = low; row_id < high; row_id++){
+                for(size_t row_id = low; row_id < high; row_id++){
                     auto value = t->columns[column]->data[row_id];
                     if(low_pred <= value && value <= high_pred)
                         qualifying_rows.push_back(row_id);
@@ -100,8 +103,10 @@ unique_ptr<Table> FullScanSlow::scan_partition(
             }
         }
 
-        for(auto qualifying_row : qualifying_rows)
-            table_to_store_results->append(&(t->columns[0]->data[qualifying_row]));
+        for(auto qualifying_row : qualifying_rows){
+            sum += static_cast<double>(t->columns[0]->data[qualifying_row]);
+            tuples_summed++;
+        }
     }
-    return table_to_store_results;
+    return make_pair(sum, tuples_summed);
 }

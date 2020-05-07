@@ -22,10 +22,10 @@ public:
 
   std::unique_ptr<Table> range_query(Table *originalTable,Query& query) override;
 
-    static std::unique_ptr<Table> scan_partition(
+    static std::pair<double, size_t> scan_partition(
             Table *t,
             Query& query,
-            std::vector<std::pair<int64_t, int64_t> >& partitions,
+            std::vector<std::pair<size_t, size_t> >& partitions,
             std::vector<bool>& partition_skip
             );
 
