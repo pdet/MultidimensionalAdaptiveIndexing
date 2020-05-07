@@ -22,7 +22,7 @@ public:
 
     std::unique_ptr<Table> range_query(Query& query) override;
 
-    static std::unique_ptr<Table> scan_partition(
+    static std::pair<double, size_t> scan_partition(
             Table *t,
             Query& query,
             std::vector<std::pair<size_t, size_t> >& partitions,
@@ -30,26 +30,26 @@ public:
             );
 };
 
-inline std::unique_ptr<Table> FullScanCandidateList::scan_partition(
+inline std::pair<double, size_t> FullScanCandidateList::scan_partition(
     Table *t,
     Query& query,
     std::vector<std::pair<size_t, size_t>> &partitions,
     std::vector<bool> &partition_skip
 ){
     assert(partitions.size() == partition_skip.size());
-    auto table_to_store_results = std::make_unique<Table>(1); 
+    double sum = 0.0;
+    size_t tuples_summed = 0.0;
     for(size_t partition_index = 0; partition_index < partitions.size(); ++partition_index){
         auto low = partitions[partition_index].first;
         auto high = partitions[partition_index].second;
 
         if(partition_skip[partition_index]){
             for(size_t j = low; j < high; ++j){
-                table_to_store_results->append(
-                        &(t->columns[0]->data[j])
-                        );
+                sum += (t->columns[0]->data[j]);
+                tuples_summed++;
             }
         }else{
-            std::unique_ptr<int64_t[]> qualifying_rows{new int64_t[high - low + 1]};
+            std::unique_ptr<size_t[]> qualifying_rows{new size_t[high - low + 1]};
 
             // First we fill the qualifying rows
             auto column = query.predicates[0].column;
@@ -85,14 +85,13 @@ inline std::unique_ptr<Table> FullScanCandidateList::scan_partition(
             }
 
             for(size_t i = 0; i < number_of_qualified_rows; ++i){
-                table_to_store_results->append(
-                        &(t->columns[0]->data[qualifying_rows[i]])
-                        );
+                sum += (t->columns[0]->data[qualifying_rows[i]]);
+                tuples_summed++;
             }
 
         }
     }
-    return table_to_store_results;
+    return std::make_pair(sum, tuples_summed);
 
 }
 #endif // FULL_SCAN_CANDIDATE_LIST_H
