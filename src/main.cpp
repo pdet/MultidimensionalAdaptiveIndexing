@@ -15,7 +15,7 @@ int main(int argc, char** argv){
     string workload_path = "queries";
     string data_path = "data";
     string index_algorithm = "Full Scan";
-    string results_path;
+    string results_file;
     size_t algorithm_id = 0;
     int number_of_repetitions = 3;
     map<string, string> config;
@@ -37,7 +37,7 @@ int main(int argc, char** argv){
             number_of_repetitions = atoi(optarg);
             break;
         case 's':
-            results_path = optarg;
+            results_file = optarg;
             break;
         case 'p':
             config["minimum_partition_size"] = optarg;
@@ -68,13 +68,8 @@ int main(int argc, char** argv){
             //index->draw_index(results_path + '/' + index->name() + ".dot");
         }
 
-        auto file_name = results_path + "/results";
-        file_name += "-" + index->name();
-        file_name += "-" + std::to_string(table->col_count());
-        file_name += ".csv"; 
-
         index->measurements->save(
-                file_name,
+                results_file,
                 repetition
                 );
     }

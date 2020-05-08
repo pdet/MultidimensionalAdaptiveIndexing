@@ -78,7 +78,7 @@ class Benchmark:
                         "-d", f"{self.CURRENT_DIR}/data/data{col}",
                         "-i", str(algorithm_id),
                         "-r", str(REPETITIONS),
-                        "-s", f"{self.CURRENT_DIR}/results/",
+                        "-s", f"{self.CURRENT_DIR}/results/{algorithm_id}-{col}",
                         "-p", str(PARTITION_SIZE)
                         ]
                     command = ' '.join(command)
