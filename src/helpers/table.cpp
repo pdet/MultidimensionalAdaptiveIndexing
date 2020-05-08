@@ -154,6 +154,8 @@ pair<size_t, size_t> Table::CrackTableInThree(size_t low, size_t high, float key
 }
 
 void Table::exchange(size_t index1, size_t index2){
+    if(index1 == index2)
+        return;
     for(size_t column_index = 0; column_index < col_count(); ++column_index){
         auto value1 = columns[column_index]->data[index1];
         auto value2 = columns[column_index]->data[index2];
