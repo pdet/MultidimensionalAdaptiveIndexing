@@ -176,14 +176,7 @@ pair<float, size_t > MedianKDTree::find_median(size_t column, size_t lower_limit
             else
                 high = position;
         }
-    }while (position != (lower_limit + upper_limit) / 2);
-
-    // Loop in case the median is not unique, then get the first one
-    for (; position > lower_limit; --position)
-    {
-        if (table->columns[column]->data[position - 1] != table->columns[column]->data[position])
-            break;
-    }
+    }while ((position != (lower_limit + upper_limit) / 2) || (table->columns[column]->data[position] != element));
 
     return make_pair(element, position);
 }
@@ -195,16 +188,16 @@ size_t MedianKDTree::pivot_table(size_t column, size_t low, size_t high, float p
 //  So we change the pivot to the last position
     table->exchange(pivot_position, high);
 
-    int64_t i = low - 1;
+    size_t i = low;
 
     for (size_t j = low; j < high; ++j)
     {
-        if (table->columns[column]->data[j] <= pivot)
+        if (table->columns[column]->data[j] < pivot)
         {
-            ++i;
             table->exchange(i, j);
+            ++i;
         }
     }
-    table->exchange(i + 1, high);
-    return i + 1;
+    table->exchange(i, high);
+    return i;
 }
