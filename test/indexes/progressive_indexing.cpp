@@ -1,5 +1,5 @@
 #include <catch.hpp>
-#include "test_helper.hpp"
+#include "tester.hpp"
 #include "progressive_index.hpp"
 
 //TEST_CASE("Test Progressive Indexing[10000 rows, 5 dimensions, 0.5 selectivity, 1000 queries]","[PI]" )
