@@ -9,6 +9,7 @@ import inspect
 REPETITIONS = 1
 PARTITION_SIZE = 1024
 ALGORITHM_IDS = [1, 2, 3, 4, 5, 6, 111]
+QUERY_TYPES = [0]
 
 # script directory
 SCRIPT_PATH = os.path.dirname(
@@ -69,8 +70,7 @@ class Benchmark:
             subprocess.call(["make", '-j'])
 
         with CD(self.bin_dir):
-            query_types = [0]
-            for query_type in query_types:
+            for query_type in QUERY_TYPES:
                 for algorithm_id in ALGORITHM_IDS:
                     command = [
                         "./main",
@@ -78,7 +78,7 @@ class Benchmark:
                         "-d", f"{self.CURRENT_DIR}/data/data{query_type}",
                         "-i", str(algorithm_id),
                         "-r", str(REPETITIONS),
-                        "-s", f"{self.CURRENT_DIR}/results/",
+                        "-s", f"{self.CURRENT_DIR}/results/{algorithm_id}-{query_type}",
                         "-p", str(PARTITION_SIZE)
                         ]
                     command = ' '.join(command)
