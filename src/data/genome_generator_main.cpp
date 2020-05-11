@@ -8,11 +8,8 @@
 // Generators
 #include "genome_generator.hpp"
 
-#define FEATUREVECTORS_FILE "data/datasets/chr22_feature.vectors"
-#define GENES_FILE "data/datasets/genes.txt"
-
-#define DATA_FILE "data"
-#define QUERY_FILE "queries"
+#define DATA_FILE "genome_data"
+#define QUERY_FILE "genome_queries"
 
 void usage(){
     std::cout << std::endl;
@@ -20,15 +17,19 @@ void usage(){
     std::cout << "-r <number_of_rows>" << std::endl;
     std::cout << "-q <number_of_queries>" << std::endl;
     std::cout << "-t <query_type>" << std::endl;
+    std::cout << "-f <full path to features file>" << std::endl;
+    std::cout << "-g <full path to genomes file>" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
     int64_t n_of_rows = -1;
     int64_t number_of_queries = -1;
     int64_t query_type = -1;
+    string features_file {""};
+    string genomes_file {""};
 
     int c;
-    while ((c = getopt (argc, argv, "r:t:q:")) != -1){
+    while ((c = getopt (argc, argv, "r:t:q:f:g:")) != -1){
         switch (c)
         {
             case 'r':
@@ -40,25 +41,44 @@ int main(int argc, char* argv[]) {
             case 't':
                 query_type = atoi(optarg);
                 break;
+            case 'f':
+                features_file = optarg;
+                break;
+            case 'g':
+                genomes_file = optarg;
+                break;
             default:
                 usage();
                 exit(-1);
         }
     }
 
+    bool error = false;
+
     if(n_of_rows == -1){
-        std::cout << "Errors:" << std::endl;
         std::cout << "-r <n_of_rows> required" << std::endl;
-        usage();
-        exit(-1);
+        error = true;
     }
     if(number_of_queries == -1){
-        std::cout << "Errors:" << std::endl;
         std::cout << "-q <number_of_queries> required" << std::endl;
-        usage();
-        exit(-1);
+        error = true;
     }
     if(query_type == -1){
+        std::cout << "-t <query_type> required" << std::endl;
+        error = true;
+    }
+
+    if(features_file == ""){
+        std::cout << "-f <full path to features file> required" << std::endl;
+        error = true;
+    }
+
+    if(genomes_file == ""){
+        std::cout << "-g <full path to genomes file>" << std::endl;
+        error = true;
+    }
+
+    if(error){
         usage();
         exit(-1);
     }
@@ -68,14 +88,14 @@ int main(int argc, char* argv[]) {
     std::cout << 19 << " dimensions\n";
     std::cout << number_of_queries << " number of queries\n";
     std::cout << query_type << " query type\n";
-    
+
     auto generator = GenomeGenerator(
             n_of_rows,
             number_of_queries,
             query_type,
-            FEATUREVECTORS_FILE,
-            GENES_FILE
-        );
-        generator.generate(DATA_FILE, QUERY_FILE);
+            features_file,
+            genomes_file
+            );
+    generator.generate(DATA_FILE, QUERY_FILE);
     return 0;
 }
