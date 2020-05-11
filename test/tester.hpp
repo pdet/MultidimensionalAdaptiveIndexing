@@ -69,6 +69,7 @@ class Tester{
                 baseline->adapt_index(table.get(),workload.queries.at(j));
                 auto result = baseline->range_query(table.get(),workload.queries.at(j));
                 baseline_results.push_back(std::move(result));
+                //CHECK(baseline_results.at(j)->columns[1]->data[0] > 0);
             }
 
             INFO("Running (" + alg->name() + ")");

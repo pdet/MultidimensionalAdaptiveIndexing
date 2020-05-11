@@ -371,7 +371,7 @@ std::vector<Slice> Quasii::sliceArtificial(Slice &slice){
                 slice_, (slice_.right_value + slice_.left_value)/2.0
             );
             for(auto &s : slices_refined){
-                if(s.equal(slice))
+                if(s.equal(slice_))
                     result.push_back(std::move(s));
                 else
                     slices_to_be_refined.push(std::move(s));
@@ -419,7 +419,7 @@ std::vector<Slice> Quasii::sliceTwoWay(Slice &slice, float key){
                 )
             );
     }
-    // If the pivot index is greater of equal to the offset_end
+    // If the pivot index is greater or equal to the offset_end
     // then we shouldn't insert it
     if(!(pivot_index >= slice.offset_end)){
         result.push_back(

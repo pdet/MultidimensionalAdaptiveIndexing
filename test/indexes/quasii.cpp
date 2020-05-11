@@ -4,5 +4,5 @@
 
 TEST_CASE("Test Quasii", "[Quasii]")
 {
-    //Tester::test(Quasii::ID);
+    Tester::test(Quasii::ID);
 }
