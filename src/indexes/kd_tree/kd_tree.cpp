@@ -149,6 +149,7 @@ unique_ptr<KDNode> KDTree::create_node(size_t column, float key, size_t position
     auto node = make_unique<KDNode>(
                 column, key, position 
             );
+    node->finished = false;
     number_of_nodes++;
     return node;
 }

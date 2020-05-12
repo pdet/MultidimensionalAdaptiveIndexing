@@ -161,9 +161,24 @@ void CrackingKDTree::adapt_recursion(
         size_t upper_limit
         ){
 
-    // If the size of the partition is already too small then stop exploring it
-    if(upper_limit - lower_limit + 1 < minimum_partition_size)
+    
+
+    // Check if both children are finished, if yes then we are also finished
+    current->finished = current->left_child != nullptr &&
+                        current->right_child != nullptr &&
+                        current->left_child->finished &&
+                        current->right_child->finished;
+
+    // If this node cannot be cracked anymore, return
+    if(current->finished){
         return;
+    }
+
+    // If the size of the partition is already too small then stop exploring it
+    if(upper_limit - lower_limit + 1 < minimum_partition_size){
+        current->finished = true;
+        return;
+    }
 
     // If that pivot has already been inserted then we don't need to
     // keep looking in this branch.
