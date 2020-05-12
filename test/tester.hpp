@@ -49,10 +49,12 @@ class Tester{
             auto workload = Workload::read_file(workload_path);
 
             INFO("Table info:");
+            INFO("Data file: " + table_path);
             INFO("Row count: " + to_string(table->row_count()));
             INFO("Col count: " + to_string(table->col_count()));
 
             INFO("Workload info");
+            INFO("Query file: " + workload_path);
             INFO("Number of queries: " + to_string(workload.query_count()));
 
             auto alg = IndexFactory::getIndex(algorithm_id);
@@ -84,6 +86,7 @@ class Tester{
                 auto result = alg->range_query(table.get(),workload.queries.at(j));
                 auto expected = baseline_results.at(j).get();
 
+                INFO("QUERY: " + to_string(j));
                 // Check to see if the same amount of tuples was scanned
                 auto expected_tuples_scanned = expected->columns[1]->data[0];
                 auto result_tuples_scanned = result->columns[1]->data[0];
