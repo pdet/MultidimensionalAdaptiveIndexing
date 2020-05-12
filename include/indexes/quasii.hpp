@@ -27,6 +27,8 @@ public:
 
     void draw_index(std::string path) override;
 
+    bool sanity_check() override;
+
 private:
     std::vector<Slice> first_level_slices;
 
@@ -60,5 +62,7 @@ private:
     std::vector<Slice> sliceThreeWay(Slice &slice, float low, float high);
 
     std::vector<Slice> refine(Slice &slice, Predicate &predicate);
+
+    bool sanity_check_recursion(Slice& slice, std::vector<std::pair<float, float>> &borders);
 };
 #endif // QUASII_H

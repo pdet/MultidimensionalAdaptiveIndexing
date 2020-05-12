@@ -533,3 +533,31 @@ void Quasii::draw_index(std::string path){
     myfile.close();
 }
 
+bool Quasii::sanity_check_recursion(Slice& slice, vector<pair<float, float>> &borders){
+    borders.at(slice.column) = make_pair(slice.left_value, slice.right_value);
+    if(slice.column == table->col_count()){
+        Query query(borders);
+        vector<pair<size_t, size_t>> partition;
+        partition.push_back(make_pair(slice.offset_begin, slice.offset_end));
+        vector<bool> partition_skip (1, false);
+        auto result = FullScan::scan_partition(table.get(), query, partition, partition_skip);
+        return result.second == (slice.offset_end - slice.offset_begin);
+    }else{
+        for(auto& child : slice.children){
+            auto result = sanity_check_recursion(child, borders);
+            if(result == false)
+                return false;
+        }
+    }
+    return true;
+}
+
+bool Quasii::sanity_check(){
+    for(auto& slice : first_level_slices){
+        vector<pair<float, float>> borders(table->col_count());
+        auto result = sanity_check_recursion(slice, borders);
+        if(result == false)
+            return false;
+    }
+    return true;
+}
