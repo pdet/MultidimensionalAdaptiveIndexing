@@ -3,6 +3,7 @@
 #include <bitvector.hpp>
 #include "progressive_index.hpp"
 #include "candidate_list.hpp"
+#include "full_scan.hpp"
 
 using namespace std;
 using namespace chrono;
@@ -358,9 +359,17 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Table *originalTable, 
     } else if (!tree->root->finished) { //! If the root is not marked as sort we still have refinement to do!
         //! Refinement Phase
         progressive_quicksort_refine(query, remaining_swaps);
+        auto search_results= tree->search(query);
+        auto partitions = search_results.first;
+        auto partition_skip = search_results.second;
+        auto result = FullScan::scan_partition(table.get(), query,partitions, partition_skip);
+        auto t = make_unique<Table>(2);
+        float row[2] = {static_cast<float>(result.first), static_cast<float>(result.second)};
+        t->append(row);
+        return t;
+
     }
     //! We are in the consolidation phase no more indexing to be done, just scan it.
-    assert(0);
 }
 
 ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
