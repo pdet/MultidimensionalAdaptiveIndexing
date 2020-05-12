@@ -34,11 +34,11 @@ void KDTree::search_recursion(
                 // Data:  |----------!--------|
                 // Query:            |-----|
                 //                  low   high
-                partitions.push_back(make_pair(current->current_start, current->current_end));
+                partitions.push_back(make_pair(current->current_start-1, current->current_end));
                 partition_skip.push_back(false);
-                partitions.push_back(make_pair(current->current_end, current->end));
-                partition_skip.push_back(true);
-                break; 
+                partitions.push_back(make_pair(current->current_end, current->end+1));
+                partition_skip.push_back(false);
+                break;
             case +1:
                 // If the node's key is greater or equal to the high part of the query
                 // Then follow the left child
@@ -46,9 +46,9 @@ void KDTree::search_recursion(
                 // Data:  |----------!--------|
                 // Query:      |-----|
                 //            low   high
-                partitions.push_back(make_pair(current->start, current->current_start));
-                partition_skip.push_back(true);
-                partitions.push_back(make_pair(current->current_start, current->current_end));
+                partitions.push_back(make_pair(current->start-1, current->current_start));
+                partition_skip.push_back(false);
+                partitions.push_back(make_pair(current->current_start, current->current_end+1));
                 partition_skip.push_back(false);
                 break;
             case 0:
@@ -58,7 +58,7 @@ void KDTree::search_recursion(
                 // Data:  |----------!--------|
                 // Query:         |-----|
                 //               low   high
-                partitions.push_back(make_pair(current->start, current->end));
+                partitions.push_back(make_pair(current->start-1, current->end+1));
                 partition_skip.push_back(false);
                 break;
             default:

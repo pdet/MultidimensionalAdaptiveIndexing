@@ -64,7 +64,7 @@ class ProgressiveIndex: public AbstractIndex {
     void initializeRoot(float pivot, size_t tableSize) {
         assert(!tree);
         tree = std::make_unique<KDTree>(tableSize);
-        tree->root = make_unique<KDNode>(0,pivot,0,tableSize);
+        tree->root = make_unique<KDNode>(0,pivot,0,tableSize-1);
     }
     double get_costmodel_delta_quicksort(std::vector<int64_t>& originalColumn, int64_t low, int64_t high, double delta);
 

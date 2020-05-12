@@ -8,113 +8,19 @@
 using namespace std;
 using namespace chrono;
 
-bool isTest = false;
-
-//unique_ptr<RefinementScan> ProgressiveIndex::find_offsets(QSAVLTree* tree,IdxColEntry* column, int64_t low, int64_t high, size_t col_size){
-//    auto offsets = make_unique<RefinementScan>();
-//    //! Find left side
-//    auto leftNode = tree->FindNodeGTE(low);
-//    //! Find Right side
-//    auto rightNode = tree->FindNodeLT(high);
-//    if (leftNode) {
-//        if (leftNode->sorted) {
-//            auto pieceStart = tree->pieceStart(leftNode);
-//            auto pieceEnd = tree->pieceEnd(leftNode);
-//            offsets->offsetLeft = binary_search_gte(column, low, pieceStart->offset, pieceEnd->offset);
-//            offsets->checkLeft = false;
-//        } else {
-//            auto pieceEnd = tree->pieceEnd(leftNode);
-//            offsets-> offsetLeft = leftNode->current_start;
-//            offsets->offsetLeftMiddle = pieceEnd->offset;
-//        }
-//    } else {
-//        offsets->offsetLeft = 0;
-//        auto firstPiece = tree->FindMin(tree->root.get());
-//        offsets->offsetLeftMiddle = firstPiece->current_end;
-//    }
-//    if (rightNode) {
-//        if (rightNode->sorted) {
-//            offsets->checkRight = false;
-//            auto pieceStart = tree->pieceStart(rightNode);
-//            auto pieceEnd = tree->pieceEnd(rightNode);
-//            offsets->offsetRight = binary_search_lte(column, high, pieceStart->offset, pieceEnd->offset);
-//        } else {
-//            auto pieceStart = tree->pieceStart(rightNode);
-//            offsets->offsetRightMiddle = pieceStart->offset;
-//            offsets->offsetRight = rightNode->current_end;
-//        }
-//    } else {
-//        offsets->offsetRight = col_size - 1;
-//        auto lastPiece = tree->FindMax(tree->root.get());
-//        offsets->offsetRightMiddle = lastPiece->current_start;
-//    }
-//    return move(offsets);
-//
-//}
-//
-//ResultStruct ProgressiveIndex::refinement_scan(int64_t low, int64_t high, size_t col_size) {
-//    ResultStruct result;
-//    auto offsets = find_offsets(tree,column,low,high,col_size);
-//    //! Both pieces are sorted
-//    if (!offsets->checkLeft && !offsets->checkRight) {
-//        for (size_t i = offsets->offsetLeft; i < offsets->offsetRight; i++) {
-//            result.push_back(column[i]);
-//        }
-//    } else if (!offsets->checkLeft) { //! Only Left is Sorted
-//        for (size_t i = offsets->offsetLeft; i < offsets->offsetRightMiddle; i++) {
-//            result.push_back(column[i]);
-//        }
-//        //! We check the values of the right node
-//        for (size_t i = offsets->offsetRightMiddle; i <= offsets->offsetRight; i++) {
-//            int match = low <= column[i].m_key && column[i] < high;
-//            result.maybe_push_back(column[i], match);
-//        }
-//    } else if (!offsets->checkRight) { //! Only right is sorted
-//        for (size_t i = offsets->offsetLeft; i < offsets->offsetLeftMiddle; i++) {
-//            int match = low <= column[i].m_key && column[i] < high;
-//            result.maybe_push_back(column[i], match);
-//        }
-//        for (size_t i = offsets->offsetLeftMiddle; i < offsets->offsetRight; i++) {
-//            result.push_back(column[i]);
-//        }
-//    } else { //! No sorted nodes
-//        //! check if there are no middle pieces
-//        if (offsets->offsetLeft == offsets->offsetRightMiddle || offsets->offsetLeftMiddle == offsets->offsetRight) {
-//            for (size_t i = offsets->offsetLeft; i <= offsets->offsetLeftMiddle; i++) {
-//                int match = low <= column[i].m_key && column[i] < high;
-//                result.maybe_push_back(column[i], match);
-//            }
-//        } else { //! We have middle pieces
-//            //! We only have one middle piece that has not finished pivoting
-//            if (offsets->offsetLeftMiddle >= offsets->offsetRightMiddle) {
-//                //! We have to match everything
-//                for (size_t i = offsets->offsetLeft; i <= offsets->offsetRight; i++) {
-//                    int match = low <= column[i].m_key && column[i] < high;
-//                    result.maybe_push_back(column[i], match);
-//                }
-//            } else {
-//                for (size_t i = offsets->offsetLeft; i <= offsets->offsetLeftMiddle; i++) {
-//                    int match = low <= column[i].m_key && column[i] < high;
-//                    result.maybe_push_back(column[i], match);
-//                }
-//                //! No need to match middle pieces
-//                for (size_t i = offsets->offsetLeftMiddle + 1; i < offsets->offsetRightMiddle; i++) {
-//                    result.push_back(column[i]);
-//                }
-//                for (size_t i = offsets->offsetRightMiddle; i <= offsets->offsetRight; i++) {
-//                    int match = low <= column[i].m_key && column[i] < high;
-//                    result.maybe_push_back(column[i], match);
-//                }
-//            }
-//        }
-//    }
-//
-//    return result;
-//}
+//! Bit hacky, this can be done while reading the prev piece
+double find_avg(Table *table,size_t col_idx,size_t start, size_t end){
+    double sum = 0;
+    size_t total = end - start;
+    for (;start<end; start++){
+        sum += table->columns[col_idx]->data[start];
+    }
+    return sum/total;
+}
 
 void ProgressiveIndex::progressive_quicksort_refine(Query &query, ssize_t &remaining_swaps) {
     size_t num_dimensions = query.predicate_count();
-    while (!refinement_nodes->empty() && remaining_swaps) {
+    while (node_being_refined < refinement_nodes->size() && remaining_swaps) {
         auto node = refinement_nodes->at(node_being_refined);
         auto column = table->columns[node->column]->data;
         //! Now we swap everything related to this node
@@ -125,38 +31,40 @@ void ProgressiveIndex::progressive_quicksort_refine(Query &query, ssize_t &remai
             int end_has_to_swap = end < node->key;
             int has_to_swap = start_has_to_swap * end_has_to_swap;
             if (has_to_swap) {
-                remaining_swaps--;
                 table->exchange(node->current_start, node->current_end);
             }
+            remaining_swaps--;
             node->current_start += !start_has_to_swap + has_to_swap;
             node->current_end -= !end_has_to_swap + has_to_swap;
         }
         //! Did we finish pivoting this node?
-        if (node->current_start < node->current_end && !node->finished) {
+        if (node->current_start >= node->current_end && !node->finished) {
             node_being_refined++;
             size_t next_dimension = node->column == num_dimensions - 1 ? 0 : node->column + 1;
             column = table->columns[next_dimension]->data;
             //! We need to create children
             //! construct the left and right side of the root node on next dimension
-            int64_t pivot = column[node->current_start / 2];
-            size_t current_start = 0;
+            float pivot = column[node->current_start / 2];
+            size_t current_start = node->start;
             size_t current_end = node->current_end;
-            node->setLeft(make_unique<KDNode>(next_dimension, pivot, current_start, current_end));
-            if (current_end - current_start <= minimum_partition_size) {
-                node->left_child->finished = true;
+            node->position = node->current_end+1;
+            //! code castration
+            if (node->end-node->start < 100) {
+                node->finished = true;
+                continue;
             }
-
+            node->setLeft(make_unique<KDNode>(next_dimension, pivot, current_start, current_end));
             //! Right node
             pivot = column[(node->current_start + node->end) / 2];
             current_start = current_end + 1;
-            current_end = node->end - 1;
+            current_end = node->end;
             node->setRight(make_unique<KDNode>(next_dimension, pivot, current_start, current_end));
-            if (current_end - current_start <= minimum_partition_size) {
-                node->right_child->finished = true;
-            }
             refinement_nodes->push_back(node->left_child.get());
             refinement_nodes->push_back(node->right_child.get());
             //! is the  children size lower than threshold?
+        }
+        else if (remaining_swaps > 0){
+            node_being_refined++;
         }
     }
 }
@@ -245,7 +153,7 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
     for (size_t i = current_position; i < next_index; i++) {
         int matching = originalColumn[i] >= low && originalColumn[i] <= high;
         mid_bit_vec.set(bit_idx, matching);
-        int bigger_pivot = indexColumn[i] >= root->key;
+        int bigger_pivot = originalColumn[i] >= root->key;
         int smaller_pivot = 1 - bigger_pivot;
 
         indexColumn[root->current_start] = originalColumn[i];
@@ -271,7 +179,7 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
             indexColumn[initial_low_cur] = originalColumn[i];
             indexColumn[initial_high_cur] = originalColumn[i];
             initial_low_cur += goDown.get(bit_idx);
-            initial_high_cur -= goDown.get(bit_idx++);
+            initial_high_cur -= !goDown.get(bit_idx++);
         }
     }
     current_position = next_index;
@@ -282,10 +190,10 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
         indexColumn = table->columns[dim]->data;
         assert(root->current_start >= root->current_end);
         //! construct the left and right side of the root node on next dimension
-        int64_t pivot = indexColumn[root->current_start / 2];
+        float pivot = indexColumn[root->current_start / 2];
         size_t current_start = 0;
         size_t current_end = root->current_end;
-
+        root->position = root->current_end;
         root->setLeft(make_unique<KDNode>(dim,pivot, current_start, current_end));
 
         //! Right node
@@ -372,7 +280,9 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Table *originalTable, 
     //! We are in the consolidation phase no more indexing to be done, just scan it.
 }
 
+
 ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
+    refinement_nodes = make_unique<vector<KDNode*>>();
     if (config.find("minimum_partition_size") == config.end())
         minimum_partition_size = 100;
     else
@@ -390,7 +300,8 @@ double ProgressiveIndex::get_costmodel_delta_quicksort(vector<int64_t> &original
 void ProgressiveIndex::initialize(Table *table_to_copy) {
     auto start = measurements->time();
     table = make_unique<Table>(table_to_copy->col_count(), table_to_copy->row_count());
-    initializeRoot(table_to_copy->row_count() / 2, table_to_copy->row_count());
+    float pivot = find_avg(table_to_copy,0,0,table_to_copy->row_count());
+    initializeRoot(pivot, table_to_copy->row_count());
     auto end = measurements->time();
     measurements->append(
             "initialization_time",
