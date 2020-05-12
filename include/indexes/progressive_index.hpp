@@ -51,7 +51,8 @@ class ProgressiveIndex: public AbstractIndex {
   //! Progressive KD-Tree Index Root
     unique_ptr<KDTree> tree;
     size_t current_position = 0;
-
+    unique_ptr<vector<KDNode*>> refinement_nodes;
+    size_t node_being_refined = 0;
     //! FIXME : For now fixing delta
     double delta = 0.1;
 
@@ -70,4 +71,5 @@ class ProgressiveIndex: public AbstractIndex {
 private:
     size_t minimum_partition_size = 100;
     unique_ptr<Table> progressive_quicksort_create(Table *originalTable,Query& query, ssize_t& remaining_swaps);
+    void progressive_quicksort_refine(Query& query, ssize_t& remaining_swaps);
 };

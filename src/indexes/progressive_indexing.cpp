@@ -110,131 +110,55 @@ bool isTest = false;
 //
 //    return result;
 //}
-//void ProgressiveIndex::node_refinement(QSAVLTree* tree, QSAVLNode* node, IdxColEntry* column, ssize_t& remaining_swaps) {
-//    if (!node) {
-//        return;
-//    }
-//    //! Check if node has children
-//    if (node->noChildren()) {
-//        auto pieceStart = tree->pieceStart(node);
-//        auto pieceEnd = tree->pieceEnd(node);
-//        if ((pieceEnd->offset - pieceStart->offset) <= 1024) { //! small enough to sort?
-//            //! node is very small, just sort it normally
-//            if (remaining_swaps > (pieceEnd->offset - pieceStart->offset) * 5) {
-//                hybrid_radixsort_insert(column + pieceStart->offset, pieceEnd->offset - pieceStart->offset + 1);
-//                node->sorted = true;
-//                //! Check if there are nodes we should merge
-//                auto parent = tree->findParent(node);
-//                remaining_swaps -= (pieceEnd->offset - pieceStart->offset) * 5; //! log2(8192)
-//                tree->mergeChildren(parent);
-//            }
-//            return;
-//        }
-//        //! does it have a pivot going on?
-//        while (node->current_start < node->current_end && remaining_swaps > 0) {
-//            //! TODO: we could scan while we pivot here
-//            auto start = column[node->current_start];
-//            auto end = column[node->current_end];
-//
-//            int start_has_to_swap = start >= node->pivot;
-//            int end_has_to_swap = end < node->pivot;
-//            int has_to_swap = start_has_to_swap * end_has_to_swap;
-//
-//            column[node->current_start].m_key = !has_to_swap * start.m_key + has_to_swap * end.m_key;
-//            column[node->current_end].m_key = !has_to_swap * end.m_key + has_to_swap * start.m_key;
-//            column[node->current_start].m_rowId = !has_to_swap * start.m_rowId + has_to_swap * end.m_rowId;
-//            column[node->current_end].m_rowId = !has_to_swap * end.m_rowId + has_to_swap * start.m_rowId;
-//
-//            node->current_start += !start_has_to_swap + has_to_swap;
-//            node->current_end -= !end_has_to_swap + has_to_swap;
-//
-//            remaining_swaps--;
-//        }
-//
-//        //! We finish refining this node's pivot
-//        if (node->current_start >= node->current_end && !node->sorted) {
-//            //! Time to procreate
-//            //! construct the left and right side of the root node
-//            auto pieceStart = tree->pieceStart(node);
-//            auto pieceEnd = tree->pieceEnd(node);
-//            if ((pieceEnd->offset - pieceStart->offset) <= 1024) { //! small enough to sort?
-//                //! node is very small, just sort it normally
-//                if (remaining_swaps > (pieceEnd->offset - pieceStart->offset) * 5) {
-//                    hybrid_radixsort_insert(column + pieceStart->offset, pieceEnd->offset - pieceStart->offset);
-//                    node->sorted = true;
-//                    //! Check if there are nodes we should merge
-//                    auto parent = tree->findParent(node);
-//                    remaining_swaps -= (pieceEnd->offset - pieceStart->offset) * 5; //! log2(8192)
-//                    tree->mergeChildren(parent);
-//                }
-//                return;
-//            }
-//            //! Left Node
-//            size_t current_start = pieceStart->offset;
-//            size_t current_end = node->current_end;
-//            int64_t pivot = (pieceStart->value + node->pivot) / 2;
-//            assert(pivot < node->pivot);
-//            node->setLeft(make_unique<QSAVLNode>(pivot, current_start, current_end));
-//
-//            //! Right node
-//            current_start = current_end;
-//            current_end = pieceEnd->offset;
-//            pivot = (pieceEnd->value + node->pivot) / 2;
-//            assert(pivot > node->pivot);
-//            node->setRight(make_unique<QSAVLNode>(pivot, current_start, current_end));
-//        }
-//        return;
-//    } else {
-//        //! Node has children, visit them
-//        auto left = node->left.get();
-//        //! node has children, go into one of the children
-//        node_refinement(tree, left, column, remaining_swaps);
-//        auto right = node->right.get();
-//        node_refinement(tree, right, column, remaining_swaps);
-//    }
-//}
-//ResultStruct ProgressiveIndex::progressive_quicksort_refine(ProgressiveIndex& progressiveIndex, ssize_t& remaining_swaps, int64_t low, int64_t high) {
-//    auto indexColumn = progressiveIndex.column->data;
-//    auto tree = progressiveIndex.tree.get();
-//    int64_t low_cop = low;
-//    int64_t high_cop = high;
-//    //! Get Boundaries for query
-//    auto lowNode = progressiveIndex.tree->FindNodeGTE(low);
-//    //! if lowNode is null we get first node
-//    if (!lowNode) {
-//        lowNode = progressiveIndex.tree->FindMin(progressiveIndex.tree->root.get());
-//    }
-//    //! Prioritize a bit of cracking on the boundary nodes
-//    node_refinement(tree, lowNode, indexColumn, remaining_swaps);
-//    auto highNode = progressiveIndex.tree->FindNodeLT(high);
-//    if (!highNode) {
-//        highNode = lowNode;
-//    }
-//    node_refinement(tree, highNode, indexColumn, remaining_swaps);
-//
-//    //! If we still have budget after finishing the priority cracking we keep on cracking
-//    auto node = progressiveIndex.tree->FindMin(progressiveIndex.tree->root.get());
-//    while (remaining_swaps > 1024 * 5 && !tree->root->sorted) {
-//        if (!node) {
-//            node = progressiveIndex.tree->FindMin(progressiveIndex.tree->root.get());
-//        }
-//        if (node->sorted || !node->noChildren()) {
-//            //! 47864
-//            node = progressiveIndex.tree->inOrderSucessor(node);
-//            continue;
-//        }
-//        node_refinement(tree, node, indexColumn, remaining_swaps);
-//        node = progressiveIndex.tree->inOrderSucessor(node);
-//    }
-//    assert(remaining_swaps <= 1024 * 5 || tree->root->sorted);
-//    auto results = refinement_scan(tree, indexColumn, low_cop, high_cop, progressiveIndex.column->size);
-//    if (isTest) {
-//        check_column(indexColumn, progressiveIndex.column->size);
-//        int64_t result = full_scan(indexColumn, progressiveIndex.column->size, low_cop, high_cop);
-//        assert(results.sum == result);
-//    }
-//    return results;
-//}
+
+void ProgressiveIndex::progressive_quicksort_refine(Query &query, ssize_t &remaining_swaps) {
+    size_t num_dimensions = query.predicate_count();
+    while (!refinement_nodes->empty() && remaining_swaps) {
+        auto node = refinement_nodes->at(node_being_refined);
+        auto column = table->columns[node->column]->data;
+        //! Now we swap everything related to this node
+        while (node->current_start < node->current_end && remaining_swaps > 0) {
+            auto start = column[node->current_start];
+            auto end = column[node->current_end];
+            int start_has_to_swap = start >= node->key;
+            int end_has_to_swap = end < node->key;
+            int has_to_swap = start_has_to_swap * end_has_to_swap;
+            if (has_to_swap) {
+                remaining_swaps--;
+                table->exchange(node->current_start, node->current_end);
+            }
+            node->current_start += !start_has_to_swap + has_to_swap;
+            node->current_end -= !end_has_to_swap + has_to_swap;
+        }
+        //! Did we finish pivoting this node?
+        if (node->current_start < node->current_end && !node->finished) {
+            node_being_refined++;
+            size_t next_dimension = node->column == num_dimensions - 1 ? 0 : node->column + 1;
+            column = table->columns[next_dimension]->data;
+            //! We need to create children
+            //! construct the left and right side of the root node on next dimension
+            int64_t pivot = column[node->current_start / 2];
+            size_t current_start = 0;
+            size_t current_end = node->current_end;
+            node->setLeft(make_unique<KDNode>(next_dimension, pivot, current_start, current_end));
+            if (current_end - current_start <= minimum_partition_size) {
+                node->left_child->finished = true;
+            }
+
+            //! Right node
+            pivot = column[(node->current_start + node->end) / 2];
+            current_start = current_end + 1;
+            current_end = node->end - 1;
+            node->setRight(make_unique<KDNode>(next_dimension, pivot, current_start, current_end));
+            if (current_end - current_start <= minimum_partition_size) {
+                node->right_child->finished = true;
+            }
+            refinement_nodes->push_back(node->left_child.get());
+            refinement_nodes->push_back(node->right_child.get());
+            //! is the  children size lower than threshold?
+        }
+    }
+}
 
 unique_ptr<Table>
 ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &query, ssize_t &remaining_swaps) {
@@ -258,7 +182,7 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
     if (low <= root->key) {
         for (size_t i = 0; i < root->current_start; i++) {
             int matching = indexColumn[i] >= low && indexColumn[i] <= high;
-            up.maybe_push_back(i,matching);
+            up.maybe_push_back(i, matching);
         }
         for (dim = 1; dim < query.predicate_count(); ++dim) {
             if (up.size == 0) {
@@ -357,17 +281,19 @@ ProgressiveIndex::progressive_quicksort_create(Table *originalTable, Query &quer
         indexColumn = table->columns[dim]->data;
         assert(root->current_start >= root->current_end);
         //! construct the left and right side of the root node on next dimension
-        int64_t pivot = indexColumn[root->current_start/2];
+        int64_t pivot = indexColumn[root->current_start / 2];
         size_t current_start = 0;
         size_t current_end = root->current_end;
 
-        root->setLeft(make_unique<KDNode>(pivot, current_start, current_end));
+        root->setLeft(make_unique<KDNode>(dim,pivot, current_start, current_end));
 
         //! Right node
-        pivot = indexColumn[(root->current_start+table_size)/2];
+        pivot = indexColumn[(root->current_start + table_size) / 2];
         current_start = current_end + 1;
         current_end = table_size - 1;
-        root->setRight(make_unique<KDNode>(pivot, current_start, current_end));
+        root->setRight(make_unique<KDNode>(dim,pivot, current_start, current_end));
+        refinement_nodes->push_back(root->left_child.get());
+        refinement_nodes->push_back(root->right_child.get());
     } else {
         //! we have done all the swapping for this run
         //! now we query the remainder of the data
@@ -431,8 +357,7 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Table *originalTable, 
         return progressive_quicksort_create(originalTable, query, remaining_swaps);
     } else if (!tree->root->finished) { //! If the root is not marked as sort we still have refinement to do!
         //! Refinement Phase
-        assert(0 && "Refinement Not Yet Implemented");
-//        progressive_quicksort_refine(query, remaining_swaps);
+        progressive_quicksort_refine(query, remaining_swaps);
     }
     //! We are in the consolidation phase no more indexing to be done, just scan it.
     assert(0);
