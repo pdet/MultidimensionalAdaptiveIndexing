@@ -4,7 +4,6 @@
 #include "measurements.hpp"
 #include "query.hpp"
 #include "table.hpp"
-#include <index_table.hpp>
 #include <string>
 #include <cassert>
 

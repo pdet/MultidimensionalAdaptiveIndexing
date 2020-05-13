@@ -6,3 +6,5 @@ bin/**
 .idea/
 cmake-build-debug/
 deps/
+.clangd/**
+compile_commands.json

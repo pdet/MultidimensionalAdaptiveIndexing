@@ -8,11 +8,13 @@ FullScan::FullScan(std::map<std::string, std::string> /*config*/){}
 FullScan::~FullScan(){}
 
 void FullScan::initialize(Table *table_to_copy){
-    auto start = measurements->time();
 
     // Simply copies the pointer of the table, since it does not change anything
     table = make_unique<Table>(table_to_copy);
 
+    // FIXME: should just copy the pointer, instead of copying the entire table.
+    //          for now it can be left like this and make init time equal 0
+    auto start = measurements->time();
     auto end = measurements->time();
 
     measurements->append(
