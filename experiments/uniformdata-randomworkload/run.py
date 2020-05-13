@@ -7,8 +7,57 @@ import inspect
 
 
 REPETITIONS = 1
-PARTITION_SIZE = 1024
-ALGORITHM_IDS = [1, 2, 3, 4, 5, 6, 111]
+
+EXPERIMENTS = [
+        {"data": "2data", "workload": "2queries", "name": "2cols"},
+        {"data": "4data", "workload": "4queries", "name": "4cols"},
+        {"data": "8data", "workload": "8queries", "name": "8cols"},
+        {"data": "16data", "workload": "16queries", "name": "16cols"},
+]
+
+RUNS = [
+    {
+        "algorithm_id": "1",
+        "partitions_size": "1024",
+        "results_file": "full_scan"
+    },
+    {
+        "algorithm_id": "111",
+        "partitions_size": "1024",
+        "results_file": "full_scan_cl"
+    },
+    {
+        "algorithm_id": "2",
+        "partitions_size": "1024",
+        "results_file": "cracking_kd_tree"
+    },
+    {
+        "algorithm_id": "3",
+        "partitions_size": "1024",
+        "results_file": "cracking_kd_tree_pd"
+    },
+    {
+        "algorithm_id": "4",
+        "partitions_size": "1024",
+        "results_file": "average_kd_tree"
+    },
+    {
+        "algorithm_id": "5",
+        "partitions_size": "1024",
+        "results_file": "median_kd_tree"
+    },
+    {
+        "algorithm_id": "6",
+        "partitions_size": "1024",
+        "results_file": "quasii"
+    },
+    {
+        "algorithm_id": "7",
+        "partitions_size": "1024",
+        "results_file": "progressive_index"
+    },
+]
+
 
 # script directory
 SCRIPT_PATH = os.path.dirname(
@@ -69,17 +118,16 @@ class Benchmark:
             subprocess.call(["make", '-j'])
 
         with CD(self.bin_dir):
-            cols = [2, 4, 8, 16]
-            for col in cols:
-                for algorithm_id in ALGORITHM_IDS:
+            for experiment in EXPERIMENTS:
+                for run in RUNS:
                     command = [
                         "./main",
-                        "-w", f"{self.CURRENT_DIR}/data/queries{col}",
-                        "-d", f"{self.CURRENT_DIR}/data/data{col}",
-                        "-i", str(algorithm_id),
+                        "-w", f"{self.CURRENT_DIR}/data/{experiment['workload']}",
+                        "-d", f"{self.CURRENT_DIR}/data/{experiment['data']}",
+                        "-i", run['algorithm_id'],
                         "-r", str(REPETITIONS),
-                        "-s", f"{self.CURRENT_DIR}/results/{algorithm_id}-{col}",
-                        "-p", str(PARTITION_SIZE)
+                        "-s", f"{self.CURRENT_DIR}/results/{experiment['name']}-{run['results_file']}.csv",
+                        "-p", run['partitions_size']
                         ]
                     command = ' '.join(command)
                     os.system(command)
