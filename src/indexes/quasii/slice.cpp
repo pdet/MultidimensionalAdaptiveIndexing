@@ -82,7 +82,7 @@ bool Slice::equal(const Slice &other){
 bool Slice::intersects(float low, float high){
     return (
         (left_value <= low && low < right_value) ||
-        (left_value < high && high <= right_value) ||
+        (left_value <= high && high <= right_value) ||
         (low <= left_value && right_value <= high)
     );
 }

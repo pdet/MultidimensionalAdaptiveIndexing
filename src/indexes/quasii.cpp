@@ -322,11 +322,11 @@ std::vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
     for (auto &r_s : refined_slices){
         if(r_s.size() > dimensions_threshold[r_s.column] && r_s.intersects(low, high)){
             std::vector<Slice> refined_slice_aux = sliceArtificial(r_s);
-        result_slices.insert(
-            result_slices.end(),
-            std::make_move_iterator(refined_slice_aux.begin()),
-            std::make_move_iterator(refined_slice_aux.end())
-        );
+            result_slices.insert(
+                    result_slices.end(),
+                    std::make_move_iterator(refined_slice_aux.begin()),
+                    std::make_move_iterator(refined_slice_aux.end())
+                    );
         }
         else{
             result_slices.push_back(std::move(r_s));
@@ -459,31 +459,23 @@ std::vector<Slice> Quasii::sliceThreeWay(Slice &slice, float low, float high){
     auto first_crack = crack_result.first;
     auto second_crack = crack_result.second;
 
-    // Check if first partition is empty
-    if(slice.offset_begin < first_crack){
+    if(first_crack - slice.offset_begin > 0){
         result.push_back(
-            Slice(slice.column, slice.offset_begin, first_crack, slice.left_value, low)
-        );
-    }
-    else{
-        // First partition is empty, so fix the indexes to use on the middle one
-        first_crack = slice.offset_begin;
+                Slice(slice.column, slice.offset_begin, first_crack, slice.left_value, low)
+                );
     }
 
-    // Check if last partition is empty
-    if(second_crack < slice.offset_end){
+    if(second_crack - first_crack > 0){
         result.push_back(
-            Slice(slice.column, second_crack, slice.offset_end, high, slice.right_value)
-        );
-    }
-    else{
-        second_crack = slice.offset_end;
+                Slice(slice.column, first_crack, second_crack, low, high)
+                );
     }
 
-    result.push_back(
-        Slice(slice.column, first_crack, second_crack, low, high)
-    );
-
+    if(slice.offset_end - second_crack > 0){
+        result.push_back(
+                Slice(slice.column, second_crack, slice.offset_end, high, slice.right_value)
+                );
+    }
     return result;
 }
 
@@ -500,7 +492,7 @@ void Quasii::draw_index(std::string path){
         slices.pop_back();
 
         auto array_id = std::to_string(
-                    reinterpret_cast<size_t>(&((*array_of_slices)[0]))
+                reinterpret_cast<size_t>(&((*array_of_slices)[0]))
                 );
 
         // First we create the node
@@ -518,12 +510,12 @@ void Quasii::draw_index(std::string path){
             auto &slice = array_of_slices->at(i);
             auto slice_id = std::to_string(
                     reinterpret_cast<size_t>(&(slice))
-                );
+                    );
             if(slice.children.empty()){}
             else{
                 myfile << array_id + ":" + array_id + "->" + std::to_string(
-                    reinterpret_cast<size_t>(&(slice.children[0]))
-                ) + ";\n";
+                        reinterpret_cast<size_t>(&(slice.children[0]))
+                        ) + ";\n";
                 slices.push_back(&(slice.children));
             }
         }
@@ -535,7 +527,7 @@ void Quasii::draw_index(std::string path){
 
 bool Quasii::sanity_check_recursion(Slice& slice, vector<pair<float, float>> &borders){
     borders.at(slice.column) = make_pair(slice.left_value, slice.right_value);
-    if(slice.column == table->col_count()){
+    if(slice.column == table->col_count() - 1){
         Query query(borders);
         vector<pair<size_t, size_t>> partition;
         partition.push_back(make_pair(slice.offset_begin, slice.offset_end));
