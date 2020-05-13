@@ -42,11 +42,11 @@ class ProgressiveIndex: public AbstractIndex {
   ~ProgressiveIndex();
   void initialize(Table *table_to_copy) override;
 
-  void adapt_index(Table *originalTable,Query& query) override;
+  void adapt_index(Query &query) override;
 
-  std::unique_ptr<Table> range_query(Table *originalTable,Query& query) override;
+  unique_ptr<Table> range_query(Query &query) override;
 
-  unique_ptr<Table> progressive_quicksort(Table *originalTable,Query& query);
+  unique_ptr<Table> progressive_quicksort(Query &query);
 
   //! Progressive KD-Tree Index Root
     unique_ptr<KDTree> tree;
@@ -54,7 +54,7 @@ class ProgressiveIndex: public AbstractIndex {
     unique_ptr<vector<KDNode*>> refinement_nodes;
     size_t node_being_refined = 0;
     //! FIXME : For now fixing delta
-    double delta = 0.1;
+    double delta = 0.2;
 
     //! Adaptive Delta
     double full_scan_time = 0;
@@ -69,7 +69,8 @@ class ProgressiveIndex: public AbstractIndex {
     double get_costmodel_delta_quicksort(std::vector<int64_t>& originalColumn, int64_t low, int64_t high, double delta);
 
 private:
+    Table *originalTable;
     size_t minimum_partition_size = 100;
-    unique_ptr<Table> progressive_quicksort_create(Table *originalTable,Query& query, ssize_t& remaining_swaps);
+    unique_ptr<Table> progressive_quicksort_create(Query &query, ssize_t &remaining_swaps);
     void progressive_quicksort_refine(Query& query, ssize_t& remaining_swaps);
 };

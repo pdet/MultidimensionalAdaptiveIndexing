@@ -25,45 +25,26 @@ void KDTree::search_recursion(
     vector<pair<float, float>> partition_borders
 ){
     // Progressive
+    //! TODO: there is some space for optimization here if necessary
     if(current->current_start < current->current_end){
         switch(current->compare(query)){
             case -1:
-                // If the node's key is smaller to the low part of the query
-                // Then follow the right child
-                //                  Key
-                // Data:  |----------!--------|
-                // Query:            |-----|
-                //                  low   high
-                partitions.push_back(make_pair(current->current_start-1, current->current_end));
-                partition_skip.push_back(false);
-                partitions.push_back(make_pair(current->current_end, current->end+1));
+                //! Key < Query
+                partitions.push_back(make_pair(current->current_start, current->end+1));
                 partition_skip.push_back(false);
                 break;
             case +1:
-                // If the node's key is greater or equal to the high part of the query
-                // Then follow the left child
-                //                  Key
-                // Data:  |----------!--------|
-                // Query:      |-----|
-                //            low   high
-                partitions.push_back(make_pair(current->start-1, current->current_start));
-                partition_skip.push_back(false);
-                partitions.push_back(make_pair(current->current_start, current->current_end+1));
+                //! Key >= Query
+                partitions.push_back(make_pair(current->start,  current->current_end+1));
                 partition_skip.push_back(false);
                 break;
             case 0:
-                // If the node's key is inside the query
-                // Then follow both children
-                //                  Key
-                // Data:  |----------!--------|
-                // Query:         |-----|
-                //               low   high
-                partitions.push_back(make_pair(current->start-1, current->end+1));
+                //! Key doesn't really help
+                partitions.push_back(make_pair(current->start, current->end+1));
                 partition_skip.push_back(false);
                 break;
             default:
                 assert(false);
-                break;
         }
         return;
     }

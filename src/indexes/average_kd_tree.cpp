@@ -31,7 +31,7 @@ void AverageKDTree::initialize(Table *table_to_copy){
     // ******************
 }
 
-void AverageKDTree::adapt_index(Table *originalTable,Query& query){
+void AverageKDTree::adapt_index(Query &query) {
     // ******************
     auto start = measurements->time();
     // DOES ABSOLUTELY NOTHING HERE
@@ -43,7 +43,7 @@ void AverageKDTree::adapt_index(Table *originalTable,Query& query){
     );
 }
 
-unique_ptr<Table>  AverageKDTree::range_query(Table *originalTable,Query& query){
+unique_ptr<Table> AverageKDTree::range_query(Query &query) {
     // ******************
     auto start = measurements->time();
 
