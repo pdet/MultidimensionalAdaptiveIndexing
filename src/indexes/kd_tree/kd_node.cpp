@@ -9,7 +9,8 @@
 using namespace std;
 
 KDNode::KDNode(size_t column, float key, size_t position)
-: key(key), column(column), left_child(nullptr), right_child(nullptr), position(position){}
+: key(key), column(column), left_child(nullptr), right_child(nullptr), position(position),
+  current_start(position), current_end(position){}
 
 KDNode::KDNode(const KDNode &node)
     : KDNode(node.column, node.key, node.position){}

@@ -23,7 +23,7 @@ void FullScan::initialize(Table *table_to_copy){
     );
 }
 
-void FullScan::adapt_index(Table *originalTable,Query& query){
+void FullScan::adapt_index(Query &query) {
     // Zero adaptation for full scan
     measurements->append(
         "adaptation_time",
@@ -33,7 +33,7 @@ void FullScan::adapt_index(Table *originalTable,Query& query){
     );
 }
 
-std::unique_ptr<Table>  FullScan::range_query(Table *originalTable,Query& query){
+unique_ptr<Table> FullScan::range_query(Query &query) {
     auto start = measurements->time();
 
 

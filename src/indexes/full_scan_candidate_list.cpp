@@ -23,7 +23,7 @@ void FullScanCandidateList::initialize(Table *table_to_copy){
     );
 }
 
-void FullScanCandidateList::adapt_index(Table *originalTable,Query& /*query*/){
+void FullScanCandidateList::adapt_index(Query &) {
     // Zero adaptation for full scan
     measurements->append(
         "adaptation_time",
@@ -33,7 +33,7 @@ void FullScanCandidateList::adapt_index(Table *originalTable,Query& /*query*/){
     );
 }
 
-std::unique_ptr<Table> FullScanCandidateList::range_query(Table *originalTable,Query& query){
+unique_ptr<Table> FullScanCandidateList::range_query(Query &query) {
     auto start = measurements->time();
 
 

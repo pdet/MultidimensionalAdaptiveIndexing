@@ -24,6 +24,30 @@ void KDTree::search_recursion(
     vector<bool> &partition_skip,
     vector<pair<float, float>> partition_borders
 ){
+    // Progressive
+    //! TODO: there is some space for optimization here if necessary
+    if(current->current_start < current->current_end){
+        switch(current->compare(query)){
+            case -1:
+                //! Key < Query
+                partitions.push_back(make_pair(current->current_start, current->end+1));
+                partition_skip.push_back(false);
+                break;
+            case +1:
+                //! Key >= Query
+                partitions.push_back(make_pair(current->start,  current->current_end+1));
+                partition_skip.push_back(false);
+                break;
+            case 0:
+                //! Key doesn't really help
+                partitions.push_back(make_pair(current->start, current->end+1));
+                partition_skip.push_back(false);
+                break;
+            default:
+                assert(false);
+        }
+        return;
+    }
     auto temporary_min = partition_borders.at(current->column).first;
     switch(current->compare(query)){
         case -1:
@@ -123,8 +147,8 @@ KDTree::search(Query& query){
     vector<bool> partition_skip;
     if(root == nullptr){
         partitions.push_back(
-            make_pair(0u, row_count-1u)
-        );
+                make_pair(0u, row_count-1u)
+                );
         partition_skip.push_back(false);
         return make_pair(partitions, partition_skip);
     }
@@ -137,17 +161,17 @@ KDTree::search(Query& query){
                 );
     }
     search_recursion(
-        root.get(),
-        0, row_count,
-        query, partitions, partition_skip,
-        partition_borders
-        );
+            root.get(),
+            0, row_count,
+            query, partitions, partition_skip,
+            partition_borders
+            );
     return make_pair(partitions, partition_skip);
 }
 
 unique_ptr<KDNode> KDTree::create_node(size_t column, float key, size_t position){
     auto node = make_unique<KDNode>(
-                column, key, position 
+            column, key, position 
             );
     number_of_nodes++;
     return node;
@@ -259,8 +283,8 @@ void KDTree::draw(std::string path){
                 myfile << std::to_string(reinterpret_cast<size_t>(node));
                 myfile << " -> ";
                 myfile << std::to_string(
-                    reinterpret_cast<size_t>(node->left_child.get())
-                );
+                        reinterpret_cast<size_t>(node->left_child.get())
+                        );
                 myfile << "[label =\"L\"];\n";
             }
             else{
@@ -276,8 +300,8 @@ void KDTree::draw(std::string path){
                 myfile << std::to_string(reinterpret_cast<size_t>(node));
                 myfile << " -> ";
                 myfile << std::to_string(
-                    reinterpret_cast<size_t>(node->right_child.get())
-                );
+                        reinterpret_cast<size_t>(node->right_child.get())
+                        );
                 myfile << "[label =\"R\"];\n";
             }
             else{
@@ -297,10 +321,10 @@ void KDTree::draw(std::string path){
 }
 
 bool KDTree::sanity_check_recursion(
-    Table* table, KDNode* current,
-    size_t low, size_t high,
-    vector<pair<float, float>> partition_borders
-){
+        Table* table, KDNode* current,
+        size_t low, size_t high,
+        vector<pair<float, float>> partition_borders
+        ){
     if(current == nullptr){
         // Scan Partition
         // Transform partition_borders to query
@@ -332,7 +356,7 @@ bool KDTree::sanity_check_recursion(
             table, current->right_child.get(),
             current->position, high,
             partition_borders
-        );
+            );
     return left_sanity && right_sanity;
 }
 
@@ -345,4 +369,4 @@ bool KDTree::sanity_check(Table* table){
                 );
     }
     return sanity_check_recursion(table, root.get(), 0, row_count, partition_borders); 
-   }
+}

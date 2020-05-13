@@ -32,7 +32,7 @@ void MedianKDTree::initialize(Table *table_to_copy){
     );    // ******************
 }
 
-void MedianKDTree::adapt_index(Table *originalTable,Query& query){
+void MedianKDTree::adapt_index(Query &query) {
     // ******************
     auto start = measurements->time();
     // DOES ABSOLUTELY NOTHING HERE
@@ -44,7 +44,7 @@ void MedianKDTree::adapt_index(Table *originalTable,Query& query){
     );
 }
 
-unique_ptr<Table> MedianKDTree::range_query(Table *originalTable,Query& query){
+unique_ptr<Table> MedianKDTree::range_query(Query &query) {
     // ******************
     auto start = measurements->time();
 
