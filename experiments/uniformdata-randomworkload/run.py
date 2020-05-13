@@ -10,9 +10,9 @@ REPETITIONS = 1
 
 EXPERIMENTS = [
         {"data": "2data", "workload": "2queries", "name": "2cols"},
-        #{"data": "4data", "workload": "4queries", "name": "4cols"},
-        #{"data": "8data", "workload": "8queries", "name": "8cols"},
-        #{"data": "16data", "workload": "16queries", "name": "16cols"},
+        {"data": "4data", "workload": "4queries", "name": "4cols"},
+        {"data": "8data", "workload": "8queries", "name": "8cols"},
+        {"data": "16data", "workload": "16queries", "name": "16cols"},
 ]
 
 RUNS = [
