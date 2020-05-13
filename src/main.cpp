@@ -21,7 +21,7 @@ int main(int argc, char** argv){
     map<string, string> config;
 
     int c;
-    while ((c = getopt (argc, argv, "w:d:i:r:s:p:")) != -1)
+    while ((c = getopt (argc, argv, "w:d:i:r:s:p:a:")) != -1)
         switch (c)
         {
         case 'w':
@@ -42,6 +42,9 @@ int main(int argc, char** argv){
         case 'p':
             config["minimum_partition_size"] = optarg;
             break;
+        case 'a':
+            config["delta"] = optarg;
+            break;
         default:
             cout << "Usage:\n";
             cout << "-w <workload_path>\n";
@@ -50,13 +53,23 @@ int main(int argc, char** argv){
             cout << "-r <number_of_repetitions>\n";
             cout << "-s <file_to_save_results>\n";
             cout << "-p <minimum_partition_size>\n";
+            cout << "-a <delta>\n";
             return -1;
         }
 
     for(auto repetition = 0; repetition < number_of_repetitions; repetition++){
         auto index = IndexFactory::getIndex(algorithm_id, config);
 
-        cout << index->name() << " Repetition: " << repetition << endl;
+        cout << endl;
+        cout << index->name() << endl;
+        cout << "Repetition: " << repetition << endl;
+        cout << "Workload: " << workload_path << endl;
+        cout << "Data: " << data_path << endl;
+        cout << "Configurations:" << endl;
+
+        for(auto& element : config){
+            cout << '\t' << element.first << ": " << element.second << endl;
+        }
 
         auto table = Table::read_file(data_path);
         auto workload = Workload::read_file(workload_path);

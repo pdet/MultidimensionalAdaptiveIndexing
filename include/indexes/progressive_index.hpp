@@ -53,7 +53,6 @@ class ProgressiveIndex: public AbstractIndex {
     size_t current_position = 0;
     unique_ptr<vector<KDNode*>> refinement_nodes;
     size_t node_being_refined = 0;
-    //! FIXME : For now fixing delta
     double delta = 0.2;
 
     //! Adaptive Delta

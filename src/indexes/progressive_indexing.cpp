@@ -329,6 +329,12 @@ ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
         minimum_partition_size = 100;
     else
         minimum_partition_size = std::stoi(config["minimum_partition_size"]);
+
+    if (config.find("delta") == config.end())
+        delta = 0.2;
+    else
+        delta = std::stod(config["delta"]);
+
 }
 
 ProgressiveIndex::~ProgressiveIndex() {}
