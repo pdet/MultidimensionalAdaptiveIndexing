@@ -10,51 +10,106 @@ REPETITIONS = 1
 
 EXPERIMENTS = [
         {"data": "2data", "workload": "2queries", "name": "2cols"},
-        {"data": "4data", "workload": "4queries", "name": "4cols"},
-        {"data": "8data", "workload": "8queries", "name": "8cols"},
-        {"data": "16data", "workload": "16queries", "name": "16cols"},
+        #{"data": "4data", "workload": "4queries", "name": "4cols"},
+        #{"data": "8data", "workload": "8queries", "name": "8cols"},
+        #{"data": "16data", "workload": "16queries", "name": "16cols"},
 ]
 
 RUNS = [
     {
         "algorithm_id": "1",
-        "partitions_size": "1024",
         "results_file": "full_scan"
     },
     {
         "algorithm_id": "111",
-        "partitions_size": "1024",
         "results_file": "full_scan_cl"
     },
     {
         "algorithm_id": "2",
         "partitions_size": "1024",
-        "results_file": "cracking_kd_tree"
+        "results_file": "cracking_kd_tree-1024"
     },
     {
         "algorithm_id": "3",
         "partitions_size": "1024",
-        "results_file": "cracking_kd_tree_pd"
+        "results_file": "cracking_kd_tree_pd-1024"
     },
     {
         "algorithm_id": "4",
         "partitions_size": "1024",
-        "results_file": "average_kd_tree"
+        "results_file": "average_kd_tree-1024"
     },
     {
         "algorithm_id": "5",
         "partitions_size": "1024",
-        "results_file": "median_kd_tree"
+        "results_file": "median_kd_tree-1024"
     },
     {
         "algorithm_id": "6",
         "partitions_size": "1024",
-        "results_file": "quasii"
+        "results_file": "quasii-1024"
     },
     {
         "algorithm_id": "7",
         "partitions_size": "1024",
-        "results_file": "progressive_index"
+        "results_file": "progressive_index-0-2-1024",
+        "delta": "0.2"
+    },
+    {
+        "algorithm_id": "7",
+        "partitions_size": "1024",
+        "results_file": "progressive_index-0-3-1024",
+        "delta": "0.3"
+    },
+    {
+        "algorithm_id": "7",
+        "partitions_size": "1024",
+        "results_file": "progressive_index-0-5-1024",
+        "delta": "0.5"
+    },
+    # Increased partition size to 1048576
+    {
+        "algorithm_id": "2",
+        "partitions_size": "1048576",
+        "results_file": "cracking_kd_tree-1048576"
+    },
+    {
+        "algorithm_id": "3",
+        "partitions_size": "1048576",
+        "results_file": "cracking_kd_tree_pd-1048576"
+    },
+    {
+        "algorithm_id": "4",
+        "partitions_size": "1048576",
+        "results_file": "average_kd_tree-1048576"
+    },
+    {
+        "algorithm_id": "5",
+        "partitions_size": "1048576",
+        "results_file": "median_kd_tree-1048576"
+    },
+    {
+        "algorithm_id": "6",
+        "partitions_size": "1048576",
+        "results_file": "quasii-1048576"
+    },
+    {
+        "algorithm_id": "7",
+        "partitions_size": "1048576",
+        "results_file": "progressive_index-0-2-1048576",
+        "delta": "0.2"
+    },
+    {
+        "algorithm_id": "7",
+        "partitions_size": "1048576",
+        "results_file": "progressive_index-0-3-1048576",
+        "delta": "0.3"
+    },
+    {
+        "algorithm_id": "7",
+        "partitions_size": "1048576",
+        "results_file": "progressive_index-0-5-1048576",
+        "delta": "0.5"
     },
 ]
 
@@ -127,7 +182,8 @@ class Benchmark:
                         "-i", run['algorithm_id'],
                         "-r", str(REPETITIONS),
                         "-s", f"{self.CURRENT_DIR}/results/{experiment['name']}-{run['results_file']}.csv",
-                        "-p", run['partitions_size']
+                        "-p", run.get('partitions_size', "1024"),
+                        "-a", run.get('delta', "0")
                         ]
                     command = ' '.join(command)
                     os.system(command)
