@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include <bitvector.hpp>
+#include <cost_model.hpp>
 #include "progressive_index.hpp"
 #include "candidate_list.hpp"
 #include "full_scan.hpp"
@@ -140,7 +141,7 @@ void ProgressiveIndex::workload_dependent_refine(Query &query, ssize_t &remainin
     //! This means we fully refined all nodes related to the query, now we can use the remaining budget to refine
     //! random nodes
     if (remaining_swaps > 0) {
-        workload_agnostic_refine(query,remaining_swaps);
+        workload_agnostic_refine(query, remaining_swaps);
     }
 }
 
@@ -358,6 +359,9 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     scan_time = 0;
     adaptation_time = 0;
     index_search_time = 0;
+    if(interactivity_threshold > 0){
+        delta = get_costmodel_delta_quicksort();
+    }
     //! Creation Phase
     //! If the node has no children we are stil in the creation phase
     assert(tree->root);
@@ -400,35 +404,48 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
 
 ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
     refinement_nodes = make_unique<vector<KDNode *>>();
-    if (config.find("minimum_partition_size") == config.end()){
+    if (config.find("minimum_partition_size") == config.end()) {
         minimum_partition_size = 1024;
-    }
-    else{
+    } else {
         minimum_partition_size = std::stoi(config["minimum_partition_size"]);
     }
 
-    if (config.find("delta") == config.end()){
+    if (config.find("delta") == config.end()) {
         delta = 0.2;
+    } else {
+        delta = std::stod(config["delta"]);
     }
 
-    else{
-       delta = std::stod(config["delta"]);
-    }
-
-    if (config.find("workload_adaptive") == config.end()){
+    if (config.find("workload_adaptive") == config.end()) {
         workload_adaptive = false;
-    }
-    else {
+    } else {
         workload_adaptive = std::stoi(config["workload_adaptive"]) == 1;
-
     }
+    if (config.find("interactivity_threshold") == config.end()) {
+        interactivity_threshold = 0;
+    } else {
+        interactivity_threshold = std::stod(config["interactivity_threshold"]);
+    }
+    if (interactivity_threshold > 0) {
+        //! We must get
+        CostModel cost_model;
+        WRITE_ONE_PAGE_SEQ_MS = cost_model.write_sequential_page_cost();
+
+        READ_ONE_PAGE_SEQ_MS = cost_model.read_sequential_with_matches_page_cost();
+
+        READ_ONE_PAGE_WITHOUT_CHECKS_SEQ_MS = cost_model.read_sequential_without_matches_page_cost();
+
+        RANDOM_ACCESS_PAGE_MS = cost_model.read_random_access();
+
+        SWAP_COST_PAGE_MS = cost_model.swap_cost();
+    }
+
 }
 
 ProgressiveIndex::~ProgressiveIndex() = default;
 
-double ProgressiveIndex::get_costmodel_delta_quicksort(vector<int64_t> &originalColumn, int64_t low, int64_t high,
-                                                       double delta) {
-    return 0.0;
+double ProgressiveIndex::get_costmodel_delta_quicksort() {
+    return 0.2;
 }
 
 //! Here we just malloc the table and initialize the root

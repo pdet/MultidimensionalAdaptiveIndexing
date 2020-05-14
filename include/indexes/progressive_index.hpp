@@ -34,9 +34,21 @@ class ProgressiveIndex: public AbstractIndex {
     bool workload_adaptive = false;
     //! If our index is fully converged
     bool converged = false;
+
+
     //! Adaptive Delta
-    double full_scan_time = 0;
     double interactivity_threshold = 0;
+    //! Cost to write one page sequentially
+    double WRITE_ONE_PAGE_SEQ_MS = 0;
+    //! Cost to read one page without checks
+    double READ_ONE_PAGE_WITHOUT_CHECKS_SEQ_MS = 0;
+    //! Cost to read one page sequentially with checks
+    double READ_ONE_PAGE_SEQ_MS = 0;
+    //! Cost of randomly accessing one page
+    double RANDOM_ACCESS_PAGE_MS = 0;
+    //! Cost of swapping one page
+    double SWAP_COST_PAGE_MS = 0;
+
     ProgressiveIndex() :  tree(nullptr), current_position(0){};
 
     void initializeRoot(float pivot, size_t tableSize) {
@@ -44,7 +56,7 @@ class ProgressiveIndex: public AbstractIndex {
         tree = std::make_unique<KDTree>(tableSize);
         tree->root = make_unique<KDNode>(0,pivot,0,tableSize-1);
     }
-    double get_costmodel_delta_quicksort(std::vector<int64_t>& originalColumn, int64_t low, int64_t high, double delta);
+    double get_costmodel_delta_quicksort();
 
 private:
     Table *originalTable = nullptr;

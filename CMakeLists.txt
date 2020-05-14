@@ -18,6 +18,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include/data)
 include_directories(${CMAKE_SOURCE_DIR}/include/data/generators)
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
+            ${CMAKE_SOURCE_DIR}/src/helpers/cost_model.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/measurements.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/predicate.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/query.cpp
