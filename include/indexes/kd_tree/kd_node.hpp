@@ -31,8 +31,6 @@ public:
     size_t current_start;
     size_t current_end;
     size_t end;
-    //! If we finish sorting this piece
-    bool finished;
 
     KDNode(size_t column, float key, size_t position);
 
@@ -42,8 +40,7 @@ public:
                                                                                  start(start),
                                                                                  current_start(start),
                                                                                  current_end(end),
-                                                                                 end(end),
-                                                                                 finished(false) {}
+                                                                                 end(end) {}
 
     KDNode(const KDNode &node);
 

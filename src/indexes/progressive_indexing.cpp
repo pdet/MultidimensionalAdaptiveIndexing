@@ -28,6 +28,11 @@ void ProgressiveIndex::workload_agnostic_refine(Query &query, ssize_t &remaining
     size_t num_dimensions = query.predicate_count();
     while (node_being_refined < refinement_nodes->size() && remaining_swaps) {
         auto node = refinement_nodes->at(node_being_refined);
+        while (node->current_start >= node->current_end) {
+            node_being_refined++;
+            node = refinement_nodes->at(node_being_refined);
+        }
+
         auto column = table->columns[node->column]->data;
         //! Now we swap everything related to this node
         start_time = measurements->time();
@@ -79,8 +84,11 @@ void ProgressiveIndex::workload_agnostic_refine(Query &query, ssize_t &remaining
 }
 
 void ProgressiveIndex::workload_dependent_refine(Query &query, ssize_t &remaining_swaps) {
+    start_time = measurements->time();
     vector<KDNode *> vip_nodes;
     tree->search_nodes(query, vip_nodes);
+    end_time = measurements->time();
+    index_search_time += end_time - start_time;
     size_t vip_node_idx = 0;
     size_t num_dimensions = query.predicate_count();
     while (vip_node_idx < vip_nodes.size() && remaining_swaps) {
@@ -104,44 +112,35 @@ void ProgressiveIndex::workload_dependent_refine(Query &query, ssize_t &remainin
         end_time = measurements->time();
         adaptation_time += end_time - start_time;
         //! Did we finish pivoting this node?
-        if (node->current_start >= node->current_end && !node->finished) {
+        if (node->current_start >= node->current_end) {
             node->position = column[node->current_start] >= node->key ? node->current_start : node->current_start + 1;
-            assert(column[node->position - 1] < node->key);
-            assert(column[node->position] >= node->key);
-            assert(column[node->position + 1] >= node->key);
             vip_node_idx++;
             size_t next_dimension = node->column == num_dimensions - 1 ? 0 : node->column + 1;
             //! We need to create children
             //! construct the left and right side of the root node on next dimension
-            float pivot = find_avg(table.get(), next_dimension, node->start, node->position);
             size_t current_start = node->start;
-            size_t current_end = node->position - 1;
-
-            //! code castration
-            if (node->end - node->start < minimum_partition_size) {
-                node->finished = true;
-                continue;
+            size_t current_end = node->position == 0 ? 0 : node->position - 1;
+            if (current_end >= current_start && current_end - current_start >= minimum_partition_size) {
+                float pivot = find_avg(table.get(), next_dimension, current_start, current_end);
+                node->setLeft(make_unique<KDNode>(next_dimension, pivot, current_start, current_end));
+                vip_nodes.push_back(node->left_child.get());
+                refinement_nodes->push_back(node->left_child.get());
             }
-            node->setLeft(make_unique<KDNode>(next_dimension, pivot, current_start, current_end));
             //! Right node
-            pivot = find_avg(table.get(), next_dimension, current_start + 1, node->end);
             current_start = node->position;
             current_end = node->end;
-            node->setRight(make_unique<KDNode>(next_dimension, pivot, current_start, current_end));
-            vip_nodes.push_back(node->left_child.get());
-            vip_nodes.push_back(node->right_child.get());
-        } else if (remaining_swaps > 0) {
-            vip_node_idx++;
+            if (current_end >= current_start && current_end - current_start >= minimum_partition_size) {
+                float pivot = find_avg(table.get(), next_dimension, current_start, current_end);
+                node->setRight(make_unique<KDNode>(next_dimension, pivot, current_start, current_end));
+                vip_nodes.push_back(node->right_child.get());
+                refinement_nodes->push_back(node->right_child.get());
+            }
         }
     }
     //! This means we fully refined all nodes related to the query, now we can use the remaining budget to refine
     //! random nodes
     if (remaining_swaps > 0) {
-        assert (0 && " More nodes");
-    }
-    //! We fully converged the tree
-    if (remaining_swaps > 0) {
-        converged = true;
+        workload_agnostic_refine(query,remaining_swaps);
     }
 }
 

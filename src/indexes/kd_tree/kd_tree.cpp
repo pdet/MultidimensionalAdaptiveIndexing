@@ -230,12 +230,13 @@ void KDTree::search_nodes_recursion(
             // Query:         |-----|
             //               low   high
             if (current->left_child != nullptr) {
-                assert(current->right_child != nullptr);
                 search_nodes_recursion(
                         current->left_child.get(),
                         lower_limit, current->position,
                         query, nodes
                 );
+            }
+            if (current->right_child != nullptr) {
                 search_nodes_recursion(
                         current->right_child.get(),
                         current->position, upper_limit,

@@ -11,7 +11,7 @@
 
 class Tester{
     public:
-        static void test(size_t algorithm_id){ 
+        static void test(size_t algorithm_id, std::map<std::string, std::string>* config = nullptr){
             const string data_folder = "../test/test_data/data";
             const string query_folder = "../test/test_data/queries";
             auto data_files = list_files(data_folder);
@@ -20,7 +20,7 @@ class Tester{
                 test_algorithm(
                     "../test/test_data/data/"+data_files.at(i),
                     "../test/test_data/queries/"+query_files.at(i),
-                    algorithm_id
+                    algorithm_id, config
                 );
             }
         }
@@ -44,7 +44,7 @@ class Tester{
             return files;
         }
 
-        inline static void test_algorithm(string table_path, string workload_path, size_t algorithm_id){
+        inline static void test_algorithm(string table_path, string workload_path, size_t algorithm_id, std::map<std::string, std::string>* config){
             auto table = Table::read_file(table_path);
             auto workload = Workload::read_file(workload_path);
 
@@ -57,7 +57,7 @@ class Tester{
             INFO("Query file: " + workload_path);
             INFO("Number of queries: " + to_string(workload.query_count()));
 
-            auto alg = IndexFactory::getIndex(algorithm_id);
+            auto alg = config? IndexFactory::getIndex(algorithm_id,*config):  IndexFactory::getIndex(algorithm_id);
 
             auto baseline = IndexFactory::baselineIndex();
 
@@ -80,7 +80,7 @@ class Tester{
 
             alg->initialize(table.get());
             for(size_t j = 0; j < workload.query_count(); ++j){
-//                fprintf(stderr, "%d \n", j);
+        //        fprintf(stderr, "%zu \n", j);
                 REQUIRE(alg->sanity_check());
                 alg->adapt_index(workload.queries.at(j));
                 //alg->draw_index("./" + alg->name() + "/" + std::to_string(j) + ".dot");
