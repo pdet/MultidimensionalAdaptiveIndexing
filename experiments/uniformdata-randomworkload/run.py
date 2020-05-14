@@ -18,97 +18,97 @@ EXPERIMENTS = [
 RUNS = [
     {
         "algorithm_id": "1",
-        "results_file": "full_scan"
+        "name": "full_scan"
     },
     {
         "algorithm_id": "111",
-        "results_file": "full_scan_cl"
+        "name": "full_scan_cl"
     },
     {
         "algorithm_id": "2",
         "partitions_size": "1024",
-        "results_file": "cracking_kd_tree-1024"
+        "name": "cracking_kd_tree"
     },
     {
         "algorithm_id": "3",
         "partitions_size": "1024",
-        "results_file": "cracking_kd_tree_pd-1024"
+        "name": "cracking_kd_tree_pd"
     },
     {
         "algorithm_id": "4",
         "partitions_size": "1024",
-        "results_file": "average_kd_tree-1024"
+        "name": "average_kd_tree"
     },
     {
         "algorithm_id": "5",
         "partitions_size": "1024",
-        "results_file": "median_kd_tree-1024"
+        "name": "median_kd_tree"
     },
     {
         "algorithm_id": "6",
         "partitions_size": "1024",
-        "results_file": "quasii-1024"
+        "name": "quasii"
     },
     {
         "algorithm_id": "7",
         "partitions_size": "1024",
-        "results_file": "progressive_index-0-2-1024",
+        "name": "progressive_index",
         "delta": "0.2"
     },
     {
         "algorithm_id": "7",
         "partitions_size": "1024",
-        "results_file": "progressive_index-0-3-1024",
+        "name": "progressive_index",
         "delta": "0.3"
     },
     {
         "algorithm_id": "7",
         "partitions_size": "1024",
-        "results_file": "progressive_index-0-5-1024",
+        "name": "progressive_index",
         "delta": "0.5"
     },
     # Increased partition size to 1048576
     {
         "algorithm_id": "2",
         "partitions_size": "1048576",
-        "results_file": "cracking_kd_tree-1048576"
+        "name": "cracking_kd_tree"
     },
     {
         "algorithm_id": "3",
         "partitions_size": "1048576",
-        "results_file": "cracking_kd_tree_pd-1048576"
+        "name": "cracking_kd_tree_pd"
     },
     {
         "algorithm_id": "4",
         "partitions_size": "1048576",
-        "results_file": "average_kd_tree-1048576"
+        "name": "average_kd_tree"
     },
     {
         "algorithm_id": "5",
         "partitions_size": "1048576",
-        "results_file": "median_kd_tree-1048576"
+        "name": "median_kd_tree"
     },
     {
         "algorithm_id": "6",
         "partitions_size": "1048576",
-        "results_file": "quasii-1048576"
+        "name": "quasii"
     },
     {
         "algorithm_id": "7",
         "partitions_size": "1048576",
-        "results_file": "progressive_index-0-2-1048576",
+        "name": "progressive_index",
         "delta": "0.2"
     },
     {
         "algorithm_id": "7",
         "partitions_size": "1048576",
-        "results_file": "progressive_index-0-3-1048576",
+        "name": "progressive_index",
         "delta": "0.3"
     },
     {
         "algorithm_id": "7",
         "partitions_size": "1048576",
-        "results_file": "progressive_index-0-5-1048576",
+        "name": "progressive_index",
         "delta": "0.5"
     },
 ]
@@ -157,8 +157,6 @@ class Benchmark:
 
     def run(self):
         """Runs the benchmark, saves the results as a CSV file in results.csv
-        Arguments:
-            - results_file (string): file to save the results
         """
         os.system(
             f'mkdir -p {self.CURRENT_DIR}/results'
@@ -181,7 +179,7 @@ class Benchmark:
                         "-d", f"{self.CURRENT_DIR}/data/{experiment['data']}",
                         "-i", run['algorithm_id'],
                         "-r", str(REPETITIONS),
-                        "-s", f"{self.CURRENT_DIR}/results/{experiment['name']}-{run['results_file']}.csv",
+                        "-s", f"{self.CURRENT_DIR}/results/{experiment['name']}-{run['name']}-{run.get('delta', '0.0')}-{run.get('partitions_size','0')}.csv",
                         "-p", run.get('partitions_size', "1024"),
                         "-a", run.get('delta', "0")
                         ]
