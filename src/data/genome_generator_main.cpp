@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     }
 
     if(genomes_file == ""){
-        std::cout << "-g <full path to genomes file>" << std::endl;
+        std::cout << "-g <full path to genomes file> required" << std::endl;
         error = true;
     }
 

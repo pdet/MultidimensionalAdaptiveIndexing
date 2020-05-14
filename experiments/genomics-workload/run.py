@@ -7,9 +7,117 @@ import inspect
 
 
 REPETITIONS = 1
-PARTITION_SIZE = 1024
-ALGORITHM_IDS = [1, 2, 3, 4, 5, 6, 111]
-QUERY_TYPES = [0]
+
+EXPERIMENTS = [
+        {"data": "0data", "workload": "0queries", "name": "query0"},
+        {"data": "1data", "workload": "1queries", "name": "query1"},
+        {"data": "2data", "workload": "2queries", "name": "query2"},
+        {"data": "3data", "workload": "3queries", "name": "query3"},
+        {"data": "4data", "workload": "4queries", "name": "query4"},
+        {"data": "5data", "workload": "5queries", "name": "query5"},
+        {"data": "6data", "workload": "6queries", "name": "query6"},
+        {"data": "7data", "workload": "7queries", "name": "query7"},
+        {"data": "8data", "workload": "8queries", "name": "query8"},
+]
+
+RUNS = [
+    {
+        "algorithm_id": "1",
+        "name": "full_scan"
+    },
+    {
+        "algorithm_id": "111",
+        "name": "full_scan_cl"
+    },
+    {
+        "algorithm_id": "2",
+        "partitions_size": "1024",
+        "name": "cracking_kd_tree"
+    },
+    {
+        "algorithm_id": "3",
+        "partitions_size": "1024",
+        "name": "cracking_kd_tree_pd"
+    },
+    {
+        "algorithm_id": "4",
+        "partitions_size": "1024",
+        "name": "average_kd_tree"
+    },
+    {
+        "algorithm_id": "5",
+        "partitions_size": "1024",
+        "name": "median_kd_tree"
+    },
+    {
+        "algorithm_id": "6",
+        "partitions_size": "1024",
+        "name": "quasii"
+    },
+    {
+        "algorithm_id": "7",
+        "partitions_size": "1024",
+        "name": "progressive_index",
+        "delta": "0.2"
+    },
+    {
+        "algorithm_id": "7",
+        "partitions_size": "1024",
+        "name": "progressive_index",
+        "delta": "0.3"
+    },
+    {
+        "algorithm_id": "7",
+        "partitions_size": "1024",
+        "name": "progressive_index",
+        "delta": "0.5"
+    },
+    # Increased partition size to 1048576
+    {
+        "algorithm_id": "2",
+        "partitions_size": "1048576",
+        "name": "cracking_kd_tree"
+    },
+    {
+        "algorithm_id": "3",
+        "partitions_size": "1048576",
+        "name": "cracking_kd_tree_pd"
+    },
+    {
+        "algorithm_id": "4",
+        "partitions_size": "1048576",
+        "name": "average_kd_tree"
+    },
+    {
+        "algorithm_id": "5",
+        "partitions_size": "1048576",
+        "name": "median_kd_tree"
+    },
+    {
+        "algorithm_id": "6",
+        "partitions_size": "1048576",
+        "name": "quasii"
+    },
+    {
+        "algorithm_id": "7",
+        "partitions_size": "1048576",
+        "name": "progressive_index",
+        "delta": "0.2"
+    },
+    {
+        "algorithm_id": "7",
+        "partitions_size": "1048576",
+        "name": "progressive_index",
+        "delta": "0.3"
+    },
+    {
+        "algorithm_id": "7",
+        "partitions_size": "1048576",
+        "name": "progressive_index",
+        "delta": "0.5"
+    },
+]
+
 
 # script directory
 SCRIPT_PATH = os.path.dirname(
@@ -54,8 +162,6 @@ class Benchmark:
 
     def run(self):
         """Runs the benchmark, saves the results as a CSV file in results.csv
-        Arguments:
-            - results_file (string): file to save the results
         """
         os.system(
             f'mkdir -p {self.CURRENT_DIR}/results'
@@ -70,16 +176,17 @@ class Benchmark:
             subprocess.call(["make", '-j'])
 
         with CD(self.bin_dir):
-            for query_type in QUERY_TYPES:
-                for algorithm_id in ALGORITHM_IDS:
+            for experiment in EXPERIMENTS:
+                for run in RUNS:
                     command = [
                         "./main",
-                        "-w", f"{self.CURRENT_DIR}/data/queries{query_type}",
-                        "-d", f"{self.CURRENT_DIR}/data/data{query_type}",
-                        "-i", str(algorithm_id),
+                        "-w", f"{self.CURRENT_DIR}/data/{experiment['workload']}",
+                        "-d", f"{self.CURRENT_DIR}/data/{experiment['data']}",
+                        "-i", run['algorithm_id'],
                         "-r", str(REPETITIONS),
-                        "-s", f"{self.CURRENT_DIR}/results/{algorithm_id}-{query_type}",
-                        "-p", str(PARTITION_SIZE)
+                        "-s", f"{self.CURRENT_DIR}/results/{experiment['name']}-{run['name']}-{run.get('delta', '0.0')}-{run.get('partitions_size','0')}.csv",
+                        "-p", run.get('partitions_size', "1024"),
+                        "-a", run.get('delta', "0")
                         ]
                     command = ' '.join(command)
                     os.system(command)
