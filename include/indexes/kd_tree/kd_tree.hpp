@@ -26,6 +26,8 @@ class KDTree
 
         std::pair<std::vector<std::pair<size_t, size_t>>, std::vector<bool>>
         search(Query& query);
+        //! Seach Nodes relevant to the query
+        vector<KDNode*> search_nodes(Query& query, vector<KDNode*>& nodes);
 
         std::unique_ptr<KDNode> create_node(size_t column, float key, size_t position);
 
@@ -52,6 +54,13 @@ class KDTree
                 std::vector<bool> &partition_skip,
                 std::vector<std::pair<float, float>> partition_borders
                 );
+
+        void search_nodes_recursion(
+    KDNode *current,
+        size_t lower_limit,
+        size_t upper_limit,
+        Query& query, vector<KDNode*> &nodes
+    );
         // Checks if a partition is completely inside the query
         bool partition_inside_query(
                 Query& query,

@@ -12,35 +12,36 @@
 
 using namespace std;
 
-KDTree::KDTree(size_t row_count) : root(nullptr), row_count(row_count){}
-KDTree::~KDTree(){}
+KDTree::KDTree(size_t row_count) : root(nullptr), row_count(row_count) {}
+
+KDTree::~KDTree() {}
 
 void KDTree::search_recursion(
-    KDNode *current,
-    size_t lower_limit,
-    size_t upper_limit,
-    Query& query,
-    vector<pair<size_t, size_t>> &partitions,
-    vector<bool> &partition_skip,
-    vector<pair<float, float>> partition_borders
-){
+        KDNode *current,
+        size_t lower_limit,
+        size_t upper_limit,
+        Query &query,
+        vector<pair<size_t, size_t>> &partitions,
+        vector<bool> &partition_skip,
+        vector<pair<float, float>> partition_borders
+) {
     // Progressive
     //! TODO: there is some space for optimization here if necessary
-    if(current->current_start < current->current_end){
-        switch(current->compare(query)){
+    if (current->current_start < current->current_end) {
+        switch (current->compare(query)) {
             case -1:
                 //! Key < Query
-                partitions.push_back(make_pair(current->current_start, current->end+1));
+                partitions.push_back(make_pair(current->current_start, current->end + 1));
                 partition_skip.push_back(false);
                 break;
             case +1:
                 //! Key >= Query
-                partitions.push_back(make_pair(current->start,  current->current_end+1));
+                partitions.push_back(make_pair(current->start, current->current_end + 1));
                 partition_skip.push_back(false);
                 break;
             case 0:
                 //! Key doesn't really help
-                partitions.push_back(make_pair(current->start, current->end+1));
+                partitions.push_back(make_pair(current->start, current->end + 1));
                 partition_skip.push_back(false);
                 break;
             default:
@@ -49,7 +50,7 @@ void KDTree::search_recursion(
         return;
     }
     auto temporary_min = partition_borders.at(current->column).first;
-    switch(current->compare(query)){
+    switch (current->compare(query)) {
         case -1:
             // If the node's key is smaller to the low part of the query
             // Then follow the right child
@@ -57,22 +58,21 @@ void KDTree::search_recursion(
             // Data:  |----------!--------|
             // Query:            |-----|
             //                  low   high
-            if(current->right_child == nullptr){
+            if (current->right_child == nullptr) {
                 partitions.push_back(make_pair(current->position, upper_limit));
                 partition_skip.push_back(
                         query.covers(partition_borders)
-                        );
-            }
-            else{
+                );
+            } else {
                 partition_borders.at(current->column).first = current->key;
                 search_recursion(
                         current->right_child.get(),
                         current->position, upper_limit,
                         query, partitions, partition_skip,
                         partition_borders
-                        );
+                );
             }
-            break; 
+            break;
         case +1:
             // If the node's key is greater or equal to the high part of the query
             // Then follow the left child
@@ -80,20 +80,19 @@ void KDTree::search_recursion(
             // Data:  |----------!--------|
             // Query:      |-----|
             //            low   high
-            if(current->left_child == nullptr){
+            if (current->left_child == nullptr) {
                 partitions.push_back(make_pair(lower_limit, current->position));
                 partition_skip.push_back(
                         query.covers(partition_borders)
-                        );
-            }
-            else{
+                );
+            } else {
                 partition_borders.at(current->column).second = current->key;
                 search_recursion(
                         current->left_child.get(),
                         lower_limit, current->position,
                         query, partitions, partition_skip,
                         partition_borders
-                        );
+                );
             }
             break;
         case 0:
@@ -103,36 +102,38 @@ void KDTree::search_recursion(
             // Data:  |----------!--------|
             // Query:         |-----|
             //               low   high
-            if(current->left_child == nullptr){
+            if (current->left_child == nullptr) {
                 partitions.push_back(make_pair(lower_limit, current->position));
                 partition_skip.push_back(
                         query.covers(partition_borders)
-                        );
-            }
-            else{
+                );
+            } else {
                 partition_borders.at(current->column).first = current->key;
                 search_recursion(
                         current->left_child.get(),
                         lower_limit, current->position,
                         query, partitions, partition_skip,
                         partition_borders
-                        );
+                );
             }
-            if(current->right_child == nullptr){
+            if (current->right_child == nullptr) {
                 partitions.push_back(make_pair(current->position, upper_limit));
+                //! FIXME:
                 partition_skip.push_back(
-                        query.covers(partition_borders)
-                        );
-            }
-            else{
+                        false
+                );
+//                partition_skip.push_back(
+//                        query.covers(partition_borders)
+//                        );
+            } else {
                 partition_borders.at(current->column).first = temporary_min;
-                partition_borders.at(current->column).second= current->key;
+                partition_borders.at(current->column).second = current->key;
                 search_recursion(
                         current->right_child.get(),
                         current->position, upper_limit,
                         query, partitions, partition_skip,
                         partition_borders
-                        );
+                );
             }
             break;
         default:
@@ -142,49 +143,141 @@ void KDTree::search_recursion(
 }
 
 pair<vector<pair<size_t, size_t>>, vector<bool>>
-KDTree::search(Query& query){
+KDTree::search(Query &query) {
     vector<pair<size_t, size_t>> partitions;
     vector<bool> partition_skip;
-    if(root == nullptr){
+    if (root == nullptr) {
         partitions.push_back(
-                make_pair(0u, row_count-1u)
-                );
+                make_pair(0u, row_count - 1u)
+        );
         partition_skip.push_back(false);
         return make_pair(partitions, partition_skip);
     }
 
     vector<pair<float, float>> partition_borders(query.predicate_count());
-    for(size_t i = 0; i < query.predicate_count(); ++i){
+    for (size_t i = 0; i < query.predicate_count(); ++i) {
         partition_borders.at(i) = make_pair(
                 numeric_limits<float>::lowest(),
                 numeric_limits<float>::max()
-                );
+        );
     }
     search_recursion(
             root.get(),
             0, row_count,
             query, partitions, partition_skip,
             partition_borders
-            );
+    );
     return make_pair(partitions, partition_skip);
 }
 
-unique_ptr<KDNode> KDTree::create_node(size_t column, float key, size_t position){
+void KDTree::search_nodes_recursion(
+        KDNode *current,
+        size_t lower_limit,
+        size_t upper_limit,
+        Query &query, vector<KDNode *> &nodes
+) {
+    if (current->current_start < current->current_end) {
+        switch (current->compare(query)) {
+            case -1:
+                //! Key < Query
+                nodes.push_back(current);
+                break;
+            case +1:
+                //! Key >= Query
+                nodes.push_back(current);
+                break;
+            case 0:
+                //! Key doesn't really help
+                break;
+            default:
+                assert(false);
+        }
+        return;
+    }
+    switch (current->compare(query)) {
+        case -1:
+            // If the node's key is smaller to the low part of the query
+            // Then follow the right child
+            //                  Key
+            // Data:  |----------!--------|
+            // Query:            |-----|
+            //                  low   high
+
+            if (current->right_child != nullptr) {
+                search_nodes_recursion(
+                        current->right_child.get(),
+                        current->position, upper_limit,
+                        query, nodes
+                );
+            }
+            break;
+        case +1:
+            // If the node's key is greater or equal to the high part of the query
+            // Then follow the left child
+            //                  Key
+            // Data:  |----------!--------|
+            // Query:      |-----|
+            //            low   high
+            if (current->left_child != nullptr) {
+                search_nodes_recursion(
+                        current->left_child.get(),
+                        lower_limit, current->position,
+                        query, nodes
+                );
+            }
+            break;
+        case 0:
+            // If the node's key is inside the query
+            // Then follow both children
+            //                  Key
+            // Data:  |----------!--------|
+            // Query:         |-----|
+            //               low   high
+            if (current->left_child != nullptr) {
+                assert(current->right_child != nullptr);
+                search_nodes_recursion(
+                        current->left_child.get(),
+                        lower_limit, current->position,
+                        query, nodes
+                );
+                search_nodes_recursion(
+                        current->right_child.get(),
+                        current->position, upper_limit,
+                        query, nodes
+                );
+            }
+            break;
+        default:
+            assert(false);
+    }
+}
+
+vector<KDNode *>
+KDTree::search_nodes(Query &query, vector<KDNode *> &nodes) {
+    search_nodes_recursion(
+            root.get(),
+            0, row_count,
+            query, nodes
+    );
+    return nodes;
+}
+
+unique_ptr<KDNode> KDTree::create_node(size_t column, float key, size_t position) {
     auto node = make_unique<KDNode>(
-            column, key, position 
-            );
+            column, key, position
+    );
     number_of_nodes++;
     return node;
 }
 
-size_t KDTree::get_node_count(){
+size_t KDTree::get_node_count() {
     return number_of_nodes;
 }
 
-size_t KDTree::get_max_height(){
-    if(root == nullptr)
+size_t KDTree::get_max_height() {
+    if (root == nullptr)
         return 0;
-    vector<KDNode*> nodes;
+    vector<KDNode *> nodes;
     vector<size_t> heights;
 
     size_t max_height = 0;
@@ -192,25 +285,25 @@ size_t KDTree::get_max_height(){
     nodes.push_back(root.get());
     heights.push_back(1);
 
-    while(!nodes.empty()){
+    while (!nodes.empty()) {
         auto node = nodes.back();
         nodes.pop_back();
 
         auto height = heights.back();
         heights.pop_back();
 
-        if(node->left_child.get() != nullptr){
+        if (node->left_child.get() != nullptr) {
             nodes.push_back(node->left_child.get());
             heights.push_back(height + 1);
         }
 
-        if(node->right_child.get() != nullptr){
+        if (node->right_child.get() != nullptr) {
             nodes.push_back(node->right_child.get());
             heights.push_back(height + 1);
         }
 
-        if(node->left_child.get() == nullptr && node->right_child.get() == nullptr){
-            if(max_height < height)
+        if (node->left_child.get() == nullptr && node->right_child.get() == nullptr) {
+            if (max_height < height)
                 max_height = height;
         }
     }
@@ -218,11 +311,11 @@ size_t KDTree::get_max_height(){
     return max_height;
 }
 
-size_t KDTree::get_min_height(){
-    if(root == nullptr)
+size_t KDTree::get_min_height() {
+    if (root == nullptr)
         return 0;
 
-    vector<KDNode*> nodes;
+    vector<KDNode *> nodes;
     vector<size_t> heights;
 
     size_t min_height = numeric_limits<size_t>::max();
@@ -230,25 +323,25 @@ size_t KDTree::get_min_height(){
     nodes.push_back(root.get());
     heights.push_back(1);
 
-    while(!nodes.empty()){
+    while (!nodes.empty()) {
         auto node = nodes.back();
         nodes.pop_back();
 
         auto height = heights.back();
         heights.pop_back();
 
-        if(node->left_child.get() != nullptr){
+        if (node->left_child.get() != nullptr) {
             nodes.push_back(node->left_child.get());
             heights.push_back(height + 1);
         }
 
-        if(node->right_child.get() != nullptr){
+        if (node->right_child.get() != nullptr) {
             nodes.push_back(node->right_child.get());
             heights.push_back(height + 1);
         }
 
-        if(node->left_child.get() == nullptr && node->right_child.get() == nullptr){
-            if(min_height > height)
+        if (node->left_child.get() == nullptr && node->right_child.get() == nullptr) {
+            if (min_height > height)
                 min_height = height;
         }
     }
@@ -256,38 +349,37 @@ size_t KDTree::get_min_height(){
     return min_height;
 }
 
-void KDTree::draw(std::string path){
+void KDTree::draw(std::string path) {
     std::ofstream myfile(path.c_str());
 
     myfile << "digraph KDTree {\n";
 
     std::map<size_t, std::string> labels;
-    if(root != nullptr){
+    if (root != nullptr) {
 
-        vector<KDNode*> nodes;
+        vector<KDNode *> nodes;
         vector<size_t> heights;
         size_t n_nulls = 0;
         nodes.push_back(root.get());
 
-        while(!nodes.empty()){
+        while (!nodes.empty()) {
             auto node = nodes.back();
             nodes.pop_back();
 
             myfile << std::to_string(reinterpret_cast<size_t>(node));
             myfile << "[label=\"" + node->label() + "\"";
             // myfile << ", style=filled, fillcolor=" + colors[node->column];
-            myfile << "]\n;"; 
+            myfile << "]\n;";
 
-            if(node->left_child.get() != nullptr){
+            if (node->left_child.get() != nullptr) {
                 nodes.push_back(node->left_child.get());
                 myfile << std::to_string(reinterpret_cast<size_t>(node));
                 myfile << " -> ";
                 myfile << std::to_string(
                         reinterpret_cast<size_t>(node->left_child.get())
-                        );
+                );
                 myfile << "[label =\"L\"];\n";
-            }
-            else{
+            } else {
                 myfile << std::to_string(reinterpret_cast<size_t>(node));
                 myfile << " -> ";
                 myfile << "null" + std::to_string(n_nulls);
@@ -295,16 +387,15 @@ void KDTree::draw(std::string path){
                 myfile << "null" + std::to_string(n_nulls) + "[shape=point]\n";
                 n_nulls++;
             }
-            if(node->right_child.get() != nullptr){
+            if (node->right_child.get() != nullptr) {
                 nodes.push_back(node->right_child.get());
                 myfile << std::to_string(reinterpret_cast<size_t>(node));
                 myfile << " -> ";
                 myfile << std::to_string(
                         reinterpret_cast<size_t>(node->right_child.get())
-                        );
+                );
                 myfile << "[label =\"R\"];\n";
-            }
-            else{
+            } else {
                 myfile << std::to_string(reinterpret_cast<size_t>(node));
                 myfile << " -> ";
                 myfile << "null" + std::to_string(n_nulls);
@@ -321,11 +412,11 @@ void KDTree::draw(std::string path){
 }
 
 bool KDTree::sanity_check_recursion(
-        Table* table, KDNode* current,
+        Table *table, KDNode *current,
         size_t low, size_t high,
         vector<pair<float, float>> partition_borders
-        ){
-    if(current == nullptr){
+) {
+    if (current == nullptr) {
         // Scan Partition
         // Transform partition_borders to query
         auto query = Query(partition_borders);
@@ -348,7 +439,7 @@ bool KDTree::sanity_check_recursion(
             table, current->left_child.get(),
             low, current->position,
             partition_borders
-            );
+    );
 
     partition_borders.at(current->column).first = current->key;
     partition_borders.at(current->column).second = temporary_max;
@@ -356,17 +447,17 @@ bool KDTree::sanity_check_recursion(
             table, current->right_child.get(),
             current->position, high,
             partition_borders
-            );
+    );
     return left_sanity && right_sanity;
 }
 
-bool KDTree::sanity_check(Table* table){
+bool KDTree::sanity_check(Table *table) {
     vector<pair<float, float>> partition_borders(table->col_count());
-    for(size_t i = 0; i < table->col_count(); ++i){
+    for (size_t i = 0; i < table->col_count(); ++i) {
         partition_borders.at(i) = make_pair(
                 numeric_limits<float>::lowest(),
                 numeric_limits<float>::max()
-                );
+        );
     }
-    return sanity_check_recursion(table, root.get(), 0, row_count, partition_borders); 
+    return sanity_check_recursion(table, root.get(), 0, row_count, partition_borders);
 }

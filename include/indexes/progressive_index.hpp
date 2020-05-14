@@ -7,30 +7,6 @@
 #include <memory>
 #include <vector>
 
-class ResultStruct {
-  public:
-    ResultStruct() : sum(0){};
-    float sum = 0;
-
-    void reserve(size_t capacity) { (void)capacity; }
-
-    inline void push_back(double value) { sum += value; }
-
-    inline void maybe_push_back(double value, int maybe) { sum += maybe * value; }
-    inline void merge(ResultStruct other) { sum += other.sum; }
-};
-
-class RefinementScan{
-  public:
-    RefinementScan():offsetLeft(-1),offsetLeftMiddle(-1),offsetRightMiddle(-1),offsetRight(-1),checkLeft(true),checkRight(true){};
-    int64_t offsetLeft;
-    int64_t offsetLeftMiddle;
-    int64_t offsetRightMiddle;
-    int64_t offsetRight;
-    bool  checkLeft;
-    bool  checkRight;
-};
-
 class ProgressiveIndex: public AbstractIndex {
 
   public:
@@ -54,7 +30,10 @@ class ProgressiveIndex: public AbstractIndex {
     unique_ptr<vector<KDNode*>> refinement_nodes;
     size_t node_being_refined = 0;
     double delta = 0.2;
-
+    //! In the workload adaptive version we prioritize pieces that will be accessed by the query
+    bool workload_adaptive = false;
+    //! If our index is fully converged
+    bool converged = false;
     //! Adaptive Delta
     double full_scan_time = 0;
     double interactivity_threshold = 0;
@@ -68,8 +47,10 @@ class ProgressiveIndex: public AbstractIndex {
     double get_costmodel_delta_quicksort(std::vector<int64_t>& originalColumn, int64_t low, int64_t high, double delta);
 
 private:
-    Table *originalTable;
-    size_t minimum_partition_size = 100;
+    Table *originalTable = nullptr;
+    size_t minimum_partition_size = 1024;
     unique_ptr<Table> progressive_quicksort_create(Query &query, ssize_t &remaining_swaps);
     void progressive_quicksort_refine(Query& query, ssize_t& remaining_swaps);
+    void workload_dependent_refine(Query &query, ssize_t &remaining_swaps);
+    void workload_agnostic_refine(Query &query, ssize_t &remaining_swaps);
 };
