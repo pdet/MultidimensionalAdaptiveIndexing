@@ -39,8 +39,8 @@ public:
     KDNode(size_t column, float key, size_t start, size_t end) : key(key), column(column),
                                                                                  left_child(nullptr),
                                                                                  right_child(nullptr), position(0),
-                                                                                 current_start(start),
                                                                                  start(start),
+                                                                                 current_start(start),
                                                                                  current_end(end),
                                                                                  end(end),
                                                                                  finished(false) {}

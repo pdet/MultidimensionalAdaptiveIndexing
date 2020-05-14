@@ -118,13 +118,9 @@ void KDTree::search_recursion(
             }
             if (current->right_child == nullptr) {
                 partitions.push_back(make_pair(current->position, upper_limit));
-                //! FIXME:
                 partition_skip.push_back(
-                        false
-                );
-//                partition_skip.push_back(
-//                        query.covers(partition_borders)
-//                        );
+                        query.covers(partition_borders)
+                        );
             } else {
                 partition_borders.at(current->column).first = temporary_min;
                 partition_borders.at(current->column).second = current->key;

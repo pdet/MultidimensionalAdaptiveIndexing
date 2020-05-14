@@ -49,17 +49,16 @@ void ProgressiveIndex::workload_agnostic_refine(Query &query, ssize_t &remaining
         //! Did we finish pivoting this node?
         if (node->current_start >= node->current_end) {
             node->position = column[node->current_start] >= node->key ? node->current_start : node->current_start + 1;
-            assert(column[node->position - 1] < node->key);
-            assert(column[node->position] >= node->key);
-            assert(column[node->position + 1] >= node->key);
+//            assert(column[node->position - 1] < node->key);
+//            assert(column[node->position] >= node->key);
+//            assert(column[node->position + 1] >= node->key);
             node_being_refined++;
             size_t next_dimension = node->column == num_dimensions - 1 ? 0 : node->column + 1;
             //! We need to create children
             //! construct the left and right side of the root node on next dimension
             size_t current_start = node->start;
             size_t current_end = node->position == 0 ? 0 : node->position - 1;
-            assert (current_end > current_start);
-            if (current_end - current_start >= minimum_partition_size) {
+            if (current_end >= current_start && current_end - current_start >= minimum_partition_size) {
                 float pivot = find_avg(table.get(), next_dimension, current_start, current_end);
                 node->setLeft(make_unique<KDNode>(next_dimension, pivot, current_start, current_end));
                 refinement_nodes->push_back(node->left_child.get());
@@ -67,8 +66,7 @@ void ProgressiveIndex::workload_agnostic_refine(Query &query, ssize_t &remaining
             //! Right node
             current_start = node->position;
             current_end = node->end;
-            assert (current_end > current_start);
-            if (current_end - current_start >= minimum_partition_size) {
+            if (current_end >= current_start && current_end - current_start >= minimum_partition_size) {
                 float pivot = find_avg(table.get(), next_dimension, current_start, current_end);
                 node->setRight(make_unique<KDNode>(next_dimension, pivot, current_start, current_end));
                 refinement_nodes->push_back(node->right_child.get());
@@ -403,16 +401,28 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
 
 ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
     refinement_nodes = make_unique<vector<KDNode *>>();
-    if (config.find("minimum_partition_size") == config.end())
-        minimum_partition_size = 100;
-    else
+    if (config.find("minimum_partition_size") == config.end()){
+        minimum_partition_size = 1024;
+    }
+    else{
         minimum_partition_size = std::stoi(config["minimum_partition_size"]);
+    }
 
-    if (config.find("delta") == config.end())
+    if (config.find("delta") == config.end()){
         delta = 0.2;
-    else
-        delta = std::stod(config["delta"]);
+    }
 
+    else{
+       delta = std::stod(config["delta"]);
+    }
+
+    if (config.find("workload_adaptive") == config.end()){
+        workload_adaptive = false;
+    }
+    else {
+        workload_adaptive = std::stoi(config["workload_adaptive"]) == 1;
+
+    }
 }
 
 ProgressiveIndex::~ProgressiveIndex() = default;
