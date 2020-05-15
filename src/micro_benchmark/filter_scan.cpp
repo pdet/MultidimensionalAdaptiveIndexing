@@ -134,7 +134,7 @@ void fs_bva(Table &table, Workload &workload, size_t dimensions, double &sum) {
             low = workload.queries[w_idx].predicates[d_idx].low;
             high = workload.queries[w_idx].predicates[d_idx].high;
             for (size_t c_idx = 0; c_idx < table.row_count(); c_idx++) {
-                bv_aux.set(c_idx, column[c_idx] < low || column[c_idx] > high);
+                bv_aux.set(c_idx, column[c_idx] >= low && column[c_idx] <= high);
             }
             bv.bitwise_and(bv_aux);
         }
@@ -155,8 +155,8 @@ int main(int argc, char **argv) {
     //! Note that selectivity is per query, not per column
     float selectivity = 0.001; //! 1 = 100%
     size_t number_of_queries = 10;
-    string DATA_FILE = "/home/holanda/Projects/MultidimensionalAdaptiveIndexing/data";
-    string QUERY_FILE = "/home/holanda/Projects/MultidimensionalAdaptiveIndexing/query";
+    string DATA_FILE = "/Users/holanda/Documents/Projects/MultidimensionalAdaptiveIndexing/data";
+    string QUERY_FILE = "/Users/holanda/Documents/Projects/MultidimensionalAdaptiveIndexing/query";
     double cln_sum = 0;
     //! Generate Table + Queries
     auto generator = UniformGenerator(n_of_rows, dimensions, selectivity, number_of_queries);
