@@ -172,12 +172,12 @@ int main(int argc, char **argv) {
     cout << cln_sum << endl;
     cout << "Candidate List with new : " << scan_time << endl;
 
-
+    double cls_sum = 0;
     start_timer = system_clock::now();
-    fs_cls(*table, workload, dimensions, cln_sum);
+    fs_cls(*table, workload, dimensions, cls_sum);
     end_timer = system_clock::now();
     scan_time = duration<double>(end_timer - start_timer).count() / number_of_queries;
-    cout << cln_sum << endl;
+    cout << cls_sum << endl;
     cout << "Candidate List with swap : " << scan_time << endl;
 
     double bvg_sum = 0;
