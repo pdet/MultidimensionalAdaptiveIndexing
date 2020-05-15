@@ -56,17 +56,18 @@ void fs_cls(Table &table, Workload &workload, size_t dimensions, double &sum) {
             }
         }
         for (size_t d_idx = 1; d_idx < dimensions; d_idx++) {
-            vector<int> not_valid;
             column = table.columns[d_idx]->data;
             low = workload.queries[w_idx].predicates[d_idx].low;
             high = workload.queries[w_idx].predicates[d_idx].high;
+
+            auto qualifying_index = 0;
             for (size_t cl_idx = 0; cl_idx < cl.size; cl_idx++) {
                 if (column[cl.get(cl_idx)] >= low && column[cl.get(cl_idx)] <= high) {
-//                    new_cl.push_back(cl.get(cl_idx));
+                    (*cl.data)[qualifying_index] = cl.get(cl_idx);
+                    qualifying_index++;
                 }
             }
-            //! Move new_cl -> cl
-//            cl.initialize(new_cl);
+            cl.size = qualifying_index;
         }
         //! Iterate through final cl to get sum
         column = table.columns[0]->data;
