@@ -58,13 +58,13 @@ RUNS = [
         "algorithm_id": "7",
         "partitions_size": "1024",
         "name": "progressive_index",
-        "delta": "0.2"
+        "delta": "0.1"
     },
     {
         "algorithm_id": "7",
         "partitions_size": "1024",
         "name": "progressive_index",
-        "delta": "0.3"
+        "delta": "0.2"
     },
     {
         "algorithm_id": "7",
@@ -72,49 +72,39 @@ RUNS = [
         "name": "progressive_index",
         "delta": "0.5"
     },
-    # Increased partition size to 1048576
     {
-        "algorithm_id": "2",
-        "partitions_size": "1048576",
-        "name": "cracking_kd_tree"
-    },
-    {
-        "algorithm_id": "3",
-        "partitions_size": "1048576",
-        "name": "cracking_kd_tree_pd"
-    },
-    {
-        "algorithm_id": "4",
-        "partitions_size": "1048576",
-        "name": "average_kd_tree"
-    },
-    {
-        "algorithm_id": "5",
-        "partitions_size": "1048576",
-        "name": "median_kd_tree"
-    },
-    {
-        "algorithm_id": "6",
-        "partitions_size": "1048576",
-        "name": "quasii"
+        "algorithm_id": "7",
+        "partitions_size": "1024",
+        "name": "progressive_index",
+        "delta": "1.0"
     },
     {
         "algorithm_id": "7",
-        "partitions_size": "1048576",
-        "name": "progressive_index",
-        "delta": "0.2"
+        "partitions_size": "1024",
+        "name": "progressive_index_adaptive",
+        "delta": "0.1",
+        "adaptive": "-t"
     },
     {
         "algorithm_id": "7",
-        "partitions_size": "1048576",
-        "name": "progressive_index",
-        "delta": "0.3"
+        "partitions_size": "1024",
+        "name": "progressive_index_adaptive",
+        "delta": "0.2",
+        "adaptive": "-t"
     },
     {
         "algorithm_id": "7",
-        "partitions_size": "1048576",
-        "name": "progressive_index",
-        "delta": "0.5"
+        "partitions_size": "1024",
+        "name": "progressive_index_adaptive",
+        "delta": "0.5",
+        "adaptive": "-t"
+    },
+    {
+        "algorithm_id": "7",
+        "partitions_size": "1024",
+        "name": "progressive_index_adaptive",
+        "delta": "1.0",
+        "adaptive": "-t"
     },
 ]
 
@@ -186,7 +176,8 @@ class Benchmark:
                         "-r", str(REPETITIONS),
                         "-s", f"{self.CURRENT_DIR}/results/{experiment['name']}-{run['name']}-{run.get('delta', '0.0')}-{run.get('partitions_size','0')}.csv",
                         "-p", run.get('partitions_size', "1024"),
-                        "-a", run.get('delta', "0")
+                        "-a", run.get('delta', "0"),
+                        run.get("adaptive", "")
                         ]
                     command = ' '.join(command)
                     os.system(command)
