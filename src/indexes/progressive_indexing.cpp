@@ -427,16 +427,12 @@ ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
         interactivity_threshold = std::stod(config["interactivity_threshold"]);
     }
     if (interactivity_threshold > 0) {
-        //! We must get
+        //! We must get the costmodel constants
         CostModel cost_model;
         WRITE_ONE_PAGE_SEQ_MS = cost_model.write_sequential_page_cost();
-
         READ_ONE_PAGE_SEQ_MS = cost_model.read_sequential_with_matches_page_cost();
-
         READ_ONE_PAGE_WITHOUT_CHECKS_SEQ_MS = cost_model.read_sequential_without_matches_page_cost();
-
         RANDOM_ACCESS_PAGE_MS = cost_model.read_random_access();
-
         SWAP_COST_PAGE_MS = cost_model.swap_cost();
     }
 

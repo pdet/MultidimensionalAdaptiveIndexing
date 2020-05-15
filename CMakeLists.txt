@@ -40,6 +40,19 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/genome_generator.cpp
             )
 
+set(FILTERBENCHSOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
+            ${CMAKE_SOURCE_DIR}/src/helpers/predicate.cpp
+            ${CMAKE_SOURCE_DIR}/src/helpers/query.cpp
+            ${CMAKE_SOURCE_DIR}/src/helpers/workload.cpp
+            ${CMAKE_SOURCE_DIR}/src/helpers/table.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generators/uniform_generator.cpp
+            )
+
+add_library(FB_lib ${FILTERBENCHSOURCES})
+
+add_executable(filter_bench_main ${CMAKE_SOURCE_DIR}/src/micro_benchmark/filter_scan.cpp)
+target_link_libraries(filter_bench_main FB_lib)
+
 add_library(MDAI_lib ${SOURCES})
 
 add_executable(main ${CMAKE_SOURCE_DIR}/src/main.cpp)

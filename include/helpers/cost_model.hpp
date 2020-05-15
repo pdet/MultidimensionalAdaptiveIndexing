@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bits/unique_ptr.h>
+#include <memory>
 #include <kd_tree/kd_node.hpp>
 #include "column.hpp"
 
