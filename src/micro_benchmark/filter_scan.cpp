@@ -127,20 +127,14 @@ void fs_bva(Table &table, Workload &workload, size_t dimensions, double &sum) {
         auto low = workload.queries[w_idx].predicates[0].low;
         auto high = workload.queries[w_idx].predicates[0].high;
         for (size_t c_idx = 0; c_idx < table.row_count(); c_idx++) {
-            if (column[c_idx] >= low && column[c_idx] <= high) {
-                bv.set(c_idx, 1);
-            }
+            bv.set(c_idx, column[c_idx] >= low && column[c_idx] <= high);
         }
         for (size_t d_idx = 1; d_idx < dimensions; d_idx++) {
             column = table.columns[d_idx]->data;
             low = workload.queries[w_idx].predicates[d_idx].low;
             high = workload.queries[w_idx].predicates[d_idx].high;
             for (size_t c_idx = 0; c_idx < table.row_count(); c_idx++) {
-                if (column[c_idx] < low || column[c_idx] > high) {
-                    bv_aux.set(c_idx, 0);
-                } else {
-                    bv_aux.set(c_idx, 1);
-                }
+                bv_aux.set(c_idx, column[c_idx] < low || column[c_idx] > high);
             }
             bv.bitwise_and(bv_aux);
         }
