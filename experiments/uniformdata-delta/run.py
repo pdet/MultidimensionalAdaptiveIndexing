@@ -27,7 +27,7 @@ for delta in DELTA_LIST:
         "algorithm_id": "7",
         "partitions_size": "1024",
         "name": "progressive_index",
-        "delta": delta
+        "delta": str(delta)
     })
 
 
