@@ -155,6 +155,7 @@ void ProgressiveIndex::progressive_quicksort_refine(Query &query, ssize_t &remai
 
 unique_ptr<Table>
 ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_swaps) {
+
     auto root = tree->root.get();
     //! Creation Phase only partitions first dimension
     size_t dim = 0;
@@ -163,8 +164,6 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     auto high = query.predicates[dim].high;
     auto indexColumn = table->columns[dim]->data;
     auto originalColumn = originalTable->columns[dim]->data;
-    //! If we go up or down for next filters
-    BitVector goDown = BitVector(remaining_swaps);
     //! Candidate Lists from Index
     CandidateList up;
     //! for the initial run, we write the indices instead of swapping them
@@ -225,7 +224,10 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     //! Now we start filling our candidate list that points to the original table
     //! It has elements from when we start swapping in this partition till the end of the table
     //! Here we use a bitvector instead of a candidate list
+    start_time = measurements->time();
     BitVector mid_bit_vec = BitVector(remaining_swaps);
+    //! If we go up or down for next filters
+    BitVector goDown = BitVector(remaining_swaps);
     dim = 0;
     low = query.predicates[dim].low;
     high = query.predicates[dim].high;
@@ -237,7 +239,6 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     size_t initial_high = root->current_end;
     remaining_swaps -= next_index - current_position;
     size_t bit_idx = 0;
-    start_time = measurements->time();
     for (size_t i = current_position; i < next_index; i++) {
         int matching = originalColumn[i] >= low && originalColumn[i] <= high;
         mid_bit_vec.set(bit_idx, matching);
@@ -250,6 +251,9 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
         root->current_start += smaller_pivot;
         root->current_end -= bigger_pivot;
     }
+    end_time = measurements->time();
+    adaptation_time += end_time - start_time;
+    start_time = measurements->time();
     for (dim = 1; dim < query.predicate_count(); ++dim) {
         low = query.predicates[dim].low;
         high = query.predicates[dim].high;
@@ -271,7 +275,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
         }
     }
     end_time = measurements->time();
-    adaptation_time += end_time - start_time;
+    scan_time += end_time - start_time;
     current_position = next_index;
     //! Check if we are finished with the initial run
     CandidateList original;
