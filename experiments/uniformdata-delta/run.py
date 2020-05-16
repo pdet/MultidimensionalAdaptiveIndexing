@@ -24,7 +24,7 @@ RUNS = [
     {
         "algorithm_id": "111",
         "name": "full_scan_cl"
-    },
+    }
 ]
 for delta in DELTA_LIST:
     RUNS.append(   {
