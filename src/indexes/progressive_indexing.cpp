@@ -367,7 +367,12 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     assert(tree->root);
     if (tree->root->noChildren()) {
         //! Creation Phase
-        return progressive_quicksort_create(query, remaining_swaps);
+        auto result = progressive_quicksort_create(query, remaining_swaps);
+        //! In the last creation phase iteration we might have some swaps left
+        if (remaining_swaps > 0){
+          progressive_quicksort_refine(query,remaining_swaps);
+        }
+        return result;
     } else if (!converged) {
         //! Gotta do some refinements, we have not converged yet.
         progressive_quicksort_refine(query, remaining_swaps);
