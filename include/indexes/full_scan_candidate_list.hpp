@@ -4,6 +4,7 @@
 #include "abstract_index.hpp"
 #include <string>
 #include <map>
+#include "candidate_list.hpp"
 
 class FullScanCandidateList : public AbstractIndex
 {
@@ -49,35 +50,34 @@ inline std::pair<double, size_t> FullScanCandidateList::scan_partition(
                 tuples_summed++;
             }
         }else{
-            std::unique_ptr<size_t[]> qualifying_rows{new size_t[high - low + 1]};
+//            std::unique_ptr<size_t[]> qualifying_rows{new size_t[high - low + 1]};
+            CandidateList qualifying_rows;
 
             // First we fill the qualifying rows
             auto column = query.predicates[0].column;
             auto low_pred = query.predicates[0].low;
             auto high_pred = query.predicates[0].high;
 
-            size_t qualifying_index = 0;
             for(size_t row_id = low; row_id < high; row_id++){
                 auto value = t->columns[column]->data[row_id];
                 if(low_pred <= value && value <= high_pred){
-                    qualifying_rows[qualifying_index] = row_id;
-                    qualifying_index++;
+                    qualifying_rows.push_back(row_id);
                 }
             }
 
             // Skip the first predicate
             size_t predicate_index = 1;
-            size_t number_of_qualified_rows = qualifying_index;
+            size_t number_of_qualified_rows = qualifying_rows.size;
             for(; predicate_index < query.predicate_count(); ++predicate_index){
                 column = query.predicates[predicate_index].column;
                 low_pred = query.predicates[predicate_index].low;
                 high_pred = query.predicates[predicate_index].high;
 
-                qualifying_index = 0;
+                auto qualifying_index = 0;
                 for(size_t i = 0; i < number_of_qualified_rows; ++i){
-                    auto value = t->columns[column]->data[qualifying_rows[i]];
+                    auto value = t->columns[column]->data[qualifying_rows.get(i)];
                     if(low_pred <= value && value <= high_pred){
-                        qualifying_rows[qualifying_index] = qualifying_rows[i];
+                        (*qualifying_rows.data)[qualifying_index] = qualifying_rows.get(i);
                         qualifying_index++;
                     }
                 }
@@ -85,7 +85,7 @@ inline std::pair<double, size_t> FullScanCandidateList::scan_partition(
             }
 
             for(size_t i = 0; i < number_of_qualified_rows; ++i){
-                sum += (t->columns[0]->data[qualifying_rows[i]]);
+                sum += (t->columns[0]->data[qualifying_rows.get(i)]);
                 tuples_summed++;
             }
 

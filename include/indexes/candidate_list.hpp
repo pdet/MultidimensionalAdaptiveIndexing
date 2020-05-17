@@ -10,10 +10,10 @@ public:
 
     size_t size;
     size_t capacity;
-    unique_ptr<uint32_t *>data;
+    std::unique_ptr<uint32_t *>data;
 
     CandidateList(size_t total_capacity = 0) {
-        data = make_unique<uint32_t*>();
+        data = std::make_unique<uint32_t*>();
         if (total_capacity == 0) {
             this->size = 0;
             this->capacity = 1024;

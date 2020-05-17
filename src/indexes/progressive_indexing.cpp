@@ -181,15 +181,16 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
             if (up.size == 0) {
                 break;
             }
-            CandidateList new_up(up.size);
+            auto qualifying_index = 0;
             low = query.predicates[dim].low;
             high = query.predicates[dim].high;
             indexColumn = table->columns[dim]->data;
             for (size_t i = 0; i < up.size; i++) {
                 int matching = indexColumn[up.get(i)] >= low && indexColumn[up.get(i)] <= high;
-                new_up.maybe_push_back(up.get(i), matching);
+                (*up.data)[qualifying_index] = up.get(i);
+                qualifying_index+=matching;
             }
-            up.initialize(new_up);
+            up.size = qualifying_index;
         }
     }
 
@@ -208,15 +209,16 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
             if (down.size == 0) {
                 break;
             }
-            CandidateList new_down(down.size);
+            auto qualifying_index = 0;
             low = query.predicates[dim].low;
             high = query.predicates[dim].high;
             indexColumn = table->columns[dim]->data;
             for (size_t i = 0; i < down.size; i++) {
                 int matching = indexColumn[down.get(i)] >= low && indexColumn[down.get(i)] <= high;
-                new_down.maybe_push_back(down.get(i), matching);
+                (*down.data)[qualifying_index] = down.get(i);
+                qualifying_index+=matching;
             }
-            down.initialize(new_down);
+            down.size=qualifying_index;
         }
     }
     end_time = measurements->time();
@@ -225,9 +227,8 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     //! It has elements from when we start swapping in this partition till the end of the table
     //! Here we use a bitvector instead of a candidate list
     start_time = measurements->time();
-    BitVector mid_bit_vec = BitVector(remaining_swaps);
+
     //! If we go up or down for next filters
-    BitVector goDown = BitVector(remaining_swaps);
     dim = 0;
     low = query.predicates[dim].low;
     high = query.predicates[dim].high;
@@ -239,6 +240,11 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     size_t initial_high = root->current_end;
     remaining_swaps -= next_index - current_position;
     size_t bit_idx = 0;
+    CandidateList mid;
+    BitVector goDown = BitVector(next_index-current_position);
+    //TODO: Maybe change this bitvector for CL as well?
+    BitVector mid_bit_vec = BitVector(next_index-current_position);
+
     for (size_t i = current_position; i < next_index; i++) {
         int matching = originalColumn[i] >= low && originalColumn[i] <= high;
         mid_bit_vec.set(bit_idx, matching);
@@ -313,15 +319,17 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
             original.maybe_push_back(i, matching);
         }
         for (dim = 1; dim < query.predicate_count(); ++dim) {
-            CandidateList new_original(original.size);
             low = query.predicates[dim].low;
             high = query.predicates[dim].high;
             originalColumn = originalTable->columns[dim]->data;
+            auto qualifying_index = 0;
             for (size_t i = 0; i < original.size; i++) {
                 int matching = originalColumn[original.get(i)] >= low && originalColumn[original.get(i)] <= high;
-                new_original.maybe_push_back(original.get(i), matching);
+                (*original.data)[qualifying_index] = original.get(i);
+                qualifying_index+=matching;
             }
-            original.initialize(new_original);
+            original.size=qualifying_index;
+
         }
         end_time = measurements->time();
         scan_time += end_time - start_time;
