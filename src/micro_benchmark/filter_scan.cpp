@@ -57,17 +57,18 @@ void fs_cls(Table &table, Workload &workload, size_t dimensions, double &sum) {
             }
         }
         for (size_t d_idx = 1; d_idx < dimensions; d_idx++) {
-            vector<int> not_valid;
             column = table.columns[d_idx]->data;
             low = workload.queries[w_idx].predicates[d_idx].low;
             high = workload.queries[w_idx].predicates[d_idx].high;
+
+            auto qualifying_index = 0;
             for (size_t cl_idx = 0; cl_idx < cl.size; cl_idx++) {
                 if (column[cl.get(cl_idx)] >= low && column[cl.get(cl_idx)] <= high) {
-//                    new_cl.push_back(cl.get(cl_idx));
+                    (*cl.data)[qualifying_index] = cl.get(cl_idx);
+                    qualifying_index++;
                 }
             }
-            //! Move new_cl -> cl
-//            cl.initialize(new_cl);
+            cl.size = qualifying_index;
         }
         //! Iterate through final cl to get sum
         column = table.columns[0]->data;
@@ -167,16 +168,14 @@ void fs_bva(Table &table, Workload &workload, size_t dimensions, double &sum) {
         auto low = workload.queries[w_idx].predicates[0].low;
         auto high = workload.queries[w_idx].predicates[0].high;
         for (size_t c_idx = 0; c_idx < table.row_count(); c_idx++) {
-            if (column[c_idx] >= low && column[c_idx] <= high) {
-                bv.set(c_idx, 1);
-            }
+            bv.set(c_idx, column[c_idx] >= low && column[c_idx] <= high);
         }
         for (size_t d_idx = 1; d_idx < dimensions; d_idx++) {
             column = table.columns[d_idx]->data;
             low = workload.queries[w_idx].predicates[d_idx].low;
             high = workload.queries[w_idx].predicates[d_idx].high;
             for (size_t c_idx = 0; c_idx < table.row_count(); c_idx++) {
-                bv_aux.set(c_idx, column[c_idx] < low || column[c_idx] > high);
+                bv_aux.set(c_idx, column[c_idx] >= low && column[c_idx] <= high);
             }
             bv.bitwise_and(bv_aux);
         }
@@ -247,12 +246,12 @@ int main(int argc, char **argv) {
     cout << cln_sum << endl;
     cout << "Candidate List with new : " << scan_time << endl;
 
-
+    double cls_sum = 0;
     start_timer = system_clock::now();
-    fs_cls(*table, workload, dimensions, cln_sum);
+    fs_cls(*table, workload, dimensions, cls_sum);
     end_timer = system_clock::now();
     scan_time = duration<double>(end_timer - start_timer).count() / number_of_queries;
-    cout << cln_sum << endl;
+    cout << cls_sum << endl;
     cout << "Candidate List with swap : " << scan_time << endl;
 
     double bvg_sum = 0;

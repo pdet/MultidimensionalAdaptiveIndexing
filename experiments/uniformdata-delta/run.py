@@ -9,17 +9,13 @@ import inspect
 REPETITIONS = 1
 
 EXPERIMENTS = [
-        {"data": "0data", "workload": "0queries", "name": "query0"},
-        {"data": "1data", "workload": "1queries", "name": "query1"},
-        {"data": "2data", "workload": "2queries", "name": "query2"},
-        {"data": "3data", "workload": "3queries", "name": "query3"},
-        {"data": "4data", "workload": "4queries", "name": "query4"},
-        {"data": "5data", "workload": "5queries", "name": "query5"},
-        {"data": "6data", "workload": "6queries", "name": "query6"},
-        {"data": "7data", "workload": "7queries", "name": "query7"},
-        {"data": "8data", "workload": "8queries", "name": "query8"},
+        {"data": "2data", "workload": "2queries", "name": "2cols"},
+        {"data": "4data", "workload": "4queries", "name": "4cols"},
+        {"data": "8data", "workload": "8queries", "name": "8cols"},
+        {"data": "16data", "workload": "16queries", "name": "16cols"},
 ]
 
+DELTA_LIST = [0.005,0.01,0.05,0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 RUNS = [
     {
         "algorithm_id": "1",
@@ -28,85 +24,15 @@ RUNS = [
     {
         "algorithm_id": "111",
         "name": "full_scan_cl"
-    },
-    {
-        "algorithm_id": "2",
-        "partitions_size": "1024",
-        "name": "cracking_kd_tree"
-    },
-    {
-        "algorithm_id": "3",
-        "partitions_size": "1024",
-        "name": "cracking_kd_tree_pd"
-    },
-    {
-        "algorithm_id": "4",
-        "partitions_size": "1024",
-        "name": "average_kd_tree"
-    },
-    {
-        "algorithm_id": "5",
-        "partitions_size": "1024",
-        "name": "median_kd_tree"
-    },
-    {
-        "algorithm_id": "6",
-        "partitions_size": "1024",
-        "name": "quasii"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index",
-        "delta": "0.1"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index",
-        "delta": "0.2"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index",
-        "delta": "0.5"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index",
-        "delta": "1.0"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index_adaptive",
-        "delta": "0.1",
-        "adaptive": "-t"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index_adaptive",
-        "delta": "0.2",
-        "adaptive": "-t"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index_adaptive",
-        "delta": "0.5",
-        "adaptive": "-t"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index_adaptive",
-        "delta": "1.0",
-        "adaptive": "-t"
-    },
+    }
 ]
+for delta in DELTA_LIST:
+    RUNS.append(   {
+        "algorithm_id": "7",
+        "partitions_size": "1024",
+        "name": "progressive_index",
+        "delta": str(delta)
+    })
 
 
 # script directory
@@ -176,8 +102,7 @@ class Benchmark:
                         "-r", str(REPETITIONS),
                         "-s", f"{self.CURRENT_DIR}/results/{experiment['name']}-{run['name']}-{run.get('delta', '0.0')}-{run.get('partitions_size','0')}.csv",
                         "-p", run.get('partitions_size', "1024"),
-                        "-a", run.get('delta', "0"),
-                        run.get("adaptive", "")
+                        "-a", run.get('delta', "0")
                         ]
                     command = ' '.join(command)
                     os.system(command)
