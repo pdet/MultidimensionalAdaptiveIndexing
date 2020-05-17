@@ -4,6 +4,7 @@
 #include <generators/uniform_generator.hpp>
 #include <candidate_list.hpp>
 #include <bitvector.hpp>
+#include <bitvector.h>
 
 using namespace std;
 using namespace chrono;
@@ -115,6 +116,46 @@ void fs_bvg(Table &table, Workload &workload, size_t dimensions, double &sum) {
     }
 }
 
+//! Full_Scan with bitvector (Storm) + get
+void fs_bvgs(Table &table, Workload &workload, size_t dimensions, double &sum) {
+    for (size_t w_idx = 0; w_idx < workload.query_count(); w_idx++) {
+//        auto start_timer = system_clock::now();
+//        uint_fast64_t bv_size = table.row_count();
+        storm::storage::BitVector bv = storm::storage::BitVector(table.row_count());
+//        auto end_timer = system_clock::now();
+//        auto init_time = duration<double>(end_timer - start_timer).count();
+//        cout << "Bit Vector (init) with get : " << init_time << endl;
+        //! Create cl based on first column
+        auto column = table.columns[0]->data;
+        auto low = workload.queries[w_idx].predicates[0].low;
+        auto high = workload.queries[w_idx].predicates[0].high;
+        for (size_t c_idx = 0; c_idx < table.row_count(); c_idx++) {
+            if (column[c_idx] >= low && column[c_idx] <= high) {
+                bv.set(c_idx, 1);
+            }
+        }
+        for (size_t d_idx = 1; d_idx < dimensions; d_idx++) {
+            column = table.columns[d_idx]->data;
+            low = workload.queries[w_idx].predicates[d_idx].low;
+            high = workload.queries[w_idx].predicates[d_idx].high;
+            for (size_t c_idx = 0; c_idx < table.row_count(); c_idx++) {
+                if (bv.get(c_idx)) {
+                    if (column[c_idx] < low || column[c_idx] > high) {
+                        bv.set(c_idx, 0);
+                    }
+                }
+            }
+        }
+        //! Iterate through final bv to get sum
+        column = table.columns[0]->data;
+        for (size_t c_idx = 0; c_idx < table.row_count(); c_idx++) {
+            if (bv.get(c_idx)) {
+                sum += column[c_idx];
+            }
+        }
+    }
+}
+
 //! Full_Scan with bitvector + AND
 void fs_bva(Table &table, Workload &workload, size_t dimensions, double &sum) {
     for (size_t w_idx = 0; w_idx < workload.query_count(); w_idx++) {
@@ -135,11 +176,7 @@ void fs_bva(Table &table, Workload &workload, size_t dimensions, double &sum) {
             low = workload.queries[w_idx].predicates[d_idx].low;
             high = workload.queries[w_idx].predicates[d_idx].high;
             for (size_t c_idx = 0; c_idx < table.row_count(); c_idx++) {
-                if (column[c_idx] < low || column[c_idx] > high) {
-                    bv_aux.set(c_idx, 0);
-                } else {
-                    bv_aux.set(c_idx, 1);
-                }
+                bv_aux.set(c_idx, column[c_idx] < low || column[c_idx] > high);
             }
             bv.bitwise_and(bv_aux);
         }
@@ -153,6 +190,39 @@ void fs_bva(Table &table, Workload &workload, size_t dimensions, double &sum) {
     }
 }
 
+//! Full_Scan with bitvector + AND
+void fs_bvas(Table &table, Workload &workload, size_t dimensions, double &sum) {
+    for (size_t w_idx = 0; w_idx < workload.query_count(); w_idx++) {
+         storm::storage::BitVector bv =  storm::storage::BitVector(table.row_count());
+         storm::storage::BitVector bv_aux =  storm::storage::BitVector(table.row_count());
+
+        //! Create cl based on first column
+        auto column = table.columns[0]->data;
+        auto low = workload.queries[w_idx].predicates[0].low;
+        auto high = workload.queries[w_idx].predicates[0].high;
+        for (size_t c_idx = 0; c_idx < table.row_count(); c_idx++) {
+            if (column[c_idx] >= low && column[c_idx] <= high) {
+                bv.set(c_idx, 1);
+            }
+        }
+        for (size_t d_idx = 1; d_idx < dimensions; d_idx++) {
+            column = table.columns[d_idx]->data;
+            low = workload.queries[w_idx].predicates[d_idx].low;
+            high = workload.queries[w_idx].predicates[d_idx].high;
+            for (size_t c_idx = 0; c_idx < table.row_count(); c_idx++) {
+                bv_aux.set(c_idx, column[c_idx] < low || column[c_idx] > high);
+            }
+            bv&=bv_aux;
+        }
+        //! Iterate through final bv to get sum
+        column = table.columns[0]->data;
+        for (size_t c_idx = 0; c_idx < table.row_count(); c_idx++) {
+            if (bv.get(c_idx)) {
+                sum += column[c_idx];
+            }
+        }
+    }
+}
 
 int main(int argc, char **argv) {
     size_t n_of_rows = pow(10, 7);
@@ -193,6 +263,14 @@ int main(int argc, char **argv) {
     cout << bvg_sum << endl;
     cout << "Bit Vector with get : " << scan_time << endl;
 
+    double bvgs_sum = 0;
+    start_timer = system_clock::now();
+    fs_bvgs(*table, workload, dimensions, bvgs_sum);
+    end_timer = system_clock::now();
+    scan_time = duration<double>(end_timer - start_timer).count() / number_of_queries;
+    cout << bvgs_sum << endl;
+    cout << "Bit Vector (Storm) with get : " << scan_time << endl;
+
     double bvn_sum = 0;
     start_timer = system_clock::now();
     fs_bva(*table, workload, dimensions, bvn_sum);
@@ -200,4 +278,12 @@ int main(int argc, char **argv) {
     scan_time = duration<double>(end_timer - start_timer).count() / number_of_queries;
     cout << bvn_sum << endl;
     cout << "Bit Vector with new : " << scan_time << endl;
+
+    double bvsn_sum = 0;
+    start_timer = system_clock::now();
+    fs_bvas(*table, workload, dimensions, bvsn_sum);
+    end_timer = system_clock::now();
+    scan_time = duration<double>(end_timer - start_timer).count() / number_of_queries;
+    cout << bvsn_sum << endl;
+    cout << "Bit Vector (Storm) with new : " << scan_time << endl;
 }

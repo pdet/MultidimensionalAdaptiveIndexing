@@ -16,6 +16,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include/indexes/kd_tree)
 include_directories(${CMAKE_SOURCE_DIR}/include/indexes/quasii)
 include_directories(${CMAKE_SOURCE_DIR}/include/data)
 include_directories(${CMAKE_SOURCE_DIR}/include/data/generators)
+include_directories(${CMAKE_SOURCE_DIR}/include/third_party)
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/cost_model.cpp
@@ -46,6 +47,7 @@ set(FILTERBENCHSOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/workload.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/table.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/uniform_generator.cpp
+            ${CMAKE_SOURCE_DIR}/src/third_party/bitvector.cpp
             )
 
 add_library(FB_lib ${FILTERBENCHSOURCES})
