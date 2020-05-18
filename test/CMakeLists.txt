@@ -32,6 +32,7 @@ set(TEST_SOURCES
         ${CMAKE_SOURCE_DIR}/test/indexes/full_scan_candidate_list.cpp
         ${CMAKE_SOURCE_DIR}/test/data/uniform_generator.cpp
         ${CMAKE_SOURCE_DIR}/test/helpers/bitvector.cpp
+        ${CMAKE_SOURCE_DIR}/test/helpers/bitvector_with_chars.cpp
         ${CMAKE_SOURCE_DIR}/test/helpers/split_string.cpp
         ${CMAKE_SOURCE_DIR}/test/helpers/table.cpp
         )
