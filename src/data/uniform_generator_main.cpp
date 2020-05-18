@@ -6,9 +6,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define DATA_FILE "data"
-#define QUERY_FILE "queries"
-
 void usage(){
     std::cout << std::endl;
     std::cout << "Usage:" <<std::endl;
@@ -16,6 +13,8 @@ void usage(){
     std::cout << "-d <number_of_dimensions>" << std::endl;
     std::cout << "-s <selectivity>" << std::endl;
     std::cout << "-q <number_of_queries>" << std::endl;
+    std::cout << "-f <where_to_save_data_file>" << std::endl;
+    std::cout << "-w <where_to_save_workload_file>" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -23,9 +22,11 @@ int main(int argc, char* argv[]) {
     int64_t dimensions = -1;
     float selectivity = -1;
     int64_t number_of_queries = -1;
+    string data_path {""};
+    string workload_path {""};
 
     int c;
-    while ((c = getopt (argc, argv, "r:d:s:q:")) != -1){
+    while ((c = getopt (argc, argv, "r:d:s:q:f:w:")) != -1){
         switch (c)
         {
             case 'r':
@@ -40,14 +41,20 @@ int main(int argc, char* argv[]) {
             case 'q':
                 number_of_queries = atoi(optarg);
                 break;
+            case 'f':
+                data_path = optarg;
+                break;
+            case 'w':
+                workload_path = optarg;
+                break;
             default:
                 usage();
                 exit(-1);
         }
     }
 
-    
-bool error = false;
+
+    bool error = false;
     if(n_of_rows == -1){
         std::cout << "-r <n_of_rows> required" << std::endl;
         error = true;
@@ -64,6 +71,14 @@ bool error = false;
         std::cout << "-q <number_of_queries> required" << std::endl;
         error = true;   
     }
+    if(data_path == ""){
+        std::cout << "-f <where_to_save_data_file> required" << std::endl;
+        error = true;
+    }
+    if(workload_path == ""){
+        std::cout << "-w <where_to_save_workload_file> required" << std::endl;
+        error = true;
+    }
 
     if(error){
         usage();
@@ -75,6 +90,8 @@ bool error = false;
     std::cout << dimensions << " dimensions\n";
     std::cout << selectivity << " selectivity\n";
     std::cout << number_of_queries << " number of queries\n";
+    std::cout << data_path << " will save data here\n";
+    std::cout << workload_path << " will save workload here\n";
 
     auto generator = UniformGenerator(
             n_of_rows,
@@ -82,6 +99,6 @@ bool error = false;
             selectivity,
             number_of_queries
             );
-    generator.generate(DATA_FILE, QUERY_FILE);
+    generator.generate(data_path, workload_path);
     return 0;
 }
