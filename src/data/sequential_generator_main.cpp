@@ -1,4 +1,4 @@
-#include "skewed_generator.hpp"
+#include "sequential_generator.hpp"
 #include <iostream>
 
 // For the command line parsing
@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     string workload_path {""};
 
     int c;
-    while ((c = getopt (argc, argv, "r:d:s:q:f:w:m:v:")) != -1){
+    while ((c = getopt (argc, argv, "r:d:s:q:f:w:")) != -1){
         switch (c)
         {
             case 'r':
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     std::cout << data_path << " will save data here\n";
     std::cout << workload_path << " will save workload here\n";
 
-    auto generator = SkewedGenerator(
+    auto generator = SequentialGenerator(
             n_of_rows,
             dimensions,
             selectivity,

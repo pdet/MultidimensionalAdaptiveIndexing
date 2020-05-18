@@ -1,10 +1,10 @@
-#include "skewed_generator.hpp"
+#include "sequential_generator.hpp"
 #include <random>
 #include <vector>
 #include <math.h>
 
 
-SkewedGenerator::SkewedGenerator(
+SequentialGenerator::SequentialGenerator(
     size_t n_rows_, size_t n_dimensions_,
     float selectivity_, size_t n_queries_
 ) : n_rows(n_rows_), n_dimensions(n_dimensions_),
@@ -14,7 +14,7 @@ SkewedGenerator::SkewedGenerator(
     workload = make_unique<Workload>();
 }
 
-void SkewedGenerator::generate(std::string table_path, std::string query_path){
+void SequentialGenerator::generate(std::string table_path, std::string query_path){
     // Generate Data
     std::mt19937 generator(0);
     std::uniform_int_distribution<int> distr(0, n_rows);
@@ -33,21 +33,20 @@ void SkewedGenerator::generate(std::string table_path, std::string query_path){
     // Generator Queries
     float per_column_selectivity = std::pow(selectivity, 1.0/n_dimensions);
 
-    double mean = n_rows/2.0;
-    double std_dev = mean/8.0;
+    auto center = n_rows * per_column_selectivity/2;
 
-    std::mt19937 generator_query(1);
-    std::normal_distribution<double> distr_query(mean, std_dev);
-
-    for(size_t i = 0; i < n_queries; ++i){
+    for(
+        size_t i = 0;
+        i < n_queries && center < n_rows - (n_rows * per_column_selectivity);
+        ++i, center += n_rows * per_column_selectivity
+    ){
         std::vector<float> lows(n_dimensions);
         std::vector<float> highs(n_dimensions);
         std::vector<size_t> cols(n_dimensions);
 
         for(size_t j = 0; j < n_dimensions; ++j){
-            auto v = distr_query(generator_query);
-            lows.at(j) = v - (per_column_selectivity/2.0 * n_rows);
-            highs.at(j) = v + (per_column_selectivity/2.0 * n_rows);
+            lows.at(j) = center - (n_rows * per_column_selectivity/2);
+            highs.at(j) = center + (n_rows * per_column_selectivity/2);
             cols.at(j) = j;
         }
         workload->append(
