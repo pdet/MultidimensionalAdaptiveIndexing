@@ -245,7 +245,6 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
 
     for (size_t i = current_position; i < next_index; i++) {
         int matching = originalColumn[i] >= low && originalColumn[i] <= high;
-//        mid_bit_vec.set(bit_idx, matching);
         mid.maybe_push_back(i,matching);
         int bigger_pivot = originalColumn[i] >= root->key;
         int smaller_pivot = 1 - bigger_pivot;
@@ -385,6 +384,18 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
         if (remaining_swaps > 0){
           progressive_quicksort_refine(query,remaining_swaps);
         }
+      measurements->append(
+            "scan_time",
+            std::to_string(scan_time)
+    );
+    measurements->append(
+            "index_search_time",
+            std::to_string(index_search_time)
+    );
+    measurements->append(
+            "adaptation_time",
+            std::to_string(adaptation_time)
+    );
         return result;
     } else if (!converged) {
         //! Gotta do some refinements, we have not converged yet.
