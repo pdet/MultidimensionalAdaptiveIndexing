@@ -289,7 +289,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
         mid.size = qualifying_idx;
     }
     end_time = measurements->time();
-    scan_time += end_time - start_time;
+    adaptation_time += end_time - start_time;
     current_position = next_index;
     //! Check if we are finished with the initial run
     CandidateList original;
