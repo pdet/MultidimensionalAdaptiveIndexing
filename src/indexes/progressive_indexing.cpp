@@ -164,14 +164,15 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     auto high = query.predicates[dim].high;
     auto indexColumn = table->columns[dim]->data;
     auto originalColumn = originalTable->columns[dim]->data;
-    //! Candidate Lists from Index
-    CandidateList up;
+
     //! for the initial run, we write the indices instead of swapping them
     //! because the current array has not been initialized yet
     //! first look through the part we have already pivoted
     //! for data that matches the points
     //! We start by getting a candidate list to the upper part of our indexed table
     start_time = measurements->time();
+    //! Candidate Lists from Index
+    CandidateList up;
     if (low <= root->key) {
         for (size_t i = 0; i < root->current_start; i++) {
             int matching = indexColumn[i] >= low && indexColumn[i] <= high;
@@ -227,7 +228,6 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     //! It has elements from when we start swapping in this partition till the end of the table
     //! Here we use a bitvector instead of a candidate list
     start_time = measurements->time();
-
     //! If we go up or down for next filters
     dim = 0;
     low = query.predicates[dim].low;
@@ -243,11 +243,12 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     CandidateList mid;
     BitVector goDown = BitVector(next_index-current_position);
     //TODO: Maybe change this bitvector for CL as well?
-    BitVector mid_bit_vec = BitVector(next_index-current_position);
+//    BitVector mid_bit_vec = BitVector(next_index-current_position);
 
     for (size_t i = current_position; i < next_index; i++) {
         int matching = originalColumn[i] >= low && originalColumn[i] <= high;
-        mid_bit_vec.set(bit_idx, matching);
+//        mid_bit_vec.set(bit_idx, matching);
+        mid.maybe_push_back(i,matching);
         int bigger_pivot = originalColumn[i] >= root->key;
         int smaller_pivot = 1 - bigger_pivot;
 
@@ -269,16 +270,23 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
         size_t initial_high_cur = initial_high;
         //! First we copy the elements of the other columns, until where we stopped skipping
         bit_idx = 0;
+        auto mid_idx = 0;
+        auto qualifying_idx = 0;
         for (size_t i = current_position; i < next_index; i++) {
-            if (mid_bit_vec.get(bit_idx)) {
-                int matching = originalColumn[i] >= low && originalColumn[i] <= high;
-                mid_bit_vec.set(bit_idx, matching);
-            }
+//            if (mid_bit_vec.get(bit_idx)) {
+            int matching = originalColumn[i] >= low && originalColumn[i] <= high;
+            int cur_pos_match = i == mid.get(mid_idx);
+            (*mid.data)[qualifying_idx] = mid.get(mid_idx);
+            qualifying_idx+= matching*cur_pos_match;
+            mid_idx += cur_pos_match;
+//                mid_bit_vec.set(bit_idx, matching);
+//            }
             indexColumn[initial_low_cur] = originalColumn[i];
             indexColumn[initial_high_cur] = originalColumn[i];
             initial_low_cur += goDown.get(bit_idx);
             initial_high_cur -= !goDown.get(bit_idx++);
         }
+        mid.size = qualifying_idx;
     }
     end_time = measurements->time();
     scan_time += end_time - start_time;
@@ -338,7 +346,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     //! Iterate candidate lists that point to index
     start_time = measurements->time();
     double sum = 0;
-    size_t count = up.size + down.size + original.size;
+    size_t count = up.size + down.size + original.size + mid.size;
     dim = 0;
     originalColumn = originalTable->columns[dim]->data;
     indexColumn = table->columns[dim]->data;
@@ -348,11 +356,14 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     for (size_t i = 0; i < down.size; i++) {
         sum += indexColumn[down.get(i)];
     }
-    for (size_t i = 0; i < mid_bit_vec.size(); i++) {
-        if (mid_bit_vec.get(i)) {
-            count++;
-            sum += originalColumn[initial_current_pos + i];
-        }
+//    for (size_t i = 0; i < mid_bit_vec.size(); i++) {
+//        if (mid_bit_vec.get(i)) {
+//            count++;
+//            sum += originalColumn[initial_current_pos + i];
+//        }
+//    }
+    for (size_t i = 0; i < mid.size; i++) {
+        sum += originalColumn[mid.get(i)];
     }
     for (size_t i = 0; i < original.size; i++) {
         sum += originalColumn[original.get(i)];
