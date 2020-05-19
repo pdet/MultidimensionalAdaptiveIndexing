@@ -1,3 +1,4 @@
+#include <full_scan_candidate_list.hpp>
 #include "median_kd_tree.hpp"
 #include "kd_tree.hpp"
 #include "full_scan.hpp"
@@ -13,6 +14,13 @@ MedianKDTree::MedianKDTree(std::map<std::string, std::string> config){
 MedianKDTree::~MedianKDTree(){}
 
 void MedianKDTree::initialize(Table *table_to_copy){
+        //! Check partition size, we change it to guarantee it always partitions all dimensions at least once
+    while (minimum_partition_size > table_to_copy->row_count()/pow(2,table_to_copy->col_count())){
+        minimum_partition_size /=2;
+    }
+    if (minimum_partition_size < 100){
+        minimum_partition_size = 100;
+    }
     // ******************
     auto start = measurements->time();
 
@@ -61,7 +69,7 @@ unique_ptr<Table> MedianKDTree::range_query(Query &query) {
 
     start = measurements->time();
     // Scan the table and returns the row ids 
-    auto result = FullScan::scan_partition(table.get(), query,partitions, partition_skip);
+    auto result = FullScanCandidateList::scan_partition(table.get(), query,partitions, partition_skip);
 
 
     end = measurements->time();

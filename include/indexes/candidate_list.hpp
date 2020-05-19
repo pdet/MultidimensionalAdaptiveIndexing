@@ -1,4 +1,5 @@
 #pragma once
+#include <cstring>
 
 class CandidateList {
 public:
@@ -10,10 +11,10 @@ public:
 
     size_t size;
     size_t capacity;
-    std::unique_ptr<uint32_t *>data;
+    std::unique_ptr<uint32_t []>data;
 
-    CandidateList(size_t total_capacity = 0) {
-        data = std::make_unique<uint32_t*>();
+    explicit CandidateList(size_t total_capacity = 0) {
+
         if (total_capacity == 0) {
             this->size = 0;
             this->capacity = 1024;
@@ -21,26 +22,37 @@ public:
             this->size = 0;
             this->capacity = total_capacity;
         }
-        *data = (uint32_t *) malloc(sizeof(uint32_t) * this->capacity);
+        data = std::make_unique<uint32_t[]>(this->capacity);
     };
 
-    ~CandidateList(){};
+//    ~CandidateList(){
+////        size = 0;
+////        capacity = 0;
+////        if (data){
+////            data.release();
+////        }
+//
+//    };
 
     void push_back(uint32_t value) {
         if (size == capacity) {
-            this->capacity *= 2;
-            *data = (uint32_t *) realloc(*data, sizeof(uint32_t) * this->capacity);
+            auto new_data = std::unique_ptr<uint32_t []>(new uint32_t [capacity*2]);
+            std::memcpy(new_data.get(), data.get(), capacity * sizeof(uint32_t));
+            capacity *= 2;
+            data = move(new_data);
         }
-        (*data)[size] = value;
+        data[size] = value;
         size++;
     }
 
     void maybe_push_back(uint32_t value,int match) {
         if (size == capacity) {
-            this->capacity *= 2;
-            *data = (uint32_t *) realloc(*data, sizeof(uint32_t) * this->capacity);
+            auto new_data = std::unique_ptr<uint32_t []>(new uint32_t [capacity*2]);
+            std::memcpy(new_data.get(), data.get(), capacity * sizeof(uint32_t));
+            capacity *= 2;
+            data = move(new_data);
         }
-        (*data)[size] = value;
+        data[size] = value;
         size+=match;
     }
 
@@ -50,7 +62,7 @@ public:
         this->capacity = list.capacity;
     }
 
-    uint32_t get(size_t offset) {
-        return  (*data)[offset];
+    uint32_t get(size_t offset) const {
+        return  data[offset];
     }
 };

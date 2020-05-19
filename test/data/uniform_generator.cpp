@@ -5,14 +5,14 @@
 #include "index_factory.hpp"
 
 TEST_CASE( "UniformGenerator, 10000 rows, 5 dim, 0.1 sel, 10000 queries",
-           "[UniformGenerator]" ) {
+           "[UniformGenerator1]" ) {
     const string workload_path = "uniform_generator_queries";
     const string table_path = "uniform_generator_data";
 
     int64_t n_of_rows = 10000;
-    int64_t dimensions = 5;
+    int64_t dimensions = 2;
     float selectivity = 0.1;
-    int64_t n_of_queries = 10000;
+    int64_t n_of_queries = 100;
 
     float error = 0.15;
 
@@ -48,9 +48,9 @@ TEST_CASE( "UniformGenerator, 10000 rows, 2 dim, 0.1 sel, 10000 queries",
     const string table_path = "uniform_generator_data";
 
     int64_t n_of_rows = 10000;
-    int64_t dimensions = 22;
+    int64_t dimensions = 2;
     float selectivity = 0.1;
-    int64_t n_of_queries = 10000;
+    int64_t n_of_queries = 100;
 
     float error = 0.15;
 
