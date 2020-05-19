@@ -24,7 +24,7 @@ from benchmark import Benchmark
 
 # General experiment info
 SELECTIVITY = '0.001'
-NUMBER_OF_ROWS = f'{10e7}'
+NUMBER_OF_ROWS = f'{10e6}'
 NUMBER_OF_QUERIES = '1000'
 REPETITIONS = '1'
 
@@ -215,13 +215,24 @@ def main():
     build_dir = "../../build/"
     bin_dir = "../../bin"
 
+    parser = argparse.ArgumentParser(description='Run uniforn benchmark.')
+    parser.add_argument(
+        '--generate',
+        dest='generate',
+        action='store_true',
+        help='if this flag is setted then generate experiment data (DESTRUCTIVE ACTION, can overwrite what is inside data folder)'
+    )
+
+    args = parser.parse_args()
+
     for exp in EXPERIMENTS:
         exp['command'] += f" -r {exp['number_of_rows']} -d {exp['number_of_columns']}"
         exp['command'] += f" -s {exp['selectivity']} -q {exp['number_of_queries']}"
         exp['command'] += f" -f {exp['data']} -w {exp['workload']}"
 
     benchmark = Benchmark(EXPERIMENTS, RUNS, build_dir, bin_dir)
-    benchmark.generate()
+    if args.generate:
+        benchmark.generate()
     benchmark.run()
 
 if __name__ == "__main__":
