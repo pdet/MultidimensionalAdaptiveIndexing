@@ -91,12 +91,12 @@ class Tester{
                 // Check to see if the same amount of tuples was scanned
                 auto expected_tuples_scanned = expected->columns[1]->data[0];
                 auto result_tuples_scanned = result->columns[1]->data[0];
-                REQUIRE(expected_tuples_scanned == result_tuples_scanned);
+                CHECK(expected_tuples_scanned == result_tuples_scanned);
 
                 // Check if the sum is the same
                 auto expected_sum = expected->columns[0]->data[0];
                 auto result_sum = result->columns[0]->data[0];
-                REQUIRE(expected_sum == result_sum);
+                CHECK(expected_sum == result_sum);
             }
 
         }

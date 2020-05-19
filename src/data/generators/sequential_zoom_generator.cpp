@@ -40,11 +40,13 @@ void SequentialZoomGenerator::generate(std::string table_path, std::string query
 
     float step = half_side / n_queries;
 
+    size_t n_queries_per_block = n_queries/(n_rows/(2*half_side));
+
     for(auto center = half_side;
         center < n_rows - (n_rows * per_column_selectivity);
         center += half_side * 2.0)
     {
-        for(size_t s = n_queries; s > 0; --s){
+        for(size_t s = n_queries_per_block; s > 0; --s){
             std::vector<float> lows(n_dimensions);
             std::vector<float> highs(n_dimensions);
             std::vector<size_t> cols(n_dimensions);

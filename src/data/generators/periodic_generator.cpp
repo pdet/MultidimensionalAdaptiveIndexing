@@ -38,7 +38,7 @@ void PeriodicGenerator::generate(std::string table_path, std::string query_path)
     auto speed = 0.25;
 
 
-    for(/*no init*/; speed*center < n_rows - (n_rows * per_column_selectivity); center += n_rows * per_column_selectivity){
+    for(size_t i = 0; i < n_queries && (speed*center < n_rows - (n_rows * per_column_selectivity)); center += n_rows * per_column_selectivity, ++i){
         std::vector<float> lows(n_dimensions);
         std::vector<float> highs(n_dimensions);
         std::vector<size_t> cols(n_dimensions);
