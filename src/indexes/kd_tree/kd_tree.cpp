@@ -49,7 +49,6 @@ void KDTree::search_recursion(
         }
         return;
     }
-    auto temporary_min = partition_borders.at(current->column).first;
     switch (current->compare(query)) {
         case -1:
             // If the node's key is smaller to the low part of the query
@@ -108,13 +107,15 @@ void KDTree::search_recursion(
                         query.covers(partition_borders)
                 );
             } else {
-                partition_borders.at(current->column).first = current->key;
+                auto tmp = partition_borders.at(current->column).second;
+                partition_borders.at(current->column).second = current->key;
                 search_recursion(
                         current->left_child.get(),
                         lower_limit, current->position,
                         query, partitions, partition_skip,
                         partition_borders
                 );
+                partition_borders.at(current->column).second = tmp;
             }
             if (current->right_child == nullptr) {
                 partitions.push_back(make_pair(current->position, upper_limit));
@@ -122,8 +123,7 @@ void KDTree::search_recursion(
                         query.covers(partition_borders)
                         );
             } else {
-                partition_borders.at(current->column).first = temporary_min;
-                partition_borders.at(current->column).second = current->key;
+                partition_borders.at(current->column).first = current->key;
                 search_recursion(
                         current->right_child.get(),
                         current->position, upper_limit,
@@ -411,15 +411,16 @@ void KDTree::draw(std::string path) {
 bool KDTree::sanity_check_recursion(
         Table *table, KDNode *current,
         size_t low, size_t high,
-        vector<pair<float, float>> partition_borders
+        vector<pair<float, float>> partition_borders,
+        vector<pair<size_t, size_t>> &partitions
 ) {
     if (current == nullptr) {
         // Scan Partition
         // Transform partition_borders to query
         auto query = Query(partition_borders);
         // Scan using Full Scan
-        vector<pair<size_t, size_t>> partition;
-        partition.push_back(make_pair(low, high));
+        partitions.push_back(make_pair(low, high));
+        vector<pair<size_t, size_t>> partition {partitions.back()};
 
         vector<bool> skip(1, false);
 
@@ -435,7 +436,8 @@ bool KDTree::sanity_check_recursion(
     auto left_sanity = sanity_check_recursion(
             table, current->left_child.get(),
             low, current->position,
-            partition_borders
+            partition_borders,
+            partitions
     );
 
     partition_borders.at(current->column).first = current->key;
@@ -443,7 +445,8 @@ bool KDTree::sanity_check_recursion(
     auto right_sanity = sanity_check_recursion(
             table, current->right_child.get(),
             current->position, high,
-            partition_borders
+            partition_borders,
+            partitions
     );
     return left_sanity && right_sanity;
 }
@@ -456,5 +459,16 @@ bool KDTree::sanity_check(Table *table) {
                 numeric_limits<float>::max()
         );
     }
-    return sanity_check_recursion(table, root.get(), 0, row_count, partition_borders);
+
+    vector<pair<size_t, size_t>> partitions;
+    auto cond1 = sanity_check_recursion(table, root.get(), 0, row_count, partition_borders, partitions);
+
+    size_t tuples = 0;
+    for(auto& p : partitions){
+        tuples += p.second - p.first;
+    }
+
+    bool cond2 = tuples == table->row_count();
+
+    return cond1 && cond2;
 }

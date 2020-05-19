@@ -4,8 +4,8 @@
 #include "kd_tree/kd_tree.hpp"
 #include "full_scan.hpp"
 #include "abstract_index.hpp"
-#include <map>
 #include <string>
+#include <map>
 
 class MedianKDTree : public AbstractIndex
 {
@@ -24,8 +24,6 @@ public:
 
   unique_ptr<Table> range_query(Query &query) override;
 
-
-
     void draw_index(std::string path) override{
         index->draw(path);
     }
@@ -42,8 +40,5 @@ private:
     void initialize_index_recursion(KDNode* current, size_t lower_limit, size_t upper_limit, size_t column);
 
     std::pair<float, size_t> find_median(size_t column, size_t lower_limit, size_t upper_limit);
-
-    // Returns the position on where the pivot would end
-    size_t pivot_table(size_t column, size_t low, size_t high, float pivot, size_t pivot_position);
 };
 #endif // MEDIAN_KD_TREE_H

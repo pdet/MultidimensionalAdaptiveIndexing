@@ -1,6 +1,7 @@
 #include "median_kd_tree.hpp"
 #include "kd_tree.hpp"
 #include "full_scan.hpp"
+#include <algorithm>
 
 using namespace std;
 
@@ -29,7 +30,8 @@ void MedianKDTree::initialize(Table *table_to_copy){
     measurements->append(
         "initialization_time",
         std::to_string(Measurements::difference(end, start))
-    );    // ******************
+    );
+    // ******************
 }
 
 void MedianKDTree::adapt_index(Query &query) {
@@ -63,7 +65,6 @@ unique_ptr<Table> MedianKDTree::range_query(Query &query) {
     // Scan the table and returns the row ids 
     auto result = FullScan::scan_partition(table.get(), query,partitions, partition_skip);
 
-
     end = measurements->time();
     // ******************
     measurements->append(
@@ -90,13 +91,13 @@ unique_ptr<Table> MedianKDTree::range_query(Query &query) {
         }
     }
     measurements->append("partitions_skipped", std::to_string(skips));
+
     measurements->append(
         "scan_overhead",
         std::to_string(
             n_tuples_scanned/static_cast<float>(result.second)
         )
     );
-
     auto t = make_unique<Table>(2);
     float row[2] = {static_cast<float>(result.first), static_cast<float>(result.second)};
     t->append(row);
@@ -119,12 +120,12 @@ void MedianKDTree::initialize_index_recursion(
 ){
     auto new_col = (column + 1) % table->col_count();
     if(current->position - lower_limit > minimum_partition_size){
-        auto average_result = find_median(column, lower_limit, current->position);
-        auto average = average_result.first;
-        auto position = average_result.second;
+        auto median_result = find_median(new_col, lower_limit, current->position);
+        auto median = median_result.first;
+        auto position = median_result.second;
 
-        if(!(position < lower_limit || position >= current->position)){
-            current->left_child = index->create_node(column, average, position);
+        if(lower_limit < position && position < current->position){
+            current->left_child = index->create_node(new_col, median, position);
 
             initialize_index_recursion(
                     current->left_child.get(),
@@ -135,12 +136,12 @@ void MedianKDTree::initialize_index_recursion(
     }
 
     if(upper_limit - current->position > minimum_partition_size){
-        auto average_result = find_median(column, current->position, upper_limit);
-        auto average = average_result.first;
-        auto position = average_result.second;
+        auto median_result = find_median(new_col, current->position, upper_limit);
+        auto median = median_result.first;
+        auto position = median_result.second;
 
-        if(!(position < current->position || position >= upper_limit)){
-            current->right_child = index->create_node(column, average, position);
+        if(current->position < position && position < upper_limit){
+            current->right_child = index->create_node(new_col, median, position);
 
             initialize_index_recursion(
                     current->right_child.get(),
@@ -152,52 +153,11 @@ void MedianKDTree::initialize_index_recursion(
 }
 
 pair<float, size_t > MedianKDTree::find_median(size_t column, size_t lower_limit, size_t upper_limit){
-    auto low = lower_limit;
-    auto high = upper_limit - 1;
-    size_t position;
-    float element;
+    auto copy = vector<float>(table->columns[column]->data + lower_limit, table->columns[column]->data + upper_limit);
+    std::nth_element(copy.begin(), copy.begin() + copy.size()/2, copy.end());
+    auto median = copy[copy.size()/2];
 
-    do{
-        element = table->columns[column]->data[(high+low)/2];
-        position = pivot_table(column, low, high, element, (high+low)/2);
+    auto position = table->CrackTable(lower_limit, upper_limit, median, column);
 
-        if (position <= low)
-        {
-            ++low;
-        }
-        else if (position >= high)
-        {
-            --high;
-        }
-        else
-        {
-            if (position < (lower_limit + upper_limit) / 2)
-                low = position;
-            else
-                high = position;
-        }
-    }while ((position != (lower_limit + upper_limit) / 2) || (table->columns[column]->data[position] != element));
-
-    return make_pair(element, position);
-}
-
-// Returns the position on where the pivot would end
-size_t MedianKDTree::pivot_table(size_t column, size_t low, size_t high, float pivot, size_t pivot_position)
-{
-//  This method only works if we use the last element as the pivot
-//  So we change the pivot to the last position
-    table->exchange(pivot_position, high);
-
-    size_t i = low;
-
-    for (size_t j = low; j < high; ++j)
-    {
-        if (table->columns[column]->data[j] < pivot)
-        {
-            table->exchange(i, j);
-            ++i;
-        }
-    }
-    table->exchange(i, high);
-    return i;
+    return make_pair(median, position);
 }

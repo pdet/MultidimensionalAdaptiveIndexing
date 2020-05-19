@@ -69,7 +69,8 @@ class KDTree
         bool sanity_check_recursion(
                 Table* table, KDNode* current,
                 size_t low, size_t high,
-                std::vector<std::pair<float, float>> partition_borders
+                std::vector<std::pair<float, float>> partition_borders,
+                std::vector<std::pair<size_t, size_t>>& partitions
                 );
 };
 #endif // KDTREE_H

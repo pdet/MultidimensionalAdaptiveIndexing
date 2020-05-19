@@ -39,6 +39,6 @@ private:
     void initialize_index();
     void initialize_index_recursion(KDNode* current, size_t lower_limit, size_t upper_limit, size_t column);
 
-    pair<float, size_t> find_average(size_t column, size_t lower_limit, size_t upper_limit);
+    std::pair<float, size_t> find_average(size_t column, size_t lower_limit, size_t upper_limit);
 };
 #endif // AVERAGE_KD_TREE_H
