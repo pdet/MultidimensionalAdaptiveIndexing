@@ -38,7 +38,14 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_node.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/uniform_generator.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generators/skewed_generator.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generators/sequential_generator.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generators/periodic_generator.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generators/zoom_generator.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generators/alternating_zoom_generator.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generators/sequential_zoom_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/genome_generator.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generators/power_generator.cpp
             )
 
 set(FILTERBENCHSOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
@@ -63,7 +70,31 @@ target_link_libraries(main MDAI_lib)
 add_executable(uniform_generator ${CMAKE_SOURCE_DIR}/src/data/uniform_generator_main.cpp)
 target_link_libraries(uniform_generator MDAI_lib)
 
+add_executable(skewed_generator ${CMAKE_SOURCE_DIR}/src/data/skewed_generator_main.cpp)
+target_link_libraries(skewed_generator MDAI_lib)
+
+add_executable(sequential_generator ${CMAKE_SOURCE_DIR}/src/data/sequential_generator_main.cpp)
+target_link_libraries(sequential_generator MDAI_lib)
+
+add_executable(periodic_generator ${CMAKE_SOURCE_DIR}/src/data/periodic_generator_main.cpp)
+target_link_libraries(periodic_generator MDAI_lib)
+
+add_executable(zoom_generator ${CMAKE_SOURCE_DIR}/src/data/zoom_generator_main.cpp)
+target_link_libraries(zoom_generator MDAI_lib)
+
+
+add_executable(sequential_zoom_generator ${CMAKE_SOURCE_DIR}/src/data/sequential_zoom_generator_main.cpp)
+target_link_libraries(sequential_zoom_generator MDAI_lib)
+
+
+add_executable(alternating_zoom_generator ${CMAKE_SOURCE_DIR}/src/data/alternating_zoom_generator_main.cpp)
+target_link_libraries(alternating_zoom_generator MDAI_lib)
+
+
 add_executable(genome_generator ${CMAKE_SOURCE_DIR}/src/data/genome_generator_main.cpp)
 target_link_libraries(genome_generator MDAI_lib)
+
+add_executable(power_generator ${CMAKE_SOURCE_DIR}/src/data/power_generator_main.cpp)
+target_link_libraries(power_generator MDAI_lib)
 
 add_subdirectory("test")

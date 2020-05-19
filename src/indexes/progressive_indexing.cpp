@@ -173,6 +173,13 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     auto high = query.predicates[dim].high;
     auto indexColumn = table->columns[dim]->data;
     auto originalColumn = originalTable->columns[dim]->data;
+
+    //! for the initial run, we write the indices instead of swapping them
+    //! because the current array has not been initialized yet
+    //! first look through the part we have already pivoted
+    //! for data that matches the points
+    //! We start by getting a candidate list to the upper part of our indexed table
+    start_time = measurements->time();
     //! Candidate Lists from Index
     CandidateList up;
     if (low <= root->key) {
@@ -243,6 +250,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     size_t bit_idx = 0;
     CandidateList mid;
     BitVector goDown = BitVector(next_index-current_position);
+    //TODO: Maybe change this bitvector for CL as well?
 
     for (size_t i = current_position; i < next_index; i++) {
         int matching = originalColumn[i] >= low && originalColumn[i] <= high;
@@ -276,6 +284,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
             mid.data[qualifying_idx] = mid.get(mid_idx);
             qualifying_idx+= matching*cur_pos_match;
             mid_idx += cur_pos_match;
+
             indexColumn[initial_low_cur] = originalColumn[i];
             indexColumn[initial_high_cur] = originalColumn[i];
             initial_low_cur += goDown.get(bit_idx);
@@ -385,6 +394,18 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
         if (remaining_swaps > 0){
           progressive_quicksort_refine(query,remaining_swaps);
         }
+      measurements->append(
+            "scan_time",
+            std::to_string(scan_time)
+    );
+    measurements->append(
+            "index_search_time",
+            std::to_string(index_search_time)
+    );
+    measurements->append(
+            "adaptation_time",
+            std::to_string(adaptation_time)
+    );
         return result;
     } else if (!converged) {
         //! Gotta do some refinements, we have not converged yet.

@@ -18,9 +18,9 @@ class GenomeGenerator : public AbstractGenerator{
         void generate(std::string table_path, std::string workload_path) override;
 
     private:
-        size_t n_of_rows;
-        size_t number_of_queries;
-        size_t query_type;
+        size_t n_of_rows = 0;
+        size_t number_of_queries = 0;
+        size_t query_type = 0;
         std::string FEATUREVECTORS_FILE= "chr22_feature.vectors";
         std::string GENES_FILE = "genes.txt";
 };
