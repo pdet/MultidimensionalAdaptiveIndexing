@@ -1,20 +1,23 @@
-#include "zoom_out_generator.hpp"
+#include "zoom_generator.hpp"
 #include <random>
 #include <vector>
 #include <math.h>
+#include <algorithm>    // std::reverse
 
 
-ZoomOutGenerator::ZoomOutGenerator(
+ZoomGenerator::ZoomGenerator(
     size_t n_rows_, size_t n_dimensions_,
-    float selectivity_, size_t n_queries_
+    float selectivity_, size_t n_queries_,
+    bool out_ 
 ) : n_rows(n_rows_), n_dimensions(n_dimensions_),
-    selectivity(selectivity_), n_queries(n_queries_)
+    selectivity(selectivity_), n_queries(n_queries_),
+    out(out_)
 {
     table = make_unique<Table>(n_dimensions);
     workload = make_unique<Workload>();
 }
 
-void ZoomOutGenerator::generate(std::string table_path, std::string query_path){
+void ZoomGenerator::generate(std::string table_path, std::string query_path){
     // Generate Data
     std::mt19937 generator(0);
     std::uniform_int_distribution<int> distr(0, n_rows);
@@ -39,7 +42,7 @@ void ZoomOutGenerator::generate(std::string table_path, std::string query_path){
     
     float step = half_side / n_queries;
 
-    for(size_t i = 1; i <= n_queries; ++i){
+    for(size_t i = n_queries; i > 0; --i){
         std::vector<float> lows(n_dimensions);
         std::vector<float> highs(n_dimensions);
         std::vector<size_t> cols(n_dimensions);
@@ -52,6 +55,10 @@ void ZoomOutGenerator::generate(std::string table_path, std::string query_path){
         workload->append(
             Query(lows, highs, cols)
         );
+    }
+
+    if(out){
+        std::reverse(workload->queries.begin(), workload->queries.end());
     }
 
     workload->save_file(query_path);

@@ -1,4 +1,4 @@
-#include "sequential_zoom_in_generator.hpp"
+#include "sequential_zoom_generator.hpp"
 #include <iostream>
 
 // For the command line parsing
@@ -15,6 +15,7 @@ void usage(){
     std::cout << "-q <number_of_queries>" << std::endl;
     std::cout << "-f <where_to_save_data_file>" << std::endl;
     std::cout << "-w <where_to_save_workload_file>" << std::endl;
+    std::cout << "-b <if given this flag, the workload will be a zoom out>" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -24,9 +25,10 @@ int main(int argc, char* argv[]) {
     int64_t number_of_queries = -1;
     string data_path {""};
     string workload_path {""};
+    bool out = false;
 
     int c;
-    while ((c = getopt (argc, argv, "r:d:s:q:f:w:")) != -1){
+    while ((c = getopt (argc, argv, "r:d:s:q:f:w:b")) != -1){
         switch (c)
         {
             case 'r':
@@ -46,6 +48,9 @@ int main(int argc, char* argv[]) {
                 break;
             case 'w':
                 workload_path = optarg;
+                break;
+            case 'b':
+                out = true;
                 break;
             default:
                 usage();
@@ -90,14 +95,16 @@ int main(int argc, char* argv[]) {
     std::cout << dimensions << " dimensions\n";
     std::cout << selectivity << " selectivity\n";
     std::cout << number_of_queries << " number of queries\n";
+    std::cout << out << " if true then reverse workload\n";
     std::cout << data_path << " will save data here\n";
     std::cout << workload_path << " will save workload here\n";
 
-    auto generator = SequentialZoomInGenerator(
+    auto generator = SequentialZoomGenerator(
             n_of_rows,
             dimensions,
             selectivity,
-            number_of_queries
+            number_of_queries,
+            out
             );
     generator.generate(data_path, workload_path);
     return 0;

@@ -41,16 +41,22 @@ EXPERIMENTS = [
             "command": f"./periodic_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {NUMBER_OF_QUERIES} -f /tmp/data -w {CURRENT_DIR}/data/periodic"
             },
         {
-            "command": f"./zoom_in_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {NUMBER_OF_QUERIES} -f /tmp/data -w {CURRENT_DIR}/data/zoom_in"
+            "command": f"./zoom_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {NUMBER_OF_QUERIES} -f /tmp/data -w {CURRENT_DIR}/data/zoom_in"
             },
         {
-            "command": f"./zoom_out_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {NUMBER_OF_QUERIES} -f /tmp/data -w {CURRENT_DIR}/data/zoom_out"
+            "command": f"./zoom_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {NUMBER_OF_QUERIES} -f /tmp/data -w {CURRENT_DIR}/data/zoom_out -b"
             },
         {
-            "command": f"./sequential_zoom_in_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {2} -f /tmp/data -w {CURRENT_DIR}/data/sequential_zoom_in"
+            "command": f"./sequential_zoom_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {2} -f /tmp/data -w {CURRENT_DIR}/data/sequential_zoom_in"
             },
         {
-            "command": f"./sequential_zoom_out_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {2} -f /tmp/data -w {CURRENT_DIR}/data/sequential_zoom_out"
+            "command": f"./sequential_zoom_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {2} -f /tmp/data -w {CURRENT_DIR}/data/sequential_zoom_out -b"
+            },
+        {
+            "command": f"./alternating_zoom_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {NUMBER_OF_QUERIES} -f /tmp/data -w {CURRENT_DIR}/data/alternating_zoom_in"
+            },
+{
+            "command": f"./alternating_zoom_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {NUMBER_OF_QUERIES} -f /tmp/data -w {CURRENT_DIR}/data/alternating_zoom_out -b"
             },
 
         ]
