@@ -2,6 +2,7 @@
 #include <iostream>
 #include <bitvector.hpp>
 #include <cost_model.hpp>
+#include <full_scan_candidate_list.hpp>
 #include "progressive_index.hpp"
 #include "candidate_list.hpp"
 #include "full_scan.hpp"
@@ -156,6 +157,14 @@ void ProgressiveIndex::progressive_quicksort_refine(Query &query, ssize_t &remai
 unique_ptr<Table>
 ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_swaps) {
 
+
+
+    //! for the initial run, we write the indices instead of swapping them
+    //! because the current array has not been initialized yet
+    //! first look through the part we have already pivoted
+    //! for data that matches the points
+    //! We start by getting a candidate list to the upper part of our indexed table
+    start_time = measurements->time();
     auto root = tree->root.get();
     //! Creation Phase only partitions first dimension
     size_t dim = 0;
@@ -188,7 +197,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
             indexColumn = table->columns[dim]->data;
             for (size_t i = 0; i < up.size; i++) {
                 int matching = indexColumn[up.get(i)] >= low && indexColumn[up.get(i)] <= high;
-                (*up.data)[qualifying_index] = up.get(i);
+                up.data[qualifying_index] = up.get(i);
                 qualifying_index+=matching;
             }
             up.size = qualifying_index;
@@ -216,7 +225,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
             indexColumn = table->columns[dim]->data;
             for (size_t i = 0; i < down.size; i++) {
                 int matching = indexColumn[down.get(i)] >= low && indexColumn[down.get(i)] <= high;
-                (*down.data)[qualifying_index] = down.get(i);
+                down.data[qualifying_index] = down.get(i);
                 qualifying_index+=matching;
             }
             down.size=qualifying_index;
@@ -272,7 +281,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
         for (size_t i = current_position; i < next_index; i++) {
             int matching = originalColumn[i] >= low && originalColumn[i] <= high;
             int cur_pos_match = i == mid.get(mid_idx);
-            (*mid.data)[qualifying_idx] = mid.get(mid_idx);
+            mid.data[qualifying_idx] = mid.get(mid_idx);
             qualifying_idx+= matching*cur_pos_match;
             mid_idx += cur_pos_match;
 
@@ -283,11 +292,12 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
         }
         mid.size = qualifying_idx;
     }
+    //! Check if we are finished with the initial run
+    CandidateList original;
     end_time = measurements->time();
     adaptation_time += end_time - start_time;
     current_position = next_index;
-    //! Check if we are finished with the initial run
-    CandidateList original;
+
     if (next_index == table_size) {
         indexColumn = table->columns[0]->data;
         root->position = indexColumn[root->current_start] >= root->key ? root->current_start : root->current_start + 1;
@@ -328,7 +338,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
             auto qualifying_index = 0;
             for (size_t i = 0; i < original.size; i++) {
                 int matching = originalColumn[original.get(i)] >= low && originalColumn[original.get(i)] <= high;
-                (*original.data)[qualifying_index] = original.get(i);
+                original.data[qualifying_index] = original.get(i);
                 qualifying_index+=matching;
             }
             original.size=qualifying_index;
@@ -372,7 +382,7 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     adaptation_time = 0;
     index_search_time = 0;
     if(interactivity_threshold > 0){
-        delta = get_costmodel_delta_quicksort();
+        delta = get_costmodel_delta_quicksort(query);
     }
     //! Creation Phase
     //! If the node has no children we are stil in the creation phase
@@ -409,7 +419,7 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     auto partitions = search_results.first;
     auto partition_skip = search_results.second;
     start_time = measurements->time();
-    auto result = FullScan::scan_partition(table.get(), query, partitions, partition_skip);
+    auto result = FullScanCandidateList::scan_partition(table.get(), query, partitions, partition_skip);
     auto t = make_unique<Table>(2);
     float row[2] = {static_cast<float>(result.first), static_cast<float>(result.second)};
     t->append(row);
@@ -469,12 +479,45 @@ ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
 
 ProgressiveIndex::~ProgressiveIndex() = default;
 
-double ProgressiveIndex::get_costmodel_delta_quicksort() {
+double ProgressiveIndex::get_costmodel_delta_quicksort(Query &query) {
+    //! Creation Phase
     return 0.2;
+//    if (tree->root->noChildren()) {
+//        auto root = tree->root.get();
+//        size_t dim = 0;
+//        size_t table_size = originalTable->row_count();
+//        auto low = query.predicates[dim].low;
+//        auto high = query.predicates[dim].high;
+//        auto indexColumn = table->columns[dim]->data;
+//        auto originalColumn = originalTable->columns[dim]->data;
+////        //! How much we spend on up
+////        if (low <= root->key) {
+////            size_t
+////        }
+////
+////
+////
+////        //! How much we spend on down
+////        //! How much we spend on mid
+////        return result;
+//return 0.2;
+//    } else if (!converged) {
+//        //! Refinement phase
+//return 0.2;
+//    }
+//    //! No need to get a costmodel
+//    return -1;
 }
 
 //! Here we just malloc the table and initialize the root
 void ProgressiveIndex::initialize(Table *table_to_copy) {
+    //! Check partition size, we change it to guarantee it always partitions all dimensions at least once
+    while (minimum_partition_size > table_to_copy->row_count()/pow(2,table_to_copy->col_count())){
+        minimum_partition_size /=2;
+    }
+    if (minimum_partition_size < 100){
+        minimum_partition_size = 100;
+    }
     //! We don't time this because could be assume this is collected during data loading
     float pivot = find_avg(table_to_copy, 0, 0, table_to_copy->row_count());
     auto start = measurements->time();

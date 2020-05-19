@@ -5,6 +5,7 @@
 #include <stack>
 #include <fstream>
 #include <limits>
+#include <full_scan_candidate_list.hpp>
 
 using namespace std;
 
@@ -79,7 +80,7 @@ unique_ptr<Table> Quasii::range_query(Query &query) {
 
     start = measurements->time();
     // Scan the table and returns the row ids 
-    auto result = FullScan::scan_partition(table.get(), query,partitions, partition_skip);
+    auto result = FullScanCandidateList::scan_partition(table.get(), query,partitions, partition_skip);
 
     end = measurements->time();
     // ******************

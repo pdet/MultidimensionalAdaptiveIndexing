@@ -49,7 +49,7 @@ std::pair<double, size_t> full_scan(Table *t, Query &query) {
     column = t->columns[dim]->data;
     for (size_t i = 0; i < list.size; i++) {
       int matching = column[list.get(i)] >= low && column[list.get(i)] <= high;
-      (*list.data)[qualifying_index] = list.get(i);
+      list.data[qualifying_index] = list.get(i);
       qualifying_index += matching;
     }
                 list.size = qualifying_index;

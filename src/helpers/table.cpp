@@ -98,7 +98,7 @@ void Table::save_file(std::string path){
 }
 
 std::unique_ptr<float[]> Table::materialize_row(size_t row_index){
-    auto row = make_unique<float[]>(row_count());
+    auto row = make_unique<float[]>(col_count());
     for(size_t col = 0; col < col_count(); col++){
         row[col] = columns[col]->data[row_index];
     }

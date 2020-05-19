@@ -56,7 +56,7 @@ class ProgressiveIndex: public AbstractIndex {
         tree = std::make_unique<KDTree>(tableSize);
         tree->root = make_unique<KDNode>(0,pivot,0,tableSize-1);
     }
-    double get_costmodel_delta_quicksort();
+    double get_costmodel_delta_quicksort(Query &query);
 
 private:
     Table *originalTable = nullptr;

@@ -64,7 +64,7 @@ void fs_cls(Table &table, Workload &workload, size_t dimensions, double &sum) {
             auto qualifying_index = 0;
             for (size_t cl_idx = 0; cl_idx < cl.size; cl_idx++) {
                 if (column[cl.get(cl_idx)] >= low && column[cl.get(cl_idx)] <= high) {
-                    (*cl.data)[qualifying_index] = cl.get(cl_idx);
+                    cl.data[qualifying_index] = cl.get(cl_idx);
                     qualifying_index++;
                 }
             }

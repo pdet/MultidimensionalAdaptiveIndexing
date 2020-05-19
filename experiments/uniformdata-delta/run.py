@@ -25,7 +25,7 @@ from benchmark import Benchmark
 # General experiment info
 SELECTIVITY = '0.0001'
 NUMBER_OF_ROWS = f'{10e7}'
-NUMBER_OF_QUERIES = '10000'
+NUMBER_OF_QUERIES = '1000'
 
 REPETITIONS = '1'
 
@@ -56,24 +56,10 @@ EXPERIMENTS = [
             "repetitions": REPETITIONS
 
             },
-        {
-            "name": "16cols",
-            "data": f"{CURRENT_DIR}/data/16data",
-            "workload": f"{CURRENT_DIR}/data/16queries",
-            "number_of_cols": '16', "selectivity": SELECTIVITY,
-            "number_of_rows": NUMBER_OF_ROWS, 'number_of_queries': NUMBER_OF_QUERIES,
-            "repetitions": REPETITIONS
-
-            },
         ]
 
 DELTA_LIST = [0.005, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 RUNS = [
-        {
-            "algorithm_id": "1",
-            "name": "full_scan",
-            "result" : f"{CURRENT_DIR}/results/full_scan"
-            },
         {
             "algorithm_id": "111",
             "name": "full_scan_cl",
@@ -88,7 +74,15 @@ for delta in DELTA_LIST:
         "partitions_size": PARTITION_SIZE,
         "name": "progressive_index",
         "delta": str(delta),
-        "result": f"{CURRENT_DIR}/results/progressive_index-{delta}-{PARTITION_SIZE}"
+        "result": f"{CURRENT_DIR}/results/progressive_index-wa-{delta}-{PARTITION_SIZE}"
+        })
+        RUNS.append(   {
+        "algorithm_id": "7",
+        "partitions_size": PARTITION_SIZE,
+        "name": "progressive_index",
+        "workload_adaptive":"1",
+        "delta": str(delta),
+        "result": f"{CURRENT_DIR}/results/progressive_index-wd-{delta}-{PARTITION_SIZE}"
         })
 
 
