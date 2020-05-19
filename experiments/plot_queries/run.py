@@ -23,7 +23,7 @@ from benchmark import Benchmark
 
 
 # General experiment info
-SELECTIVITY = '0.01'
+SELECTIVITY = '0.001'
 NUMBER_OF_ROWS = f'{10e5}'
 NUMBER_OF_QUERIES = '100'
 
@@ -39,6 +39,9 @@ EXPERIMENTS = [
             },
         {
             "command": f"./periodic_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {NUMBER_OF_QUERIES} -f /tmp/data -w {CURRENT_DIR}/data/periodic"
+            },
+        {
+            "command": f"./zoom_in_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {NUMBER_OF_QUERIES} -f /tmp/data -w {CURRENT_DIR}/data/zoom_in"
             },
 
         ]
