@@ -42,6 +42,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/sequential_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/periodic_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/zoom_in_generator.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generators/zoom_out_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/genome_generator.cpp
             )
 
@@ -79,6 +80,8 @@ target_link_libraries(periodic_generator MDAI_lib)
 add_executable(zoom_in_generator ${CMAKE_SOURCE_DIR}/src/data/zoom_in_generator_main.cpp)
 target_link_libraries(zoom_in_generator MDAI_lib)
 
+add_executable(zoom_out_generator ${CMAKE_SOURCE_DIR}/src/data/zoom_out_generator_main.cpp)
+target_link_libraries(zoom_out_generator MDAI_lib)
 
 add_executable(genome_generator ${CMAKE_SOURCE_DIR}/src/data/genome_generator_main.cpp)
 target_link_libraries(genome_generator MDAI_lib)
