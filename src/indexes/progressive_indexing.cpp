@@ -235,7 +235,6 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     indexColumn = table->columns[dim]->data;
     //! now we start filling the index with at most remaining_swap entries
     size_t initial_low = root->current_start;
-    size_t initial_current_pos = current_position;
     size_t next_index = min(current_position + remaining_swaps, table_size);
     size_t initial_high = root->current_end;
     remaining_swaps -= next_index - current_position;
@@ -243,11 +242,9 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     CandidateList mid;
     BitVector goDown = BitVector(next_index-current_position);
     //TODO: Maybe change this bitvector for CL as well?
-//    BitVector mid_bit_vec = BitVector(next_index-current_position);
 
     for (size_t i = current_position; i < next_index; i++) {
         int matching = originalColumn[i] >= low && originalColumn[i] <= high;
-//        mid_bit_vec.set(bit_idx, matching);
         mid.maybe_push_back(i,matching);
         int bigger_pivot = originalColumn[i] >= root->key;
         int smaller_pivot = 1 - bigger_pivot;
@@ -273,14 +270,12 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
         auto mid_idx = 0;
         auto qualifying_idx = 0;
         for (size_t i = current_position; i < next_index; i++) {
-//            if (mid_bit_vec.get(bit_idx)) {
             int matching = originalColumn[i] >= low && originalColumn[i] <= high;
             int cur_pos_match = i == mid.get(mid_idx);
             (*mid.data)[qualifying_idx] = mid.get(mid_idx);
             qualifying_idx+= matching*cur_pos_match;
             mid_idx += cur_pos_match;
-//                mid_bit_vec.set(bit_idx, matching);
-//            }
+
             indexColumn[initial_low_cur] = originalColumn[i];
             indexColumn[initial_high_cur] = originalColumn[i];
             initial_low_cur += goDown.get(bit_idx);
@@ -356,12 +351,6 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     for (size_t i = 0; i < down.size; i++) {
         sum += indexColumn[down.get(i)];
     }
-//    for (size_t i = 0; i < mid_bit_vec.size(); i++) {
-//        if (mid_bit_vec.get(i)) {
-//            count++;
-//            sum += originalColumn[initial_current_pos + i];
-//        }
-//    }
     for (size_t i = 0; i < mid.size; i++) {
         sum += originalColumn[mid.get(i)];
     }
@@ -395,6 +384,18 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
         if (remaining_swaps > 0){
           progressive_quicksort_refine(query,remaining_swaps);
         }
+      measurements->append(
+            "scan_time",
+            std::to_string(scan_time)
+    );
+    measurements->append(
+            "index_search_time",
+            std::to_string(index_search_time)
+    );
+    measurements->append(
+            "adaptation_time",
+            std::to_string(adaptation_time)
+    );
         return result;
     } else if (!converged) {
         //! Gotta do some refinements, we have not converged yet.

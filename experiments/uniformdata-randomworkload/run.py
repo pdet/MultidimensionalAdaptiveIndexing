@@ -70,11 +70,6 @@ EXPERIMENTS = [
 
 RUNS = [
     {
-        "algorithm_id": "1",
-        "name": "full_scan",
-        "result": f"{CURRENT_DIR}/results/full_scan-{0.0}-{0}"
-    },
-    {
         "algorithm_id": "111",
         "name": "full_scan_cl",
         "result": f"{CURRENT_DIR}/results/full_scan-{0.0}-{0}"
