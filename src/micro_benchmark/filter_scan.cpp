@@ -171,7 +171,7 @@ void fs_bvgp(Table &table, Workload &workload, size_t dimensions, double &sum) {
             low = workload.queries[w_idx].predicates[d_idx].low;
             high = workload.queries[w_idx].predicates[d_idx].high;
             for (size_t c_idx = 0; c_idx < table.row_count(); c_idx++) {
-                bv.set(c_idx, bv.get(c_idx) && !(column[c_idx] >= low && column[c_idx] <= high));
+                bv.set(c_idx, bv.get(c_idx) && (column[c_idx] >= low && column[c_idx] <= high));
             }
         }
         //! Iterate through final bv to get sum
