@@ -23,126 +23,90 @@ from benchmark import Benchmark
 
 
 # General experiment info
-SELECTIVITY = '0.001'
-NUMBER_OF_ROWS = f'{10e6}'
-NUMBER_OF_QUERIES = '1000'
+NUMBER_OF_QUERIES = '5000'
 REPETITIONS = '1'
-
-EXPERIMENTS = [
+ROWS = [10e8]
+SELECTIVITIES = [0.1]
+COLS = [2, 4, 8]
+#NUMBER_OF_QUERIES = '5'
+#REPETITIONS = '1'
+#ROWS = [10e2, 10e2]
+#SELECTIVITIES = [0.1, 0.01, 0.001]
+#COLS = [2, 4]
+EXPS_DEFAULTS = [
         {
             "name": "uniform",
-            "number_of_rows": NUMBER_OF_ROWS,
-            "number_of_columns": '2',
-            "selectivity": SELECTIVITY,
-            "repetitions": REPETITIONS,
-            "number_of_queries": NUMBER_OF_QUERIES,
-            "data": f"{CURRENT_DIR}/data/uniform_d",
-            "workload": f"{CURRENT_DIR}/data/uniform",
             "command": "./uniform_generator"
             },
         {
             "name": "skewed",
-            "number_of_rows": NUMBER_OF_ROWS,
-            "number_of_columns": '2',
-            "selectivity": SELECTIVITY,
-            "repetitions": REPETITIONS,
-            "number_of_queries": NUMBER_OF_QUERIES,
-            "data": f"{CURRENT_DIR}/data/skewed_d",
-            "workload": f"{CURRENT_DIR}/data/skewed",
             "command": "./skewed_generator"
             },
         {
             "name": "sequential",
-            "number_of_rows": NUMBER_OF_ROWS,
-            "number_of_columns": '2',
-            "selectivity": SELECTIVITY,
-            "repetitions": REPETITIONS,
-            "number_of_queries": NUMBER_OF_QUERIES,
-            "data": f"{CURRENT_DIR}/data/sequential_d",
-            "workload": f"{CURRENT_DIR}/data/sequential",
             "command": "./sequential_generator"
             },
         {
             "name": "periodic",
-            "number_of_rows": NUMBER_OF_ROWS,
-            "number_of_columns": '2',
-            "selectivity": SELECTIVITY,
-            "repetitions": REPETITIONS,
-            "number_of_queries": NUMBER_OF_QUERIES,
-            "data": f"{CURRENT_DIR}/data/periodic_d",
-            "workload": f"{CURRENT_DIR}/data/periodic",
             "command": "./periodic_generator"
             },
         {
             "name": "zoom_in",
-            "number_of_rows": NUMBER_OF_ROWS,
-            "number_of_columns": '2',
-            "selectivity": SELECTIVITY,
-            "repetitions": REPETITIONS,
-            "number_of_queries": NUMBER_OF_QUERIES,
-            "data": f"{CURRENT_DIR}/data/zoom_in_d",
-            "workload": f"{CURRENT_DIR}/data/zoom_in",
             "command": "./zoom_generator"
             },
         {
             "name": "zoom_out",
-            "number_of_rows": NUMBER_OF_ROWS,
-            "number_of_columns": '2',
-            "selectivity": SELECTIVITY,
-            "repetitions": REPETITIONS,
-            "number_of_queries": NUMBER_OF_QUERIES,
-            "data": f"{CURRENT_DIR}/data/zoom_out_d",
-            "workload": f"{CURRENT_DIR}/data/zoom_out",
             "command": "./zoom_generator -b"
             },
         {
             "name": "sequential_zoom_in",
-            "number_of_rows": NUMBER_OF_ROWS,
-            "number_of_columns": '2',
-            "selectivity": SELECTIVITY,
-            "repetitions": REPETITIONS,
-            "number_of_queries": NUMBER_OF_QUERIES,
-            "data": f"{CURRENT_DIR}/data/sequential_zoom_in_d",
-            "workload": f"{CURRENT_DIR}/data/sequential_zoom_in",
             "command": "./sequential_zoom_generator"
             },
         {
             "name": "sequential_zoom_out",
-            "number_of_rows": NUMBER_OF_ROWS,
-            "number_of_columns": '2',
-            "selectivity": SELECTIVITY,
-            "repetitions": REPETITIONS,
-            "number_of_queries": NUMBER_OF_QUERIES,
-            "data": f"{CURRENT_DIR}/data/sequential_zoom_out_d",
-            "workload": f"{CURRENT_DIR}/data/sequential_zoom_out",
             "command": "./sequential_zoom_generator -b"
             },
         {
             "name": "alternating_zoom_in",
-            "number_of_rows": NUMBER_OF_ROWS,
-            "number_of_columns": '2',
-            "selectivity": SELECTIVITY,
-            "repetitions": REPETITIONS,
-            "number_of_queries": NUMBER_OF_QUERIES,
-            "data": f"{CURRENT_DIR}/data/alternating_zoom_in_d",
-            "workload": f"{CURRENT_DIR}/data/alternating_zoom_in",
             "command": "./alternating_zoom_generator"
             },
         {
             "name": "alternating_zoom_out",
-            "number_of_rows": NUMBER_OF_ROWS,
-            "number_of_columns": '2',
-            "selectivity": SELECTIVITY,
-            "repetitions": REPETITIONS,
-            "number_of_queries": NUMBER_OF_QUERIES,
-            "data": f"{CURRENT_DIR}/data/alternating_zoom_out_d",
-            "workload": f"{CURRENT_DIR}/data/alternating_zoom_out",
             "command": "./alternating_zoom_generator -b"
             },
         ]
 
 
+EXPERIMENTS = []
+
+for row in ROWS:
+    for sel in SELECTIVITIES:
+        for col in COLS:
+            for default in EXPS_DEFAULTS:
+                EXPERIMENTS.append(
+                        {
+                            "name": default['name'],
+                            "exp_id": f"{default['name']}-{row}-{col}-{sel}",
+                            "number_of_rows": str(row),
+                            "number_of_columns": str(col),
+                            "selectivity": str(sel),
+                            "repetitions": str(REPETITIONS),
+                            "number_of_queries": str(NUMBER_OF_QUERIES),
+                            "data": f"{CURRENT_DIR}/data/{default['name']}-{row}-{col}-{sel}-d",
+                            "workload": f"{CURRENT_DIR}/data/{default['name']}-{row}-{col}-{sel}-w",
+                            "command": default['command']
+                            }
+                        )
+
+
+            
+
 RUNS = [
+    {
+        "algorithm_id": "1",
+        "name": "full_scan",
+        "result": f"{CURRENT_DIR}/results/full_scan-{0.0}-{0}"
+    },
     {
         "algorithm_id": "111",
         "name": "full_scan_cl",
@@ -171,42 +135,37 @@ RUNS = [
         "partitions_size": "1024",
         "name": "median_kd_tree",
         "result": f"{CURRENT_DIR}/results/median_kd_tree-{0.0}-{1024}"
-    },
+        },
     {
         "algorithm_id": "6",
         "partitions_size": "1024",
         "name": "quasii",
         "result": f"{CURRENT_DIR}/results/quasii-{0.0}-{1024}"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index",
-        "delta": "0.2",
-        "result": f"{CURRENT_DIR}/results/progressive_index-{0.2}-{1024}"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index",
-        "delta": "0.3",
-        "result": f"{CURRENT_DIR}/results/progressive_index-{0.3}-{1024}"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index",
-        "delta": "0.5",
-        "result": f"{CURRENT_DIR}/results/progressive_index-{0.5}-{1024}"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index",
-        "delta": "0.8",
-        "result": f"{CURRENT_DIR}/results/progressive_index-{0.8}-{1024}"
-    }
-]
+        }
+    ]
+
+progressive_index_deltas = [0.1, 0.2, 0.5]
+
+for delta in progressive_index_deltas:
+    RUNS.append(
+            {
+                "algorithm_id": "7",
+                "partitions_size": "1024",
+                "name": "progressive_index",
+                "delta": f"{delta}",
+                "result": f"{CURRENT_DIR}/results/progressive_index-{delta}-{1024}"
+                }
+            )
+    RUNS.append(
+            {
+                "algorithm_id": "7",
+                "partitions_size": "1024",
+                "name": "progressive_index_adaptive",
+                "delta": f"{delta}",
+                "extra_flags": "-t",
+                "result": f"{CURRENT_DIR}/results/progressive_index_adaptive-{delta}-{1024}"
+                }
+            )
 
 
 def main():

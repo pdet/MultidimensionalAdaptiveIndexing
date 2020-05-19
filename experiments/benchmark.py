@@ -74,9 +74,10 @@ class Benchmark:
                         "-d", experiment['data'],
                         "-i", run['algorithm_id'],
                         "-r", experiment['repetitions'],
-                        "-s", f"{run['result']}-{experiment['name']}.csv",
+                        "-s", f"{run['result']}-{experiment['exp_id']}.csv",
                         "-p", run.get('partitions_size', "1024"),
-                        "-a", run.get('delta', "0")
+                        "-a", run.get('delta', "0"),
+                        run.get('extra_flags', '')
                         ]
                     command = ' '.join(command)
                     os.system(command)
