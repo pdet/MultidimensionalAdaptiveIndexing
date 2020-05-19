@@ -71,7 +71,7 @@ class Tester{
                 baseline->adapt_index(workload.queries.at(j));
                 auto result = baseline->range_query(workload.queries.at(j));
                 baseline_results.push_back(std::move(result));
-                //CHECK(baseline_results.at(j)->columns[1]->data[0] > 0);
+                //REQUIRE(baseline_results.at(j)->columns[1]->data[0] > 0);
             }
 
             INFO("Running (" + alg->name() + ")");
@@ -91,12 +91,12 @@ class Tester{
                 // Check to see if the same amount of tuples was scanned
                 auto expected_tuples_scanned = expected->columns[1]->data[0];
                 auto result_tuples_scanned = result->columns[1]->data[0];
-                CHECK(expected_tuples_scanned == result_tuples_scanned);
+                REQUIRE(expected_tuples_scanned == result_tuples_scanned);
 
                 // Check if the sum is the same
                 auto expected_sum = expected->columns[0]->data[0];
                 auto result_sum = result->columns[0]->data[0];
-                CHECK(expected_sum == result_sum);
+                REQUIRE(expected_sum == result_sum);
             }
 
         }
