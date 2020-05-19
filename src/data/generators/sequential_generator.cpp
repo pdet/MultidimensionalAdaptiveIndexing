@@ -35,6 +35,8 @@ void SequentialGenerator::generate(std::string table_path, std::string query_pat
 
     auto center = n_rows * per_column_selectivity/2;
 
+    float half_side = (n_rows * per_column_selectivity)/2.0;
+
     for(
         size_t i = 0;
         i < n_queries && center < n_rows - (n_rows * per_column_selectivity);
@@ -45,8 +47,8 @@ void SequentialGenerator::generate(std::string table_path, std::string query_pat
         std::vector<size_t> cols(n_dimensions);
 
         for(size_t j = 0; j < n_dimensions; ++j){
-            lows.at(j) = center - (n_rows * per_column_selectivity/2);
-            highs.at(j) = center + (n_rows * per_column_selectivity/2);
+            lows.at(j) = center - half_side;
+            highs.at(j) = center + half_side;
             cols.at(j) = j;
         }
         workload->append(

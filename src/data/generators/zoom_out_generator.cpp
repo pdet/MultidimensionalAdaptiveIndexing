@@ -39,7 +39,7 @@ void ZoomOutGenerator::generate(std::string table_path, std::string query_path){
     
     float step = half_side / n_queries;
 
-    for(size_t i = 0; i < n_queries; ++i){
+    for(size_t i = 1; i <= n_queries; ++i){
         std::vector<float> lows(n_dimensions);
         std::vector<float> highs(n_dimensions);
         std::vector<size_t> cols(n_dimensions);

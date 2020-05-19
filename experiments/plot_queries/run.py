@@ -46,6 +46,12 @@ EXPERIMENTS = [
         {
             "command": f"./zoom_out_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {NUMBER_OF_QUERIES} -f /tmp/data -w {CURRENT_DIR}/data/zoom_out"
             },
+        {
+            "command": f"./sequential_zoom_in_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {2} -f /tmp/data -w {CURRENT_DIR}/data/sequential_zoom_in"
+            },
+        {
+            "command": f"./sequential_zoom_out_generator -r {NUMBER_OF_ROWS} -d 2 -s {SELECTIVITY} -q {2} -f /tmp/data -w {CURRENT_DIR}/data/sequential_zoom_out"
+            },
 
         ]
 
