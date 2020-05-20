@@ -46,6 +46,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/sequential_zoom_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/genome_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/power_generator.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generators/skyserver_generator.cpp
             )
 
 set(FILTERBENCHSOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
@@ -97,4 +98,6 @@ target_link_libraries(genome_generator MDAI_lib)
 add_executable(power_generator ${CMAKE_SOURCE_DIR}/src/data/power_generator_main.cpp)
 target_link_libraries(power_generator MDAI_lib)
 
+add_executable(skyserver_generator ${CMAKE_SOURCE_DIR}/src/data/skyserver_generator_main.cpp)
+target_link_libraries(skyserver_generator MDAI_lib)
 add_subdirectory("test")
