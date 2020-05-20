@@ -27,10 +27,10 @@ GENOMES_FILE = "/scratch/matheus/data/mdrq-analysis/1000genomes_import/genes.txt
 POWER_FILE = "/scratch/matheus/data/mdrq-analysis/power_import/DEBS2012-ChallengeData.txt"
 
 # General experiment info
-NUMBER_OF_ROWS = f'{10e3}'
-NUMBER_OF_QUERIES = '300'
+NUMBER_OF_ROWS = f'{10e7}'
+NUMBER_OF_QUERIES = '3000'
 
-REPETITIONS = '3'
+REPETITIONS = '2'
 
 EXPERIMENTS = []
 
@@ -170,7 +170,7 @@ def main():
     benchmark = Benchmark(EXPERIMENTS, RUNS, build_dir, bin_dir)
     if args.generate:
         benchmark.generate()
-    #benchmark.run()
+    benchmark.run()
     # benchmark.clean(build_dir)
 
 
