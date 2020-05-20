@@ -22,13 +22,13 @@ sys.path.append(os.getcwd() + '/..')
 from benchmark import Benchmark
 
 
-FEATURES_FILE = "/scratch/matheus/mdrq-analysis/1000genomes_import/chr22_feature.vectors"
-GENOMES_FILE = "/scratch/matheus/mdrq-analysis/1000genomes_import/genes.txt"
-POWER_FILE = ""
+FEATURES_FILE = "/scratch/matheus/data/mdrq-analysis/1000genomes_import/chr22_feature.vectors"
+GENOMES_FILE = "/scratch/matheus/data/mdrq-analysis/1000genomes_import/genes.txt"
+POWER_FILE = "/scratch/matheus/data/mdrq-analysis/power_import/DEBS2012-ChallengeData.txt"
 
 # General experiment info
-NUMBER_OF_ROWS = f'{10e8}'
-NUMBER_OF_QUERIES = '3000'
+NUMBER_OF_ROWS = f'{10e3}'
+NUMBER_OF_QUERIES = '300'
 
 REPETITIONS = '3'
 
@@ -78,8 +78,8 @@ command = [
         "-f", power_exp['data'],
         "-w", power_exp['workload']
         ]
-exp['command'] = ' '.join(command)
-EXPERIMENTS.append(exp)
+power_exp['command'] = ' '.join(command)
+EXPERIMENTS.append(power_exp)
 
 # Setup for SkyServer
 # TODO: add skyserver here
@@ -167,14 +167,10 @@ def main():
 
     args = parser.parse_args()
 
-    # fix command to generate experiments
-    for exp in EXPERIMENTS:
-            exp["command"] = ' '.join(command)
-
     benchmark = Benchmark(EXPERIMENTS, RUNS, build_dir, bin_dir)
     if args.generate:
         benchmark.generate()
-    benchmark.run()
+    #benchmark.run()
     # benchmark.clean(build_dir)
 
 
