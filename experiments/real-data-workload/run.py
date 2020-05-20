@@ -24,25 +24,65 @@ from benchmark import Benchmark
 
 FEATURES_FILE = "/scratch/matheus/mdrq-analysis/1000genomes_import/chr22_feature.vectors"
 GENOMES_FILE = "/scratch/matheus/mdrq-analysis/1000genomes_import/genes.txt"
+POWER_FILE = ""
 
 # General experiment info
-NUMBER_OF_ROWS = f'{10e7}'
-NUMBER_OF_QUERIES = '10'
+NUMBER_OF_ROWS = f'{10e8}'
+NUMBER_OF_QUERIES = '3000'
 
 REPETITIONS = '3'
 
 EXPERIMENTS = []
+
+# Setup for Genomics
 for i in [0, 1, 2, 3, 4, 5, 6, 7, 8]:
-    EXPERIMENTS.append(
-            {
-                "name": f"{i}query",
-                "data": f"{CURRENT_DIR}/data/{i}data",
-                "workload": f"{CURRENT_DIR}/data/{i}queries",
-                "query_type": f'{i}',
-                "number_of_rows": NUMBER_OF_ROWS, 'number_of_queries': NUMBER_OF_QUERIES,
-                "repetitions": REPETITIONS
-                }
-            )
+    exp = {
+        "name": f"genomics_query_{i}",
+        "data": f"{CURRENT_DIR}/data/genomics_query_{i}data",
+        "workload": f"{CURRENT_DIR}/data/genomics_query_{i}queries",
+        "query_type": f'{i}',
+        "number_of_rows": NUMBER_OF_ROWS,
+        'number_of_queries': NUMBER_OF_QUERIES,
+        "repetitions": REPETITIONS,
+        }
+    exp['exp_id'] = f"exp['name']-{exp['number_of_rows']}-{exp['number_of_queries']}-0.0"
+    command = [
+        "./genome_generator",
+        "-r", exp['number_of_rows'],
+        "-q", exp['number_of_queries'],
+        "-t", exp['query_type'],
+        "-e", FEATURES_FILE,
+        "-g", GENOMES_FILE,
+        "-f", exp['data'],
+        "-w", exp['workload']
+        ]
+    exp['command'] = ' '.join(command)
+    EXPERIMENTS.append(exp)
+
+# Setup for Power
+power_exp = {
+    "name": f"power",
+    "data": f"{CURRENT_DIR}/data/power_data",
+    "workload": f"{CURRENT_DIR}/data/power_queries",
+    "number_of_rows": NUMBER_OF_ROWS,
+    'number_of_queries': NUMBER_OF_QUERIES,
+    "repetitions": REPETITIONS,
+}
+
+power_exp['exp_id'] = f"power_exp['name']-{power_exp['number_of_rows']}-{power_exp['number_of_queries']}-0.0"
+command = [
+        "./power_generator",
+        "-r", power_exp['number_of_rows'],
+        "-q", power_exp['number_of_queries'],
+        "-p", POWER_FILE,
+        "-f", power_exp['data'],
+        "-w", power_exp['workload']
+        ]
+exp['command'] = ' '.join(command)
+EXPERIMENTS.append(exp)
+
+# Setup for SkyServer
+# TODO: add skyserver here
 
 RUNS = [
     {
@@ -78,42 +118,37 @@ RUNS = [
         "partitions_size": "1024",
         "name": "median_kd_tree",
         "result": f"{CURRENT_DIR}/results/median_kd_tree-{0.0}-{1024}"
-    },
+        },
     {
         "algorithm_id": "6",
         "partitions_size": "1024",
         "name": "quasii",
         "result": f"{CURRENT_DIR}/results/quasii-{0.0}-{1024}"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index",
-        "delta": "0.2",
-        "result": f"{CURRENT_DIR}/results/progressive_index-{0.2}-{1024}"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index",
-        "delta": "0.3",
-        "result": f"{CURRENT_DIR}/results/progressive_index-{0.3}-{1024}"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index",
-        "delta": "0.5",
-        "result": f"{CURRENT_DIR}/results/progressive_index-{0.5}-{1024}"
-    },
-    {
-        "algorithm_id": "7",
-        "partitions_size": "1024",
-        "name": "progressive_index",
-        "delta": "0.8",
-        "result": f"{CURRENT_DIR}/results/progressive_index-{0.8}-{1024}"
-    }
-]
+        }
+    ]
+
+progressive_index_deltas = [0.1, 0.2, 0.5]
+
+for delta in progressive_index_deltas:
+    RUNS.append(
+            {
+                "algorithm_id": "7",
+                "partitions_size": "1024",
+                "name": "progressive_index",
+                "delta": f"{delta}",
+                "result": f"{CURRENT_DIR}/results/progressive_index-{delta}-{1024}"
+                }
+            )
+    RUNS.append(
+            {
+                "algorithm_id": "7",
+                "partitions_size": "1024",
+                "name": "progressive_index_adaptive",
+                "delta": f"{delta}",
+                "extra_flags": "-t",
+                "result": f"{CURRENT_DIR}/results/progressive_index_adaptive-{delta}-{1024}"
+                }
+            )
 
 
 def main():
@@ -134,17 +169,7 @@ def main():
 
     # fix command to generate experiments
     for exp in EXPERIMENTS:
-        command = [
-            "./genome_generator",
-            "-r", exp['number_of_rows'],
-            "-q", exp['number_of_queries'],
-            "-t", exp['query_type'],
-            "-e", FEATURES_FILE,
-            "-g", GENOMES_FILE,
-            "-f", exp['data'],
-            "-w", exp['workload']
-            ]
-        exp["command"] = ' '.join(command)
+            exp["command"] = ' '.join(command)
 
     benchmark = Benchmark(EXPERIMENTS, RUNS, build_dir, bin_dir)
     if args.generate:
