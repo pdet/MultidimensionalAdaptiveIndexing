@@ -27,7 +27,7 @@ GENOMES_FILE = "/scratch/matheus/data/mdrq-analysis/1000genomes_import/genes.txt
 POWER_FILE = "/scratch/matheus/data/mdrq-analysis/power_import/DEBS2012-ChallengeData.txt"
 
 # General experiment info
-NUMBER_OF_ROWS = f'{10e7}'
+NUMBER_OF_ROWS = f'{10**8}'
 NUMBER_OF_QUERIES = '3000'
 
 REPETITIONS = '2'
@@ -88,12 +88,12 @@ RUNS = [
     {
         "algorithm_id": "1",
         "name": "full_scan",
-        "result": f"{CURRENT_DIR}/results/full_scan-{0.0}-{0}"
+        "result": f"{CURRENT_DIR}/results/full_scan_bv-{0.0}-{0}"
     },
     {
         "algorithm_id": "111",
         "name": "full_scan_cl",
-        "result": f"{CURRENT_DIR}/results/full_scan-{0.0}-{0}"
+        "result": f"{CURRENT_DIR}/results/full_scan_cl-{0.0}-{0}"
     },
     {
         "algorithm_id": "2",
