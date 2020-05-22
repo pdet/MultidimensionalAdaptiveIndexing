@@ -31,18 +31,22 @@ void KDTree::search_recursion(
         switch (current->compare(query)) {
             case -1:
                 //! Key < Query
+                partition_borders.at(current->column).first = current->key;
                 partitions.push_back(make_pair(current->current_start, current->end + 1));
-                partition_skip.push_back(false);
+                partition_skip.push_back(query.covers(partition_borders));
                 break;
             case +1:
                 //! Key >= Query
+                partition_borders.at(current->column).second = current->key;
                 partitions.push_back(make_pair(current->start, current->current_end + 1));
-                partition_skip.push_back(false);
+                partition_skip.push_back(query.covers(partition_borders));
                 break;
             case 0:
                 //! Key doesn't really help
+                partition_borders.at(current->column).first = current->key;
+                partition_borders.at(current->column).second = current->key;
                 partitions.push_back(make_pair(current->start, current->end + 1));
-                partition_skip.push_back(false);
+                partition_skip.push_back(query.covers(partition_borders));
                 break;
             default:
                 assert(false);
