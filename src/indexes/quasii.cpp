@@ -26,7 +26,7 @@ void Quasii::initialize(Table *table_to_copy){
 
     // Initialize with one Slice that covers all the data
     first_level_slices.push_back(
-        Slice(0, 0, table->row_count())
+        createDefaultChild(0, 0, table->row_count())
     );
 
     // Calculate the thresholds
@@ -264,7 +264,7 @@ void Quasii::build(std::vector<Slice> &slices, Query &query){
                 else{
                     if(r_s.children.size() == 0){
                         r_s.children.push_back(
-                            Slice(r_s.column + 1, r_s.offset_begin,r_s.offset_end)
+                            createDefaultChild(r_s.column + 1, r_s.offset_begin,r_s.offset_end)
                         );
                     }
                     build(r_s.children, query);
@@ -347,39 +347,39 @@ std::vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
 // Choose the middle one based on the left and right values of the slice.
 // Keep cracking the new slices until the threshold is achieved.
 // Crack the child of the new slices also.
-std::vector<Slice> Quasii::sliceArtificial(Slice &slice){
-    std::vector<Slice> result;
-    stack<Slice> slices_to_be_refined;
-    auto threshold = dimensions_threshold[slice.column];
 
-    if(table->col_count() == 1){
-        if(slice.size() > threshold)
-            return sliceTwoWay(slice, (slice.right_value + slice.left_value)/2);
-        else
-            return result;
+
+void Quasii::sliceArtificialRecursion(Slice& slice, std::vector<Slice>& result){
+    auto threshold = dimensions_threshold[slice.column];
+    if(slice.size() < threshold){
+        result.push_back(std::move(slice));
+        return;
     }
 
-    slices_to_be_refined.push(std::move(slice));
-
-    do{
-        Slice& slice_ = slices_to_be_refined.top();
-        slices_to_be_refined.pop();
-
-        if(slice_.size() < threshold)
-            result.push_back(std::move(slice_));
-        else{
-            std::vector<Slice> slices_refined = sliceTwoWay(
-                slice_, (slice_.right_value + slice_.left_value)/2.0
+    std::vector<Slice> slices_refined = sliceTwoWay(
+            slice, (slice.right_value + slice.left_value)/2.0
             );
-            for(auto &s : slices_refined){
-                if(s.equal(slice_))
-                    result.push_back(std::move(s));
-                else
-                    slices_to_be_refined.push(std::move(s));
-            }
-        }
 
-    } while(!slices_to_be_refined.empty());
+    // The slicing had no effect, so stop slicing
+    if(slices_refined.size() < 2){
+        result.push_back(std::move(slices_refined[0]));
+        return;
+    }
+    
+    for(auto& s : slices_refined){
+        sliceArtificialRecursion(s, result);
+    }
+}
+std::vector<Slice> Quasii::sliceArtificial(Slice &slice){
+    std::vector<Slice> result;
+    auto threshold = dimensions_threshold[slice.column];
+
+    if(slice.size() < threshold){
+        result.push_back(std::move(slice));
+        return result;
+    }
+
+    sliceArtificialRecursion(slice, result);
 
     return result;
 }
