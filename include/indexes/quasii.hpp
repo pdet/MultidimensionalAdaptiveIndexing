@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <cstdint>
+#include <limits>
 
 class Quasii : public AbstractIndex
 {
