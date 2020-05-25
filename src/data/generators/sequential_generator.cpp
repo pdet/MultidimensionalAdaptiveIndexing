@@ -31,17 +31,24 @@ void SequentialGenerator::generate(std::string table_path, std::string query_pat
     table->save_file(table_path);
 
     // Generator Queries
+    // |        .---.
+    // |        |   |
+    // |    +---+---+
+    // |    |   |
+    // |----+---+
+    // |    |
+    // |--------------
+    
     float per_column_selectivity = std::pow(selectivity, 1.0/n_dimensions);
 
-    auto center = n_rows * per_column_selectivity/2;
+    // Gives me the square's side size
+    float side = n_rows * per_column_selectivity;
+    float half_side = side/2.0;
 
-    float half_side = (n_rows * per_column_selectivity)/2.0;
+    // First square goes as close as possible to the origin
+    auto center = half_side;
 
-    for(
-        size_t i = 0;
-        i < n_queries && center < n_rows - (n_rows * per_column_selectivity);
-        ++i, center += n_rows * per_column_selectivity
-    ){
+    for(size_t i = 0; i < n_queries && center <= n_rows - side; ++i, center += side){
         std::vector<float> lows(n_dimensions);
         std::vector<float> highs(n_dimensions);
         std::vector<size_t> cols(n_dimensions);
