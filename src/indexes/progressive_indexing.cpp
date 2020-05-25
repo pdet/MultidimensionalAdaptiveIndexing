@@ -233,6 +233,11 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     }
     end_time = measurements->time();
     scan_time += end_time - start_time;
+    //! Here we calculate how much indexing we can do here
+    if (interactivity_threshold > 0){
+      remaining_swaps = get_costmodel_delta_quicksort(query);
+    }
+
     //! Now we start filling our candidate list that points to the original table
     //! It has elements from when we start swapping in this partition till the end of the table
     //! Here we use a bitvector instead of a candidate list
@@ -250,8 +255,6 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     size_t bit_idx = 0;
     CandidateList mid;
     BitVector goDown = BitVector(next_index-current_position);
-    //TODO: Maybe change this bitvector for CL as well?
-
     for (size_t i = current_position; i < next_index; i++) {
         int matching = originalColumn[i] >= low && originalColumn[i] <= high;
         mid.maybe_push_back(i,matching);
@@ -372,6 +375,10 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     t->append(row);
     end_time = measurements->time();
     scan_time += end_time - start_time;
+    //! Here we react in case we can still perform indexing
+    if (interactivity_threshold > 0){
+      remaining_swaps = get_costmodel_delta_quicksort(query);
+    }
     return t;
 }
 
@@ -381,9 +388,6 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     scan_time = 0;
     adaptation_time = 0;
     index_search_time = 0;
-    if(interactivity_threshold > 0){
-        delta = get_costmodel_delta_quicksort(query);
-    }
     //! Creation Phase
     //! If the node has no children we are stil in the creation phase
     assert(tree->root);
@@ -479,17 +483,18 @@ ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
 
 ProgressiveIndex::~ProgressiveIndex() = default;
 
-double ProgressiveIndex::get_costmodel_delta_quicksort(Query &query) {
+double ProgressiveIndex::get_costmodel_delta_quicksort(double time, Query &query) {
     //! Creation Phase
-    return 0.2;
-//    if (tree->root->noChildren()) {
-//        auto root = tree->root.get();
-//        size_t dim = 0;
-//        size_t table_size = originalTable->row_count();
-//        auto low = query.predicates[dim].low;
-//        auto high = query.predicates[dim].high;
-//        auto indexColumn = table->columns[dim]->data;
-//        auto originalColumn = originalTable->columns[dim]->data;
+//    return 0.2;
+    if (tree->root->noChildren()) {
+      auto root = tree->root.get();
+      size_t dim = 0;
+      size_t table_size = originalTable->row_count();
+      auto low = query.predicates[dim].low;
+      auto high = query.predicates[dim].high;
+      auto indexColumn = table->columns[dim]->data;
+      auto originalColumn = originalTable->columns[dim]->data;
+    }
 ////        //! How much we spend on up
 ////        if (low <= root->key) {
 ////            size_t
