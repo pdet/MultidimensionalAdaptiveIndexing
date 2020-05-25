@@ -105,12 +105,12 @@ RUNS = [
     {
         "algorithm_id": "1",
         "name": "full_scan",
-        "result": f"{CURRENT_DIR}/results/full_scan-{0.0}-{0}"
+        "result": f"{CURRENT_DIR}/results/full_scan_bv-{0.0}-{0}"
     },
     {
         "algorithm_id": "111",
         "name": "full_scan_cl",
-        "result": f"{CURRENT_DIR}/results/full_scan-{0.0}-{0}"
+        "result": f"{CURRENT_DIR}/results/full_scan_cl-{0.0}-{0}"
     },
     {
         "algorithm_id": "2",
@@ -144,7 +144,7 @@ RUNS = [
         }
     ]
 
-progressive_index_deltas = [0.1, 0.2, 0.5]
+progressive_index_deltas = [0.1]
 
 for delta in progressive_index_deltas:
     RUNS.append(
