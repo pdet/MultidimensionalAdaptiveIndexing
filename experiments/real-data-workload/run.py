@@ -27,7 +27,7 @@ GENOMES_FILE = "/scratch/matheus/data/mdrq-analysis/1000genomes_import/genes.txt
 POWER_FILE = "/scratch/matheus/data/mdrq-analysis/power_import/DEBS2012-ChallengeData.txt"
 
 # General experiment info
-NUMBER_OF_ROWS = f'{10**8}'
+NUMBER_OF_ROWS = f'{10**7}'
 NUMBER_OF_QUERIES = '3000'
 
 REPETITIONS = '2'
@@ -45,7 +45,7 @@ for i in [0, 1, 2, 3, 4, 5, 6, 7, 8]:
         'number_of_queries': NUMBER_OF_QUERIES,
         "repetitions": REPETITIONS,
         }
-    exp['exp_id'] = f"exp['name']-{exp['number_of_rows']}-{exp['number_of_queries']}-0.0"
+    exp['exp_id'] = f"{exp['name']}-{exp['number_of_rows']}-{exp['number_of_queries']}-0.0"
     command = [
         "./genome_generator",
         "-r", exp['number_of_rows'],
@@ -69,7 +69,7 @@ power_exp = {
     "repetitions": REPETITIONS,
 }
 
-power_exp['exp_id'] = f"power_exp['name']-{power_exp['number_of_rows']}-{power_exp['number_of_queries']}-0.0"
+power_exp['exp_id'] = f"{power_exp['name']}-{power_exp['number_of_rows']}-{power_exp['number_of_queries']}-0.0"
 command = [
         "./power_generator",
         "-r", power_exp['number_of_rows'],

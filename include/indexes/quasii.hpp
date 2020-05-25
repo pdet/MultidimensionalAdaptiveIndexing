@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <cstdint>
+#include <limits>
 
 class Quasii : public AbstractIndex
 {
@@ -57,6 +58,8 @@ private:
 
     std::vector<Slice> sliceArtificial(Slice &slice);
 
+    void sliceArtificialRecursion(Slice& slice, std::vector<Slice>& result);
+
     std::vector<Slice> sliceTwoWay(Slice &slice, float key);
 
     std::vector<Slice> sliceThreeWay(Slice &slice, float low, float high);
@@ -64,5 +67,16 @@ private:
     std::vector<Slice> refine(Slice &slice, Predicate &predicate);
 
     bool sanity_check_recursion(Slice& slice, std::vector<std::pair<float, float>> &borders);
+
+    inline Slice createDefaultChild(size_t col, size_t offset_begin, size_t offset_end){
+        float min = std::numeric_limits<float>::max();
+        float max = numeric_limits<float>::lowest();
+        for(size_t i = offset_begin; i < offset_end; ++i){
+            auto v = table->columns[col]->data[i];
+            if(v < min) min = v;
+            if(v > max) max = v;
+        }
+        return Slice(col, offset_begin, offset_end, min, max);
+    }
 };
 #endif // QUASII_H

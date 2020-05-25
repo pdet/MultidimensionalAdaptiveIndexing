@@ -23,9 +23,9 @@ from benchmark import Benchmark
 
 
 # General experiment info
-NUMBER_OF_QUERIES = '5000'
+NUMBER_OF_QUERIES = '3000'
 REPETITIONS = '1'
-ROWS = [10e8]
+ROWS = [10**7]
 SELECTIVITIES = [0.1]
 COLS = [2, 4, 8]
 #NUMBER_OF_QUERIES = '5'
@@ -86,14 +86,14 @@ for row in ROWS:
                 EXPERIMENTS.append(
                         {
                             "name": default['name'],
-                            "exp_id": f"{default['name']}-{row}-{col}-{sel}",
+                            "exp_id": f"{default['name']}-{row}-{NUMBER_OF_QUERIES}-{col}-{sel}",
                             "number_of_rows": str(row),
                             "number_of_columns": str(col),
                             "selectivity": str(sel),
                             "repetitions": str(REPETITIONS),
                             "number_of_queries": str(NUMBER_OF_QUERIES),
-                            "data": f"{CURRENT_DIR}/data/{default['name']}-{row}-{col}-{sel}-d",
-                            "workload": f"{CURRENT_DIR}/data/{default['name']}-{row}-{col}-{sel}-w",
+                            "data": f"/scratch/matheus/data/{default['name']}-{row}-{col}-{sel}-d",
+                            "workload": f"/scratch/matheus/data/{default['name']}-{row}-{col}-{sel}-w",
                             "command": default['command']
                             }
                         )
@@ -105,12 +105,12 @@ RUNS = [
     {
         "algorithm_id": "1",
         "name": "full_scan",
-        "result": f"{CURRENT_DIR}/results/full_scan-{0.0}-{0}"
+        "result": f"{CURRENT_DIR}/results/full_scan_bv-{0.0}-{0}"
     },
     {
         "algorithm_id": "111",
         "name": "full_scan_cl",
-        "result": f"{CURRENT_DIR}/results/full_scan-{0.0}-{0}"
+        "result": f"{CURRENT_DIR}/results/full_scan_cl-{0.0}-{0}"
     },
     {
         "algorithm_id": "2",
@@ -144,7 +144,7 @@ RUNS = [
         }
     ]
 
-progressive_index_deltas = [0.1, 0.2, 0.5]
+progressive_index_deltas = [0.1]
 
 for delta in progressive_index_deltas:
     RUNS.append(
