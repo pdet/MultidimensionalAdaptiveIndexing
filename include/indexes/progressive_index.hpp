@@ -48,7 +48,9 @@ class ProgressiveIndex: public AbstractIndex {
     double RANDOM_ACCESS_PAGE_MS = 0;
     //! Cost of swapping one page
     double SWAP_COST_PAGE_MS = 0;
-
+    //! How many elements per page
+    size_t PAGESIZE = 4096;
+    size_t ELEMENTS_PER_PAGE = PAGESIZE/sizeof(float);
     ProgressiveIndex() :  tree(nullptr), current_position(0){};
 
     void initializeRoot(float pivot, size_t tableSize) {
@@ -56,7 +58,8 @@ class ProgressiveIndex: public AbstractIndex {
         tree = std::make_unique<KDTree>(tableSize);
         tree->root = make_unique<KDNode>(0,pivot,0,tableSize-1);
     }
-    double get_costmodel_delta_quicksort(Query &query);
+    double get_delta_react();
+    double get_delta(Query &query);
 
 private:
     Table *originalTable = nullptr;
