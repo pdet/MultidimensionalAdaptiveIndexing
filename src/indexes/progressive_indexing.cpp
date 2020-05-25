@@ -56,9 +56,6 @@ void ProgressiveIndex::workload_agnostic_refine(Query &query, ssize_t &remaining
         //! Did we finish pivoting this node?
         if (node->current_start >= node->current_end) {
             node->position = column[node->current_start] >= node->key ? node->current_start : node->current_start + 1;
-//            assert(column[node->position - 1] < node->key);
-//            assert(column[node->position] >= node->key);
-//            assert(column[node->position + 1] >= node->key);
             node_being_refined++;
             size_t next_dimension = node->column == num_dimensions - 1 ? 0 : node->column + 1;
             //! We need to create children
@@ -232,7 +229,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     scan_time += end_time - start_time;
     //! Here we calculate how much indexing we can do here
     if (interactivity_threshold > 0) {
-        remaining_swaps = get_delta(query);
+        remaining_swaps = table->row_count()*get_delta(query);
     }
 
     //! Now we start filling our candidate list that points to the original table
@@ -373,7 +370,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     scan_time += end_time - start_time;
     //! Here we react in case we can still perform indexing
     if (interactivity_threshold > 0) {
-        remaining_swaps = get_delta_react();
+        remaining_swaps = table->row_count()*get_delta_react();
         start_time = measurements->time();
         initial_low = root->current_start;
         next_index = min(current_position + remaining_swaps, table_size);
@@ -423,12 +420,35 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     //! Creation Phase
     //! If the node has no children we are stil in the creation phase
     assert(tree->root);
+    //! If we are using the cost model our interactivity threshold will be the cost of the first query with delta.
+    if (tree->root->start == tree->root->current_start && tree->root->end == tree->root->current_start && interactivity_threshold >0){
+        auto result = progressive_quicksort_create(query, remaining_swaps);
+        interactivity_threshold = scan_time+index_search_time+adaptation_time;
+        measurements->append(
+                "scan_time",
+                std::to_string(scan_time)
+        );
+        measurements->append(
+                "index_search_time",
+                std::to_string(index_search_time)
+        );
+        measurements->append(
+                "adaptation_time",
+                std::to_string(adaptation_time)
+        );
+        return result;
+    }
     if (tree->root->noChildren()) {
         //! Creation Phase
         auto result = progressive_quicksort_create(query, remaining_swaps);
         //! In the last creation phase iteration we might have some swaps left
         if (remaining_swaps > 0) {
             progressive_quicksort_refine(query, remaining_swaps);
+            if (remaining_swaps == 0 && interactivity_threshold > 0) {
+                remaining_swaps = table->row_count()*get_delta_react();
+            }
+        //! Gotta do some refinements, we have not converged yet.
+        workload_agnostic_refine(query, remaining_swaps);
         }
         measurements->append(
                 "scan_time",
@@ -444,8 +464,11 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
         );
         return result;
     } else if (!converged) {
+        if (remaining_swaps == 0 && interactivity_threshold > 0) {
+            remaining_swaps = table->row_count()*get_delta(query);
+        }
         //! Gotta do some refinements, we have not converged yet.
-        progressive_quicksort_refine(query, remaining_swaps);
+        workload_agnostic_refine(query, remaining_swaps);
     }
     //! Index Lookup + Partition Scan
     start_time = measurements->time();
@@ -461,6 +484,13 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     t->append(row);
     end_time = measurements->time();
     scan_time += end_time - start_time;
+    if (!converged) {
+        if ( interactivity_threshold > 0) {
+            remaining_swaps = table->row_count()*get_delta_react();
+        }
+        //! Gotta do some refinements, we have not converged yet.
+        progressive_quicksort_refine(query, remaining_swaps);
+    }
     measurements->append(
             "scan_time",
             std::to_string(scan_time)
@@ -516,24 +546,25 @@ ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
 ProgressiveIndex::~ProgressiveIndex() = default;
 
 double ProgressiveIndex::get_delta(Query &query) {
-    double page_count = (table->row_count()  / ELEMENTS_PER_PAGE) + (table->row_count()  % ((int)ELEMENTS_PER_PAGE) != 0 ? 1 : 0);
+    double page_count =
+            (table->row_count() / ELEMENTS_PER_PAGE) + (table->row_count() % ((int) ELEMENTS_PER_PAGE) != 0 ? 1 : 0);
+    size_t ITERATIONS = 20;
+    double estimated_delta = 0.5;
+    double offset = estimated_delta / 2;
+    double estimated_time;
+    //! How much time we still have
+    double time = interactivity_threshold - (scan_time + adaptation_time + index_search_time);
+    double scan_speed =
+            READ_ONE_PAGE_SEQ_MS * page_count * table->col_count() + RANDOM_ACCESS_PAGE_MS * table->col_count();
+    double pivot_speed = (READ_ONE_PAGE_SEQ_MS + WRITE_ONE_PAGE_SEQ_MS) * page_count * table->col_count() +
+                         RANDOM_ACCESS_PAGE_MS * table->col_count();
     //! Creation Phase
     if (tree->root->noChildren()) {
-        size_t ITERATIONS = 20;
-        double estimated_delta = 0.5;
-        double offset = estimated_delta / 2;
-        double estimated_time;
-        //! How much time we still have
-        double time = interactivity_threshold - (scan_time + adaptation_time + index_search_time);
-//        double page_count =
-//                (table->row_count() - tree->root->current_start - (tree->root->end - tree->root->current_end)) /
-//                ELEMENTS_PER_PAGE;
-        double scan_speed =
-                READ_ONE_PAGE_SEQ_MS * page_count * table->col_count() + RANDOM_ACCESS_PAGE_MS * table->col_count();
-        double pivot_speed = (READ_ONE_PAGE_SEQ_MS + WRITE_ONE_PAGE_SEQ_MS) * page_count * table->col_count() +
-                             RANDOM_ACCESS_PAGE_MS * table->col_count();
+        //! figure out unindexed fraction
+        double rho = (double) (table->row_count() - tree->root->current_start -
+                               (tree->root->end - tree->root->current_end)) / (double) table->row_count();
         for (size_t j = 0; j < ITERATIONS; j++) {
-            estimated_time = ((1 - estimated_delta) * scan_speed + estimated_delta * pivot_speed) / 1000.0;
+            estimated_time = ((rho - estimated_delta) * scan_speed + estimated_delta * pivot_speed) / 1000.0;
             if (estimated_time > time) {
                 estimated_delta -= offset;
             } else {
@@ -545,30 +576,35 @@ double ProgressiveIndex::get_delta(Query &query) {
     } else {
         size_t height = tree->get_max_height();
         double lookup_speed = height * RANDOM_ACCESS_PAGE_MS;
-
-        double refine_speed = 2 * page_count;
-
+        double refine_speed = WRITE_ONE_PAGE_SEQ_MS * page_count * table->col_count() +
+                              RANDOM_ACCESS_PAGE_MS * table->col_count();
         //! figure out alpha
-        auto offsets = find_offsets(low, high);
+        auto offsets = tree->search(query);
+        double size = 0;
+        for (auto &partition: offsets.first) {
+            size += partition.second - partition.first;
+        }
+        double alpha = (size) / (double) table->row_count();
 
-        double alpha = (double)(offsets->offsetRight - offsets->offsetLeft) / (double)originalColumn.size();
-        assert(alpha <= 1);
-        return (lookup_speed + alpha * scan_speed + estimatedDelta * refine_speed) / 1000.0;
+        for (size_t j = 0; j < ITERATIONS; j++) {
+            estimated_time = (lookup_speed + alpha * scan_speed + estimated_delta * refine_speed) / 1000.0;
+            if (estimated_time > time) {
+                estimated_delta -= offset;
+            } else {
+                estimated_delta += offset;
+            }
+            offset /= 2;
+        }
+        return estimated_delta;
     }
 }
 
 double ProgressiveIndex::get_delta_react() {
-    //! Creation Phase
-    if (tree->root->noChildren()) {
-        double pivot_speed = (READ_ONE_PAGE_SEQ_MS + WRITE_ONE_PAGE_SEQ_MS) * table->col_count() +
-                             RANDOM_ACCESS_PAGE_MS * table->col_count();
-        double time = interactivity_threshold - (scan_time + adaptation_time + index_search_time);
-        double page_num = time / pivot_speed;
-        return table->row_count() / page_num * 100;
-    } else {
-        return 0.02;
-    }
-
+    double pivot_speed = (READ_ONE_PAGE_SEQ_MS + WRITE_ONE_PAGE_SEQ_MS) * table->col_count() +
+                         RANDOM_ACCESS_PAGE_MS * table->col_count();
+    double time = interactivity_threshold - (scan_time + adaptation_time + index_search_time);
+    double page_num = time / pivot_speed;
+    return table->row_count() / page_num * 100;
 }
 
 //! Here we just malloc the table and initialize the root
