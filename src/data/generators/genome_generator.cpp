@@ -33,6 +33,7 @@ GenomeGenerator::GenomeGenerator(
 }
 
 void GenomeGenerator::generate(std::string table_path, std::string workload_path){
+    srand (20);
     size_t dimensions = 19;
     std::vector< std::vector<float> > data_points(n_of_rows, std::vector<float>(dimensions));
 
@@ -57,11 +58,6 @@ void GenomeGenerator::generate(std::string table_path, std::string workload_path
 
     table->save_file(table_path);
 
-    // random insertion order
-    std::random_device rd;
-    std::mt19937 g(rd());
-    std::shuffle(data_points.begin(), data_points.end(), g);
-
     // Generate queries
     std::ifstream genes(GENES_FILE);
 
@@ -75,7 +71,7 @@ void GenomeGenerator::generate(std::string table_path, std::string workload_path
         while(std::getline(iss, token, '\t'))
             line_tokens.push_back(token);
         // Query 2 (chromosome and position)
-        lb_query[5] = (float) 21;
+        lb_query[5] = (float) 22;
         ub_query[5] = (float) 22;
         lb_query[6] = (float) std::stof(line_tokens[4]) - 100000.0;
         ub_query[6] = (float) std::stof(line_tokens[5]) + 200000.0;
