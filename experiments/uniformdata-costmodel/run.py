@@ -70,8 +70,8 @@ RUNS = [
             "partitions_size": PARTITION_SIZE,
             "exp_id": f"{default['name']}-{row}-{col}-{sel}",
             "name": "progressive_index",
+            "extra_flags": "-c",
             "delta": str(delta),
-            "interactivity_threshold":"1",
             "result": f"{CURRENT_DIR}/results/progressive_indexcm-{delta}-{PARTITION_SIZE}"
             },
              {
@@ -90,7 +90,7 @@ def main():
     build_dir = "../../build/"
     bin_dir = "../../bin"
 
-    parser = argparse.ArgumentParser(description='Run uniforn benchmark.')
+    parser = argparse.ArgumentParser(description='Run uniform benchmark.')
     parser.add_argument(
         '--generate',
         dest='generate',
@@ -103,7 +103,7 @@ def main():
     for exp in EXPERIMENTS:
         exp['command'] += f" -r {exp['number_of_rows']} -d {exp['number_of_columns']}"
         exp['command'] += f" -s {exp['selectivity']} -q {exp['number_of_queries']}"
-        exp['command'] += f" -f {exp['data']} -w {exp['workload']}"
+        exp['command'] += f" -f {exp['data']} -w {exp['workload']} "
 
     benchmark = Benchmark(EXPERIMENTS, RUNS, build_dir, bin_dir)
     if args.generate:

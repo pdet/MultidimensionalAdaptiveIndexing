@@ -228,7 +228,8 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     end_time = measurements->time();
     scan_time += end_time - start_time;
     //! Here we calculate how much indexing we can do here
-    if (interactivity_threshold > 0) {
+    if (interactivity_threshold > 0 && (tree->root->start != tree->root->current_start
+    || tree->root->end != tree->root->current_end)) {
         remaining_swaps = table->row_count()*get_delta(query);
     }
 
@@ -369,7 +370,9 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     end_time = measurements->time();
     scan_time += end_time - start_time;
     //! Here we react in case we can still perform indexing
-    if (interactivity_threshold > 0) {
+    if (interactivity_threshold > 0 && (root->start != initial_low
+    || root->end != initial_high) && root->noChildren() ) {
+        assert (root->current_end >=  root->current_start);
         remaining_swaps = table->row_count()*get_delta_react();
         start_time = measurements->time();
         initial_low = root->current_start;
@@ -407,6 +410,29 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
         }
         end_time = measurements->time();
         adaptation_time += end_time - start_time;
+        current_position = next_index;
+        if (next_index == table_size) {
+        indexColumn = table->columns[0]->data;
+        root->position = indexColumn[root->current_start] >= root->key ? root->current_start : root->current_start + 1;
+        assert(indexColumn[root->position - 1] < root->key);
+        assert(indexColumn[root->position] >= root->key);
+        assert(indexColumn[root->position + 1] >= root->key);
+        dim = 1;
+        //! construct the left and right side of the root node on next dimension
+        float pivot = find_avg(table.get(), dim, 0, root->current_start);
+        size_t current_start = 0;
+        size_t current_end = root->current_start - 1;
+        root->position = root->current_start;
+        root->setLeft(make_unique<KDNode>(dim, pivot, current_start, current_end));
+
+        //! Right node
+        pivot = find_avg(table.get(), dim, current_start + 1, table_size - 1);
+        current_start = root->current_start;
+        current_end = table_size - 1;
+        root->setRight(make_unique<KDNode>(dim, pivot, current_start, current_end));
+        refinement_nodes->push_back(root->left_child.get());
+        refinement_nodes->push_back(root->right_child.get());
+    }
     }
     return t;
 }
@@ -421,7 +447,7 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     //! If the node has no children we are stil in the creation phase
     assert(tree->root);
     //! If we are using the cost model our interactivity threshold will be the cost of the first query with delta.
-    if (tree->root->start == tree->root->current_start && tree->root->end == tree->root->current_start && interactivity_threshold >0){
+    if (tree->root->start == tree->root->current_start && tree->root->end == tree->root->current_end && interactivity_threshold >0){
         auto result = progressive_quicksort_create(query, remaining_swaps);
         interactivity_threshold = scan_time+index_search_time+adaptation_time;
         measurements->append(
@@ -600,11 +626,15 @@ double ProgressiveIndex::get_delta(Query &query) {
 }
 
 double ProgressiveIndex::get_delta_react() {
-    double pivot_speed = (READ_ONE_PAGE_SEQ_MS + WRITE_ONE_PAGE_SEQ_MS) * table->col_count() +
+     double page_count =
+            (table->row_count() / ELEMENTS_PER_PAGE) + (table->row_count() % ((int) ELEMENTS_PER_PAGE) != 0 ? 1 : 0);
+    double pivot_speed = (READ_ONE_PAGE_SEQ_MS + WRITE_ONE_PAGE_SEQ_MS) *page_count* table->col_count() +
                          RANDOM_ACCESS_PAGE_MS * table->col_count();
     double time = interactivity_threshold - (scan_time + adaptation_time + index_search_time);
-    double page_num = time / pivot_speed;
-    return table->row_count() / page_num * 100;
+    if (time < 0){
+        return 0;
+    }
+    return time *100 / pivot_speed;
 }
 
 //! Here we just malloc the table and initialize the root

@@ -19,6 +19,7 @@ Table::Table(size_t number_of_columns, size_t number_of_rows)
     columns.resize(number_of_columns);
     for(size_t i = 0; i < number_of_columns; ++i){
         columns[i] = make_unique<Column>(number_of_rows);
+        columns[i]->size = number_of_rows;
     }
 }
 
