@@ -23,7 +23,7 @@ float find_avg(Table *table, size_t col_idx, size_t start, size_t end) {
     for (; start < end; start++) {
         sum += table->columns[col_idx]->data[start];
     }
-    return sum / total;
+    return (float) (sum/total);
 }
 
 //! Workload agnostic is only used if we already refined dependent on workload or we already answered
@@ -493,7 +493,7 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
             remaining_swaps = table->row_count() * get_delta(query);
         }
         //! Gotta do some refinements.
-        workload_dependent_refine(query, remaining_swaps);
+        workload_agnostic_refine(query, remaining_swaps);
     }
     //! Index Lookup + Partition Scan
     start_time = measurements->time();
@@ -660,6 +660,9 @@ void ProgressiveIndex::initialize(Table *table_to_copy) {
     float pivot = find_avg(table_to_copy, 0, 0, table_to_copy->row_count());
     auto start = measurements->time();
     table = make_unique<Table>(table_to_copy->col_count(), table_to_copy->row_count());
+    for (size_t i = 0; i < table->col_count(); i ++){
+        table->columns[i]->size = table_to_copy->row_count();
+    }
     originalTable = table_to_copy;
     initializeRoot(pivot, table_to_copy->row_count());
     auto end = measurements->time();

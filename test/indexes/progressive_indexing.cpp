@@ -3,12 +3,12 @@
 #include "progressive_index.hpp"
 
 
-TEST_CASE("Test Progressive Indexing Workload Agnostic","[PIWA]" )
+TEST_CASE("Test Progressive Indexing ","[PI]" )
 {
     Tester::test(ProgressiveIndex::ID);
 }
 
-TEST_CASE("Test Adaptive Progressive Indexing Workload Agnostic","[APIWA]" )
+TEST_CASE("Test Adaptive Progressive Indexing ","[API]" )
 {
     std::map<std::string, std::string> config;
     config.insert(make_pair("interactivity_threshold","1"));
