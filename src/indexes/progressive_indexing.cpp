@@ -493,7 +493,7 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
             remaining_swaps = table->row_count() * get_delta(query);
         }
         //! Gotta do some refinements.
-        workload_agnostic_refine(query, remaining_swaps);
+        workload_dependent_refine(query, remaining_swaps);
     }
     //! Index Lookup + Partition Scan
     start_time = measurements->time();
