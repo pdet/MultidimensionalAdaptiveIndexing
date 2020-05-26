@@ -375,11 +375,9 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
             initial_low = root->current_start;
             next_index = min(current_position + remaining_swaps, table_size);
             initial_high = root->current_end;
-            //! If we go up or down for next filters
             dim = 0;
+            originalColumn = originalTable->columns[dim]->data;
             indexColumn = table->columns[dim]->data;
-            //! now we start filling the index with at most remaining_swap entries
-            remaining_swaps -= next_index - current_position;
             bit_idx = 0;
             goDown = BitVector(next_index - current_position);
             for (size_t i = current_position; i < next_index; i++) {
@@ -422,7 +420,6 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
                 size_t current_end = root->current_start - 1;
                 root->position = root->current_start;
                 root->setLeft(make_unique<KDNode>(dim, pivot, current_start, current_end));
-
                 //! Right node
                 pivot = find_avg(table.get(), dim, current_start + 1, table_size - 1);
                 current_start = root->current_start;
@@ -432,7 +429,6 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
                 refinement_nodes->push_back(root->right_child.get());
             }
         }
-
     }
     return t;
 }
@@ -497,7 +493,7 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
             remaining_swaps = table->row_count() * get_delta(query);
         }
         //! Gotta do some refinements.
-        workload_agnostic_refine(query, remaining_swaps);
+        workload_dependent_refine(query, remaining_swaps);
     }
     //! Index Lookup + Partition Scan
     start_time = measurements->time();
