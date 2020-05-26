@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <bitvector.hpp>
 #include "cost_model.hpp"
 
 using namespace std;
@@ -17,14 +18,14 @@ double CostModel::write_sequential_page_cost() {
     //! initial write
     auto start = system_clock::now();
     for (size_t i = 0; i < ELEMENT_COUNT; i++) {
-        int matching = base_column->data[i] >= low &&base_column->data[i] <= high;
-        sum += matching *base_column->data[i];
+        int matching = base_column->data[i] >= low && base_column->data[i] <= high;
+        sum += matching * base_column->data[i];
 
         int bigger_pivot = base_column->data[i] >= node->key;
         int smaller_pivot = 1 - bigger_pivot;
 
         index->data[node->current_start] = base_column->data[i];
-        index->data[node->current_end]  = base_column->data[i];
+        index->data[node->current_end] = base_column->data[i];
 
         node->current_start += smaller_pivot;
         node->current_end -= bigger_pivot;
@@ -33,33 +34,33 @@ double CostModel::write_sequential_page_cost() {
     //! Avoiding -O3 Optimization
     if (sum != 0)
         fprintf(stderr, " ");
-   return  duration<double, std::milli>(end - start).count()/PAGES_TO_WRITE;
+    return duration<double, std::milli>(end - start).count() / PAGES_TO_WRITE;
 }
 
 double CostModel::read_sequential_without_matches_page_cost() {
     //! reading
     auto start = system_clock::now();
     for (size_t i = 0; i < ELEMENT_COUNT; i++) {
-        sum +=  index->data[i];
+        sum += index->data[i];
     }
     auto end = system_clock::now();
     //! Avoiding -O3 Optimization
     if (sum != 0)
         fprintf(stderr, " ");
-    return  duration<double, std::milli>(end - start).count()/PAGES_TO_WRITE;
+    return duration<double, std::milli>(end - start).count() / PAGES_TO_WRITE;
 }
 
 double CostModel::read_sequential_with_matches_page_cost() {
     auto start = system_clock::now();
     for (size_t i = 0; i < ELEMENT_COUNT; i++) {
         int matching = index->data[i] >= low && index->data[i] <= high;
-        sum += index->data[i]* matching;
+        sum += index->data[i] * matching;
     }
     auto end = system_clock::now();
     //! Avoiding -O3 Optimization
     if (sum != 0)
         fprintf(stderr, " ");
-    return  duration<double, std::milli>(end - start).count()/PAGES_TO_WRITE;
+    return duration<double, std::milli>(end - start).count() / PAGES_TO_WRITE;
 }
 
 double CostModel::read_random_access() {
@@ -77,58 +78,63 @@ double CostModel::read_random_access() {
     //! Avoiding -O3 Optimization
     if (sum != 0)
         fprintf(stderr, " ");
-    return  duration<double, std::milli>(end - start).count()/PAGES_TO_WRITE;
+    return duration<double, std::milli>(end - start).count() / PAGES_TO_WRITE;
 }
 
-double CostModel::swap_cost() {
-    for (size_t i = 0; i < ELEMENT_COUNT; i++) {
-        index->data[i] = rand() % 10000;
-        index->data[i] = i;
-    }
+void CostModel::swap_cost_create(double& first_column_swap, double& extra_column_swap) {
     node->current_start = 0;
     node->current_end = ELEMENT_COUNT - 1;
-
     //! Amount of remaining swaps
     ssize_t remaining_swaps = ELEMENT_COUNT;
     auto start = system_clock::now();
-
+    BitVector goDown = BitVector(remaining_swaps);
     //! swapping
-    while (node->current_start < node->current_end && remaining_swaps > 0) {
-        int64_t start = index->data[node->current_start];
-        int64_t end = index->data[node->current_end];
-        size_t start_pointer = index->data[node->current_start];
-        size_t end_pointer = index->data[node->current_end];
-
-        int start_has_to_swap = start >= node->key;
-        int end_has_to_swap = end < node->key;
-        int has_to_swap = start_has_to_swap * end_has_to_swap;
-
-        index->data[node->current_start] = !has_to_swap * start + has_to_swap * end;
-        index->data[node->current_end] = !has_to_swap * end + has_to_swap * start;
-        index->data[node->current_start] = !has_to_swap * start_pointer + has_to_swap * end_pointer;
-        index->data[node->current_end] = !has_to_swap * end_pointer + has_to_swap * start_pointer;
-
-        node->current_start += !start_has_to_swap + has_to_swap;
-        node->current_end -= !end_has_to_swap + has_to_swap;
-        remaining_swaps--;
+    size_t bit_idx = 0;
+    for (size_t i = 0; i < ELEMENT_COUNT; i++) {
+        int bigger_pivot = base_column->data[i] >= node->key;
+        int smaller_pivot = 1 - bigger_pivot;
+        index->data[node->current_start] = base_column->data[i];
+        index->data[node->current_end] = base_column->data[i];
+        goDown.set(bit_idx++, smaller_pivot);
+        node->current_start += smaller_pivot;
+        node->current_end -= bigger_pivot;
     }
     auto end = system_clock::now();
 
-    return  duration<double, std::milli>(end - start).count()/PAGES_TO_WRITE;
+    first_column_swap =  duration<double, std::milli>(end - start).count() / PAGES_TO_WRITE;
+    start = system_clock::now();
+    size_t initial_low_cur = 0;
+    size_t initial_high_cur = ELEMENT_COUNT - 1;
+        //! First we copy the elements of the other columns, until where we stopped skipping
+        bit_idx = 0;
+        for (size_t i = 0; i < ELEMENT_COUNT; i++) {
+            index_2->data[initial_low_cur] = base_column_2->data[i];
+            index_2->data[initial_high_cur] = base_column_2->data[i];
+            initial_low_cur += goDown.get(bit_idx);
+            initial_high_cur -= !goDown.get(bit_idx++);
+        }
+
+        end = system_clock::now();
+
+   extra_column_swap = duration<double, std::milli>(end - start).count() / PAGES_TO_WRITE;
 }
-CostModel::CostModel(){
+
+CostModel::CostModel() {
     //! Allocate everyone
     base_column = make_unique<Column>(ELEMENT_COUNT);
+    base_column_2 = make_unique<Column>(ELEMENT_COUNT);
     index = make_unique<Column>(ELEMENT_COUNT);
+    index_2 = make_unique<Column>(ELEMENT_COUNT);
     node = make_unique<KDNode>(5000, 0, ELEMENT_COUNT - 1);
     //! Write base Column
     for (size_t i = 0; i < ELEMENT_COUNT; i++) {
         base_column->data[i] = rand() % 50000;
-        base_column->data[i] = i;
+        base_column_2->data[i] = rand() % 50000;
     }
 
 }
-CostModel::~CostModel(){
+
+CostModel::~CostModel() {
     //! Clean Memory
     base_column.reset();
     index.reset();

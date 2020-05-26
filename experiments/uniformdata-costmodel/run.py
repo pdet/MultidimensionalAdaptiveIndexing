@@ -31,7 +31,7 @@ REPETITIONS = '1'
 
 ROWS = [1e7]
 SELECTIVITIES = [0.0001]
-COLS = [2, 4, 8]
+COLS = [2,4,8]
 EXPS_DEFAULTS = [
         {
             "name": "uniform",
@@ -62,7 +62,7 @@ for row in ROWS:
                         )
 
 PARTITION_SIZE = '1024'
-delta = 0.2
+delta = 0.1
 
 RUNS = [
         {

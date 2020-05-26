@@ -26,6 +26,8 @@ float find_avg(Table *table, size_t col_idx, size_t start, size_t end) {
     return sum / total;
 }
 
+//! Workload agnostic is only used if we already refined dependent on workload or we already answered
+//! the query
 void ProgressiveIndex::workload_agnostic_refine(Query &query, ssize_t &remaining_swaps) {
     size_t num_dimensions = query.predicate_count();
     while (node_being_refined < refinement_nodes->size() && remaining_swaps) {
@@ -77,7 +79,9 @@ void ProgressiveIndex::workload_agnostic_refine(Query &query, ssize_t &remaining
             }
         }
     }
-    if (node_being_refined >= refinement_nodes->size()) {
+//    cout << node_being_refined << " of : " << refinement_nodes->size() << endl;
+    if (node_being_refined >= refinement_nodes->size()-1) {
+//        cout << " COnverged";
         converged = true;
     }
 }
@@ -139,14 +143,6 @@ void ProgressiveIndex::workload_dependent_refine(Query &query, ssize_t &remainin
     //! This means we fully refined all nodes related to the query, now we can use the remaining budget to refine
     //! random nodes
     if (remaining_swaps > 0) {
-        workload_agnostic_refine(query, remaining_swaps);
-    }
-}
-
-void ProgressiveIndex::progressive_quicksort_refine(Query &query, ssize_t &remaining_swaps) {
-    if (workload_adaptive) {
-        workload_dependent_refine(query, remaining_swaps);
-    } else {
         workload_agnostic_refine(query, remaining_swaps);
     }
 }
@@ -229,8 +225,8 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     scan_time += end_time - start_time;
     //! Here we calculate how much indexing we can do here
     if (interactivity_threshold > 0 && (tree->root->start != tree->root->current_start
-    || tree->root->end != tree->root->current_end)) {
-        remaining_swaps = table->row_count()*get_delta(query);
+                                        || tree->root->end != tree->root->current_end)) {
+        remaining_swaps = table->row_count() * get_delta(query);
     }
 
     //! Now we start filling our candidate list that points to the original table
@@ -371,68 +367,72 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     scan_time += end_time - start_time;
     //! Here we react in case we can still perform indexing
     if (interactivity_threshold > 0 && (root->start != initial_low
-    || root->end != initial_high) && root->noChildren() ) {
-        assert (root->current_end >=  root->current_start);
-        remaining_swaps = table->row_count()*get_delta_react();
-        start_time = measurements->time();
-        initial_low = root->current_start;
-        next_index = min(current_position + remaining_swaps, table_size);
-        initial_high = root->current_end;
-        //! If we go up or down for next filters
-        dim = 0;
-        indexColumn = table->columns[dim]->data;
-        //! now we start filling the index with at most remaining_swap entries
-        remaining_swaps -= next_index - current_position;
-        bit_idx = 0;
-        goDown = BitVector(next_index - current_position);
-        for (size_t i = current_position; i < next_index; i++) {
-            int bigger_pivot = originalColumn[i] >= root->key;
-            int smaller_pivot = 1 - bigger_pivot;
-            indexColumn[root->current_start] = originalColumn[i];
-            indexColumn[root->current_end] = originalColumn[i];
-            goDown.set(bit_idx++, smaller_pivot);
-            root->current_start += smaller_pivot;
-            root->current_end -= bigger_pivot;
-        }
-        for (dim = 1; dim < query.predicate_count(); ++dim) {
+                                        || root->end != initial_high) && root->noChildren()) {
+        while (scan_time + adaptation_time + index_search_time < 0.9 * interactivity_threshold && root->noChildren()) {
+            assert (root->current_end >= root->current_start-1);
+            remaining_swaps = table->row_count() * get_delta_react();
+            start_time = measurements->time();
+            initial_low = root->current_start;
+            next_index = min(current_position + remaining_swaps, table_size);
+            initial_high = root->current_end;
+            //! If we go up or down for next filters
+            dim = 0;
             indexColumn = table->columns[dim]->data;
-            originalColumn = originalTable->columns[dim]->data;
-            size_t initial_low_cur = initial_low;
-            size_t initial_high_cur = initial_high;
-            //! First we copy the elements of the other columns, until where we stopped skipping
+            //! now we start filling the index with at most remaining_swap entries
+            remaining_swaps -= next_index - current_position;
             bit_idx = 0;
+            goDown = BitVector(next_index - current_position);
             for (size_t i = current_position; i < next_index; i++) {
-                indexColumn[initial_low_cur] = originalColumn[i];
-                indexColumn[initial_high_cur] = originalColumn[i];
-                initial_low_cur += goDown.get(bit_idx);
-                initial_high_cur -= !goDown.get(bit_idx++);
+                int bigger_pivot = originalColumn[i] >= root->key;
+                int smaller_pivot = 1 - bigger_pivot;
+                indexColumn[root->current_start] = originalColumn[i];
+                indexColumn[root->current_end] = originalColumn[i];
+                goDown.set(bit_idx++, smaller_pivot);
+                root->current_start += smaller_pivot;
+                root->current_end -= bigger_pivot;
+            }
+            for (dim = 1; dim < query.predicate_count(); ++dim) {
+                indexColumn = table->columns[dim]->data;
+                originalColumn = originalTable->columns[dim]->data;
+                size_t initial_low_cur = initial_low;
+                size_t initial_high_cur = initial_high;
+                //! First we copy the elements of the other columns, until where we stopped skipping
+                bit_idx = 0;
+                for (size_t i = current_position; i < next_index; i++) {
+                    indexColumn[initial_low_cur] = originalColumn[i];
+                    indexColumn[initial_high_cur] = originalColumn[i];
+                    initial_low_cur += goDown.get(bit_idx);
+                    initial_high_cur -= !goDown.get(bit_idx++);
+                }
+            }
+            end_time = measurements->time();
+            adaptation_time += end_time - start_time;
+            current_position = next_index;
+            if (next_index == table_size) {
+                indexColumn = table->columns[0]->data;
+                root->position =
+                        indexColumn[root->current_start] >= root->key ? root->current_start : root->current_start + 1;
+                assert(indexColumn[root->position - 1] < root->key);
+                assert(indexColumn[root->position] >= root->key);
+                assert(indexColumn[root->position + 1] >= root->key);
+                dim = 1;
+                //! construct the left and right side of the root node on next dimension
+                float pivot = find_avg(table.get(), dim, 0, root->current_start);
+                size_t current_start = 0;
+                size_t current_end = root->current_start - 1;
+                root->position = root->current_start;
+                root->setLeft(make_unique<KDNode>(dim, pivot, current_start, current_end));
+
+                //! Right node
+                pivot = find_avg(table.get(), dim, current_start + 1, table_size - 1);
+                current_start = root->current_start;
+                current_end = table_size - 1;
+                root->setRight(make_unique<KDNode>(dim, pivot, current_start, current_end));
+                refinement_nodes->push_back(root->left_child.get());
+                refinement_nodes->push_back(root->right_child.get());
             }
         }
-        end_time = measurements->time();
-        adaptation_time += end_time - start_time;
-        current_position = next_index;
-        if (next_index == table_size) {
-        indexColumn = table->columns[0]->data;
-        root->position = indexColumn[root->current_start] >= root->key ? root->current_start : root->current_start + 1;
-        assert(indexColumn[root->position - 1] < root->key);
-        assert(indexColumn[root->position] >= root->key);
-        assert(indexColumn[root->position + 1] >= root->key);
-        dim = 1;
-        //! construct the left and right side of the root node on next dimension
-        float pivot = find_avg(table.get(), dim, 0, root->current_start);
-        size_t current_start = 0;
-        size_t current_end = root->current_start - 1;
-        root->position = root->current_start;
-        root->setLeft(make_unique<KDNode>(dim, pivot, current_start, current_end));
 
-        //! Right node
-        pivot = find_avg(table.get(), dim, current_start + 1, table_size - 1);
-        current_start = root->current_start;
-        current_end = table_size - 1;
-        root->setRight(make_unique<KDNode>(dim, pivot, current_start, current_end));
-        refinement_nodes->push_back(root->left_child.get());
-        refinement_nodes->push_back(root->right_child.get());
-    }
     }
     return t;
 }
@@ -447,9 +447,10 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     //! If the node has no children we are stil in the creation phase
     assert(tree->root);
     //! If we are using the cost model our interactivity threshold will be the cost of the first query with delta.
-    if (tree->root->start == tree->root->current_start && tree->root->end == tree->root->current_end && interactivity_threshold >0){
+    if (tree->root->start == tree->root->current_start && tree->root->end == tree->root->current_end &&
+        interactivity_threshold > 0) {
         auto result = progressive_quicksort_create(query, remaining_swaps);
-        interactivity_threshold = scan_time+index_search_time+adaptation_time;
+        interactivity_threshold = scan_time + index_search_time + adaptation_time;
         measurements->append(
                 "scan_time",
                 std::to_string(scan_time)
@@ -469,12 +470,14 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
         auto result = progressive_quicksort_create(query, remaining_swaps);
         //! In the last creation phase iteration we might have some swaps left
         if (remaining_swaps > 0) {
-            progressive_quicksort_refine(query, remaining_swaps);
-            if (remaining_swaps == 0 && interactivity_threshold > 0) {
-                remaining_swaps = table->row_count()*get_delta_react();
+            workload_agnostic_refine(query, remaining_swaps);
+            if (interactivity_threshold > 0) {
+                while (scan_time + adaptation_time + index_search_time < 0.9 * interactivity_threshold && !converged) {
+                    remaining_swaps = table->row_count() * get_delta_react();
+                    //! Gotta do some refinements
+                    workload_agnostic_refine(query, remaining_swaps);
+                }
             }
-        //! Gotta do some refinements, we have not converged yet.
-        workload_agnostic_refine(query, remaining_swaps);
         }
         measurements->append(
                 "scan_time",
@@ -490,10 +493,10 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
         );
         return result;
     } else if (!converged) {
-        if (remaining_swaps == 0 && interactivity_threshold > 0) {
-            remaining_swaps = table->row_count()*get_delta(query);
+        if (interactivity_threshold > 0) {
+            remaining_swaps = table->row_count() * get_delta(query);
         }
-        //! Gotta do some refinements, we have not converged yet.
+        //! Gotta do some refinements.
         workload_agnostic_refine(query, remaining_swaps);
     }
     //! Index Lookup + Partition Scan
@@ -510,12 +513,12 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     t->append(row);
     end_time = measurements->time();
     scan_time += end_time - start_time;
-    if (!converged) {
-        if ( interactivity_threshold > 0) {
-            remaining_swaps = table->row_count()*get_delta_react();
+    if (!converged && interactivity_threshold > 0) {
+        while (scan_time + adaptation_time + index_search_time < 0.9 * interactivity_threshold && !converged) {
+            remaining_swaps = table->row_count() * get_delta_react();
+            //! Gotta do some refinements, we have not converged yet.
+            workload_agnostic_refine(query, remaining_swaps);
         }
-        //! Gotta do some refinements, we have not converged yet.
-        progressive_quicksort_refine(query, remaining_swaps);
     }
     measurements->append(
             "scan_time",
@@ -564,7 +567,7 @@ ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
         READ_ONE_PAGE_SEQ_MS = cost_model.read_sequential_with_matches_page_cost();
         READ_ONE_PAGE_WITHOUT_CHECKS_SEQ_MS = cost_model.read_sequential_without_matches_page_cost();
         RANDOM_ACCESS_PAGE_MS = cost_model.read_random_access();
-        SWAP_COST_PAGE_MS = cost_model.swap_cost();
+        cost_model.swap_cost_create(first_col_cr, extra_col_cr);
     }
 
 }
@@ -626,15 +629,26 @@ double ProgressiveIndex::get_delta(Query &query) {
 }
 
 double ProgressiveIndex::get_delta_react() {
-     double page_count =
+    double page_count =
             (table->row_count() / ELEMENTS_PER_PAGE) + (table->row_count() % ((int) ELEMENTS_PER_PAGE) != 0 ? 1 : 0);
-    double pivot_speed = (READ_ONE_PAGE_SEQ_MS + WRITE_ONE_PAGE_SEQ_MS) *page_count* table->col_count() +
+    //! Creation Phase
+    if (tree->root->noChildren()) {
+        double pivot_speed = first_col_cr * page_count +
+                             extra_col_cr * table->col_count() - 1;
+        double time = interactivity_threshold - (scan_time + adaptation_time + index_search_time);
+        if (time < 0) {
+            return 0;
+        }
+        return time * 100 / pivot_speed;
+    }
+
+    double pivot_speed = (READ_ONE_PAGE_SEQ_MS + WRITE_ONE_PAGE_SEQ_MS) * page_count * table->col_count() +
                          RANDOM_ACCESS_PAGE_MS * table->col_count();
     double time = interactivity_threshold - (scan_time + adaptation_time + index_search_time);
-    if (time < 0){
+    if (time < 0) {
         return 0;
     }
-    return time *100 / pivot_speed;
+    return time * 1000 / pivot_speed;
 }
 
 //! Here we just malloc the table and initialize the root

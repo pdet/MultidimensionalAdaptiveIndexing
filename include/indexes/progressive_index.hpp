@@ -48,7 +48,8 @@ class ProgressiveIndex: public AbstractIndex {
     double RANDOM_ACCESS_PAGE_MS = 0;
     //! Cost of swapping one page
     double SWAP_COST_PAGE_MS = 0;
-    double swap_cost_element = 0;
+    double first_col_cr = 0;
+    double extra_col_cr = 0;
     //! How many elements per page
     size_t PAGESIZE = 4096;
     size_t ELEMENTS_PER_PAGE = PAGESIZE/sizeof(float);
