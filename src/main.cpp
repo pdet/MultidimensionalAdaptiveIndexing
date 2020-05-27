@@ -21,7 +21,7 @@ int main(int argc, char** argv){
     map<string, string> config;
 
     int c;
-    while ((c = getopt (argc, argv, "w:d:i:r:s:p:a:t")) != -1)
+    while ((c = getopt (argc, argv, "w:d:i:r:s:p:a:t:c")) != -1)
         switch (c)
         {
         case 'w':
@@ -48,6 +48,9 @@ int main(int argc, char** argv){
         case 't':
             config["workload_adaptive"] = '1';
             break;
+            case 'c':
+                config["interactivity_threshold"] = '1';
+                break;
         default:
             cout << "Usage:\n";
             cout << "-w <workload_path>\n";
@@ -57,7 +60,8 @@ int main(int argc, char** argv){
             cout << "-s <file_to_save_results>\n";
             cout << "-p <minimum_partition_size>\n";
             cout << "-a <delta>\n";
-            cout << "-t <flag for progressive index to turn adapTive>\n";
+            cout << "-t <flag for progressive index to turn adaptive>\n";
+            cout << "-c <flag for progressive index to use costmodels>\n";
             return -1;
         }
 

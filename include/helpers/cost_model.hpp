@@ -20,15 +20,17 @@ public:
 
     double read_random_access();
 
-    double swap_cost();
+    void swap_cost_create(double& first_column_swap, double& extra_column_swap);
 private:
 
     //! Original Column
     std::unique_ptr<Column> base_column;
-
+    //! Original second Column
+    std::unique_ptr<Column> base_column_2;
     //! Our index
     std::unique_ptr<Column> index;
-
+    //! Our index (Second Column)
+    std::unique_ptr<Column> index_2;
     //! Initial Pivot
     std::unique_ptr<KDNode> node;
 
