@@ -10,10 +10,10 @@
 using namespace std;
 
 Quasii::Quasii(std::map<std::string, std::string> config){
-    if(config.find("last_level_threshold") == config.end())
+    if(config.find("minimum_partition_size") == config.end())
         last_level_threshold  = 100;
     else
-        last_level_threshold  = std::stoi(config["last_level_threshold"]);
+        last_level_threshold  = std::stoi(config["minimum_partition_size"]);
 }
 Quasii::~Quasii(){}
 
