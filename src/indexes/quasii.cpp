@@ -10,15 +10,21 @@
 using namespace std;
 
 Quasii::Quasii(std::map<std::string, std::string> config){
-    if(config.find("minimum_partition_size") == config.end())
+    if(config.find("last_level_threshold") == config.end())
         last_level_threshold  = 100;
     else
-        last_level_threshold  = std::stoi(config["minimum_partition_size"]);
+        last_level_threshold  = std::stoi(config["last_level_threshold"]);
 }
 Quasii::~Quasii(){}
 
 void Quasii::initialize(Table *table_to_copy){
-    // ******************
+    //! Check partition size, we change it to guarantee it always partitions all dimensions at least once
+    while (last_level_threshold > table_to_copy->row_count()/pow(2,table_to_copy->col_count())){
+        last_level_threshold /=2;
+    }
+    if (last_level_threshold < 100){
+        last_level_threshold = 100;
+    }    // ******************
     auto start = measurements->time();
 
     // Copy the entire table
@@ -153,6 +159,8 @@ void Quasii::search_recursion(
         partitions.push_back(
                 make_pair(slice.offset_begin, slice.offset_end)
                 );
+        partition_borders.at(slice.column).first = slice.left_value;
+        partition_borders.at(slice.column).second = slice.right_value;
         partition_skip.push_back(
                 query.covers(partition_borders)
                 );
