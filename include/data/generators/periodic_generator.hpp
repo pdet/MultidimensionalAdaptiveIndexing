@@ -14,7 +14,8 @@ class PeriodicGenerator : public AbstractGenerator{
             size_t n_rows_, size_t n_dimensions_,
             float selectivity_, size_t n_queries_
         );
-        void generate(std::string table_path, std::string query_path) override;
+        unique_ptr<Table> generate_table() override;
+        unique_ptr<Workload> generate_workload() override;
 };
 
 #endif // PERIODIC_GENERATOR_H

@@ -11,12 +11,11 @@ ShiftingColumnsGenerator::ShiftingColumnsGenerator(
         ) : n_rows(n_rows_), n_dimensions(n_dimensions_),
     selectivity(selectivity_), n_queries(n_queries_)
 {
-    table = make_unique<Table>(n_dimensions);
-    workload = make_unique<Workload>();
 }
 
-void ShiftingColumnsGenerator::generate(std::string table_path, std::string query_path){
+unique_ptr<Table> ShiftingColumnsGenerator::generate_table(){
     // Generate Data
+    auto table = make_unique<Table>(n_dimensions);
     std::mt19937 generator(0);
     std::uniform_int_distribution<int> distr(0, n_rows);
 
@@ -29,9 +28,12 @@ void ShiftingColumnsGenerator::generate(std::string table_path, std::string quer
         delete[] row;
     }
 
-    table->save_file(table_path);
+    return table;
+}
 
+unique_ptr<Workload> ShiftingColumnsGenerator::generate_workload(){
     // Generator Queries
+    auto workload = make_unique<Workload>();
     float per_column_selectivity = std::pow(selectivity, 1.0/n_dimensions);
 
     std::mt19937 generator_query(1);
@@ -68,5 +70,5 @@ void ShiftingColumnsGenerator::generate(std::string table_path, std::string quer
                 );
     }
 
-    workload->save_file(query_path);
+    return workload;
 }

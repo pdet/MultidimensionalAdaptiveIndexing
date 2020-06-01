@@ -12,13 +12,11 @@ AlternatingZoomGenerator::AlternatingZoomGenerator(
 ) : n_rows(n_rows_), n_dimensions(n_dimensions_),
     selectivity(selectivity_), n_queries(n_queries_),
     out(out_)
-{
-    table = make_unique<Table>(n_dimensions);
-    workload = make_unique<Workload>();
-}
+{}
 
-void AlternatingZoomGenerator::generate(std::string table_path, std::string query_path){
+unique_ptr<Table> AlternatingZoomGenerator::generate_table(){
     // Generate Data
+    auto table = make_unique<Table>(n_dimensions);
     std::mt19937 generator(0);
     std::uniform_int_distribution<int> distr(0, n_rows);
 
@@ -30,16 +28,18 @@ void AlternatingZoomGenerator::generate(std::string table_path, std::string quer
         table->append(row);
         delete[] row;
     }
+    return table;
+}
 
-    table->save_file(table_path);
-
+unique_ptr<Workload> AlternatingZoomGenerator::generate_workload(){
     // Generator Queries
+    auto workload = make_unique<Workload>();
     float per_column_selectivity = std::pow(selectivity, 1.0/n_dimensions);
 
     auto center = n_rows/2.0;
 
     float half_side = (n_rows * per_column_selectivity)/2.0;
-    
+
     size_t alternating_dim = 0;
 
     vector<float> factor (n_dimensions, 1);
@@ -58,13 +58,12 @@ void AlternatingZoomGenerator::generate(std::string table_path, std::string quer
         factor[alternating_dim] -= factor[alternating_dim] * 0.1;
 
         workload->append(
-            Query(lows, highs, cols)
-        );
+                Query(lows, highs, cols)
+                );
     }
 
     if(out){
         std::reverse(workload->queries.begin(), workload->queries.end());
     }
-
-    workload->save_file(query_path);
+    return workload;
 }

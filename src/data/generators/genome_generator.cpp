@@ -27,16 +27,13 @@ GenomeGenerator::GenomeGenerator(
     query_type(query_type_),
     FEATUREVECTORS_FILE(feature_vectors_file_),
     GENES_FILE(genes_file_)
-{
-    table = make_unique<Table>(19);
-    workload = make_unique<Workload>();
-}
+{}
 
-void GenomeGenerator::generate(std::string table_path, std::string workload_path){
+unique_ptr<Table> GenomeGenerator::generate_table(){
+    auto table = make_unique<Table>(dimensions);
     srand (20);
-    size_t dimensions = 19;
-    std::vector< std::vector<float> > data_points(n_of_rows, std::vector<float>(dimensions));
 
+    data_points.resize(n_of_rows, std::vector<float>(dimensions));
     std::ifstream feature_vectors(FEATUREVECTORS_FILE);
     std::string line;
     std::string token;
@@ -55,13 +52,19 @@ void GenomeGenerator::generate(std::string table_path, std::string workload_path
         table->append(&(data_point[0]));
         data_points[i] = data_point;
     }
+    return table;
+}
 
-    table->save_file(table_path);
-
+unique_ptr<Workload> GenomeGenerator::generate_workload(){
     // Generate queries
+    if(data_points.size() == 0){
+        // If table wasnt generated, then we generate it here
+        generate_table();
+    }
+    auto workload = make_unique<Workload>();
     std::ifstream genes(GENES_FILE);
-
-
+    std::string line;
+    std::string token;
     for(size_t i = 0; std::getline(genes, line) && i < number_of_queries; ++i) {
         std::vector<float> lb_query(dimensions, std::numeric_limits<float>::min());
         std::vector<float> ub_query(dimensions, std::numeric_limits<float>::max());
@@ -221,5 +224,5 @@ void GenomeGenerator::generate(std::string table_path, std::string workload_path
             cols[c] = c;
         workload->append(Query(lb_query, ub_query, cols));
     }
-    workload->save_file(workload_path);
+    return workload;
 }

@@ -12,13 +12,11 @@ SequentialZoomGenerator::SequentialZoomGenerator(
 ) : n_rows(n_rows_), n_dimensions(n_dimensions_),
     selectivity(selectivity_), n_queries(n_queries_),
     out(out_)
-{
-    table = make_unique<Table>(n_dimensions);
-    workload = make_unique<Workload>();
-}
+{}
 
-void SequentialZoomGenerator::generate(std::string table_path, std::string query_path){
+unique_ptr<Table> SequentialZoomGenerator::generate_table(){
     // Generate Data
+    auto table = make_unique<Table>(n_dimensions);
     std::mt19937 generator(0);
     std::uniform_int_distribution<int> distr(0, n_rows);
 
@@ -31,9 +29,12 @@ void SequentialZoomGenerator::generate(std::string table_path, std::string query
         delete[] row;
     }
 
-    table->save_file(table_path);
+    return table;
+}
 
+unique_ptr<Workload> SequentialZoomGenerator::generate_workload(){
     // Generator Queries
+    auto workload = make_unique<Workload>();
     float per_column_selectivity = std::pow(selectivity, 1.0/n_dimensions);
 
     float half_side = (n_rows * per_column_selectivity)/2.0;
@@ -65,7 +66,5 @@ void SequentialZoomGenerator::generate(std::string table_path, std::string query
     if(out){
         std::reverse(workload->queries.begin(), workload->queries.end());
     }
-
-
-    workload->save_file(query_path);
+    return workload;
 }

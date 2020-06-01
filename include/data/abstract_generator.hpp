@@ -1,18 +1,22 @@
-#ifndef ABSTRACT_GENERATOR_H
-#define ABSTRACT_GENERATOR_H
+#pragma once
 
 #include "table.hpp"
 #include "workload.hpp"
 #include <string>
 
 class AbstractGenerator{
-    protected:
-        unique_ptr<Table> table;
-        unique_ptr<Workload> workload;
     public:
 
         AbstractGenerator(){}
 
-        virtual void generate(std::string table_path, std::string query_path) = 0;
+        virtual void generate(std::string table_path, std::string query_path){
+            auto table = generate_table();
+            table->save_file(table_path);
+
+            auto workload = generate_workload();
+            workload->save_file(query_path);
+        }
+
+        virtual unique_ptr<Table> generate_table() = 0;
+        virtual unique_ptr<Workload> generate_workload() = 0;
 };
-#endif // ABSTRACT_GENERATOR_H

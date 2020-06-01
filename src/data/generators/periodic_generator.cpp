@@ -9,13 +9,11 @@ PeriodicGenerator::PeriodicGenerator(
     float selectivity_, size_t n_queries_
 ) : n_rows(n_rows_), n_dimensions(n_dimensions_),
     selectivity(selectivity_), n_queries(n_queries_)
-{
-    table = make_unique<Table>(n_dimensions);
-    workload = make_unique<Workload>();
-}
+{}
 
-void PeriodicGenerator::generate(std::string table_path, std::string query_path){
+unique_ptr<Table> PeriodicGenerator::generate_table(){
     // Generate Data
+    auto table = make_unique<Table>(n_dimensions);
     std::mt19937 generator(0);
     std::uniform_int_distribution<int> distr(0, n_rows);
 
@@ -28,9 +26,12 @@ void PeriodicGenerator::generate(std::string table_path, std::string query_path)
         delete[] row;
     }
 
-    table->save_file(table_path);
+    return table;
+}
 
+unique_ptr<Workload> PeriodicGenerator::generate_workload(){
     // Generator Queries
+    auto workload = make_unique<Workload>();
     float per_column_selectivity = std::pow(selectivity, 1.0/n_dimensions);
 
     auto center = n_rows * per_column_selectivity/2;
@@ -57,5 +58,5 @@ void PeriodicGenerator::generate(std::string table_path, std::string query_path)
                 );
     }
 
-    workload->save_file(query_path);
+    return workload;
 }

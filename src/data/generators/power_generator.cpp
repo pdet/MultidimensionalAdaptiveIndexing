@@ -23,14 +23,12 @@ PowerGenerator::PowerGenerator(
     : n_of_rows(n_of_rows_),
     number_of_queries(number_of_queries_),
     POWER_DATASET_FILE(power_dataset_file_)
-{
-    table = make_unique<Table>(3);
-    workload = make_unique<Workload>();
-}
+{}
 
-void PowerGenerator::generate(std::string table_path, std::string workload_path){
+unique_ptr<Table> PowerGenerator::generate_table(){
     size_t dimensions = 3;
-    std::vector< std::vector<float> > data_points(n_of_rows, std::vector<float>(dimensions));
+    auto table = make_unique<Table>(dimensions);
+    data_points.resize(n_of_rows, std::vector<float>(dimensions));
 
     std::ifstream tuples(POWER_DATASET_FILE);
     std::string line;
@@ -51,12 +49,16 @@ void PowerGenerator::generate(std::string table_path, std::string workload_path)
         data_points[i] = data_point;
     }
 
-    table->save_file(table_path);
+    return table;
+}
 
+unique_ptr<Workload> PowerGenerator::generate_workload(){
     // random insertion order
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(data_points.begin(), data_points.end(), g);
+
+    auto workload = make_unique<Workload>();
 
     for (size_t i = 0; i < number_of_queries; ++i) {
         std::vector<float> lb_query(dimensions);
@@ -72,5 +74,5 @@ void PowerGenerator::generate(std::string table_path, std::string workload_path)
             cols[c] = c;
         workload->append(Query(lb_query, ub_query, cols));
     }
-    workload->save_file(workload_path);
+    return workload;
 }

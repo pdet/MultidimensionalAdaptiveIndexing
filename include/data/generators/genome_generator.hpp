@@ -15,12 +15,14 @@ class GenomeGenerator : public AbstractGenerator{
                 const std::string &feature_vectors_file_,
                 const std::string &genes_file_
                 );
-        void generate(std::string table_path, std::string workload_path) override;
-
+    unique_ptr<Table> generate_table() override;
+    unique_ptr<Workload> generate_workload() override;
     private:
         size_t n_of_rows = 0;
         size_t number_of_queries = 0;
         size_t query_type = 0;
+        size_t dimensions = 19;
+        std::vector< std::vector<float> > data_points;
         std::string FEATUREVECTORS_FILE= "chr22_feature.vectors";
         std::string GENES_FILE = "genes.txt";
 };

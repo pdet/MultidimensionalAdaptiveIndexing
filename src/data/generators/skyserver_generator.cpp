@@ -23,16 +23,11 @@ SkyserverGenerator::SkyserverGenerator(
     SKYSERVER_DATASET_FILE(skyserver_dataset_file_),
     SKYSERVER_QUERIES_FILE(skyserver_queries_file_)
 
-{
-    table = make_unique<Table>(2);
-    n_of_rows = 67493999 +2;
-    number_of_queries = 100001;
-    workload = make_unique<Workload>();
-}
+{}
 
-void SkyserverGenerator::generate(std::string table_path, std::string workload_path){
-    size_t dimensions = 2;
-    std::vector< std::vector<float> > data_points(n_of_rows, std::vector<float>(dimensions));
+unique_ptr<Table> SkyserverGenerator::generate_table(){
+    auto table = make_unique<Table>(n_dimensions);
+    std::vector< std::vector<float> > data_points(n_of_rows, std::vector<float>(n_dimensions));
 
     std::ifstream tuples(SKYSERVER_DATASET_FILE);
     std::string line;
@@ -47,18 +42,23 @@ void SkyserverGenerator::generate(std::string table_path, std::string workload_p
             line_tokens.push_back(token);
         // parse attributes
 
-        for (size_t j = 1; j < dimensions+1; ++j){
+        for (size_t j = 1; j < n_dimensions+1; ++j){
             data_point[j-1] = stof(line_tokens[j]);
         }
         table->append(&(data_point[0]));
         data_points[i] = data_point;
     }
 
-    table->save_file(table_path);
+    return table;
+}
 
+unique_ptr<Workload> SkyserverGenerator::generate_workload(){
     std::ifstream queries(SKYSERVER_QUERIES_FILE);
+    auto workload = make_unique<Workload>();
     //! Skip header
     //! Time to get the workload
+    std::string line;
+    std::string token;
     for(size_t i = 0; std::getline(queries, line) && i < number_of_queries; ++i) {
         std::vector<float> lb_query;
         std::vector<float> ub_query;
@@ -72,10 +72,10 @@ void SkyserverGenerator::generate(std::string table_path, std::string workload_p
         lb_query.push_back(stof(line_tokens[2]));
         ub_query.push_back(stof(line_tokens[1]));
         ub_query.push_back(stof(line_tokens[3]));
-        std::vector<size_t> cols(dimensions);
-        for(size_t c = 0; c < dimensions; ++c)
+        std::vector<size_t> cols(n_dimensions);
+        for(size_t c = 0; c < n_dimensions; ++c)
             cols[c] = c;
         workload->append(Query(lb_query, ub_query, cols));
     }
-    workload->save_file(workload_path);
+    return workload;
 }
