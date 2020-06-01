@@ -18,6 +18,13 @@ Quasii::Quasii(std::map<std::string, std::string> config){
 Quasii::~Quasii(){}
 
 void Quasii::initialize(Table *table_to_copy){
+    //! Check partition size, we change it to guarantee it always partitions all dimensions at least once
+    while (last_level_threshold > table_to_copy->row_count()/pow(2,table_to_copy->col_count())){
+        last_level_threshold /=2;
+    }
+    if (last_level_threshold < 100){
+        last_level_threshold = 100;
+    }
     // ******************
     auto start = measurements->time();
 
