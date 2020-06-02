@@ -476,3 +476,15 @@ bool KDTree::sanity_check(Table *table) {
 
     return cond1 && cond2;
 }
+
+bool KDTree::has_converged_recursion(KDNode *current, size_t low, size_t high, size_t min){
+    if(current == nullptr)
+        return (high - low) <= min;
+    
+    return has_converged_recursion(current->left_child.get(), low, current->position, min) &&
+           has_converged_recursion(current->right_child.get(), current->position, high, min);
+}
+
+bool KDTree::has_converged(Table* table, size_t min_size) {
+    return has_converged_recursion(root.get(), 0, table->row_count(), min_size);
+}

@@ -40,6 +40,7 @@ class KDTree
         void draw(std::string path);
 
         bool sanity_check(Table* table);
+        bool has_converged(Table*, size_t);
 
     private:
 
@@ -72,5 +73,7 @@ class KDTree
                 std::vector<std::pair<float, float>> partition_borders,
                 std::vector<std::pair<size_t, size_t>>& partitions
                 );
+
+        bool has_converged_recursion(KDNode*, size_t, size_t, size_t);
 };
 #endif // KDTREE_H

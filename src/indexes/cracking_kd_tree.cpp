@@ -50,17 +50,37 @@ void CrackingKDTree::adapt_index(Query &query) {
     for(auto &partition : partitions)
         n_tuples_scanned_before_adapting += partition.second - partition.first;
 
-
-    // Transform query into points and edges before starting to measure time
-    // Adapt the KDTree 
-    auto start = measurements->time();
-    adapt(query);
-    auto end = measurements->time();
-    // ******************
-    measurements->append(
+    if(should_adapt){
+        // If the index has converged then we stop adaptation
+        if(index->has_converged(table.get(), minimum_partition_size)){
+            should_adapt = false;
+            // Add 0 to adaptation_time
+            auto start = measurements->time();
+            auto end = start;
+            measurements->append(
+                    "adaptation_time",
+                    std::to_string(Measurements::difference(end, start))
+                    );
+        }else{
+            // Adapt the KDTree 
+            auto start = measurements->time();
+            adapt(query);
+            auto end = measurements->time();
+            // ******************
+            measurements->append(
+                    "adaptation_time",
+                    std::to_string(Measurements::difference(end, start))
+                    );
+        }
+    }else{
+        // Add 0 to adaptation_time
+        auto start = measurements->time();
+        auto end = start;
+        measurements->append(
             "adaptation_time",
             std::to_string(Measurements::difference(end, start))
             );
+    }
 }
 
 unique_ptr<Table> CrackingKDTree::range_query(Query &query) {

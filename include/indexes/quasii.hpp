@@ -12,6 +12,7 @@
 class Quasii : public AbstractIndex
 {
 public:
+    bool should_adapt = true;
     static const size_t ID = 6;
     Quasii(std::map<std::string, std::string> config);
     ~Quasii();
@@ -29,6 +30,7 @@ public:
     void draw_index(std::string path) override;
 
     bool sanity_check() override;
+    bool has_converged();
 
 private:
     std::vector<Slice> first_level_slices;
@@ -67,6 +69,8 @@ private:
     std::vector<Slice> refine(Slice &slice, Predicate &predicate);
 
     bool sanity_check_recursion(Slice& slice, std::vector<std::pair<float, float>> &borders);
+
+    bool has_converged_recursion(Slice&);
 
     inline Slice createDefaultChild(size_t col, size_t offset_begin, size_t offset_end){
         float min = std::numeric_limits<float>::max();

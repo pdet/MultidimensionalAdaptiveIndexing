@@ -57,17 +57,43 @@ void Quasii::adapt_index(Query &query) {
     for(auto &partition : partitions)
         n_tuples_scanned_before_adapting += partition.second - partition.first;
 
-    // ******************
-    auto start = measurements->time();
+    if(should_adapt){
+        if(has_converged()){
+            should_adapt = false;
+            auto start = measurements->time();
+            auto end = start;
+            // ******************
+            measurements->append(
+                    "adaptation_time",
+                    std::to_string(Measurements::difference(end, start))
+                    );
 
-    build(first_level_slices, query);
+        }else{
+            // ******************
+            auto start = measurements->time();
 
-    auto end = measurements->time();
-    // ******************
-    measurements->append(
-        "adaptation_time",
-        std::to_string(Measurements::difference(end, start))
-    );
+            build(first_level_slices, query);
+
+            auto end = measurements->time();
+            // ******************
+            measurements->append(
+                    "adaptation_time",
+                    std::to_string(Measurements::difference(end, start))
+                    );
+
+        }
+
+    }else{
+        // ******************
+        auto start = measurements->time();
+        auto end = start;
+        // ******************
+        measurements->append(
+                "adaptation_time",
+                std::to_string(Measurements::difference(end, start))
+                );
+    }
+
 }
 
 unique_ptr<Table> Quasii::range_query(Query &query) {
@@ -81,9 +107,9 @@ unique_ptr<Table> Quasii::range_query(Query &query) {
 
     auto end = measurements->time();
     measurements->append(
-        "index_search_time",
-        std::to_string(Measurements::difference(end, start))
-    );
+            "index_search_time",
+            std::to_string(Measurements::difference(end, start))
+            );
 
     start = measurements->time();
     // Scan the table and returns the row ids 
@@ -92,9 +118,9 @@ unique_ptr<Table> Quasii::range_query(Query &query) {
     end = measurements->time();
     // ******************
     measurements->append(
-        "scan_time",
-        std::to_string(Measurements::difference(end, start))
-    );
+            "scan_time",
+            std::to_string(Measurements::difference(end, start))
+            );
 
     int64_t n_tuples_scanned = 0;
     for(auto &partition : partitions)
@@ -102,15 +128,15 @@ unique_ptr<Table> Quasii::range_query(Query &query) {
 
     // Before returning the result, update the statistics.
     measurements->append(
-        "number_of_nodes",
-        std::to_string(count_slices(first_level_slices))
-    );
+            "number_of_nodes",
+            std::to_string(count_slices(first_level_slices))
+            );
     measurements->append("max_height", std::to_string(table->col_count()));
     measurements->append("min_height", std::to_string(table->col_count()));
     measurements->append(
-        "memory_footprint",
-        std::to_string(count_slices(first_level_slices) * sizeof(Slice))
-    );
+            "memory_footprint",
+            std::to_string(count_slices(first_level_slices) * sizeof(Slice))
+            );
     measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
     measurements->append("partitions_scanned", std::to_string(partitions.size()));
 
@@ -122,18 +148,18 @@ unique_ptr<Table> Quasii::range_query(Query &query) {
     }
     measurements->append("partitions_skipped", std::to_string(skips));
     measurements->append(
-        "scan_overhead_before_adapt",
-        std::to_string(
-            n_tuples_scanned_before_adapting/static_cast<float>(result.second)
-        )
-    );
+            "scan_overhead_before_adapt",
+            std::to_string(
+                n_tuples_scanned_before_adapting/static_cast<float>(result.second)
+                )
+            );
 
     measurements->append(
-        "scan_overhead_after_adapt",
-        std::to_string(
-            n_tuples_scanned/static_cast<float>(result.second)
-        )
-    );
+            "scan_overhead_after_adapt",
+            std::to_string(
+                n_tuples_scanned/static_cast<float>(result.second)
+                )
+            );
 
     auto t = make_unique<Table>(2);
     float row[2] = {static_cast<float>(result.first), static_cast<float>(result.second)};
@@ -150,12 +176,12 @@ size_t Quasii::count_slices(std::vector<Slice> &slices){
 }
 
 void Quasii::search_recursion(
-    Slice &slice,
-    Query &query,
-    vector<pair<size_t, size_t>> &partitions,
-    vector<bool> &partition_skip,
-    vector<pair<float, float>> partition_borders
-){
+        Slice &slice,
+        Query &query,
+        vector<pair<size_t, size_t>> &partitions,
+        vector<bool> &partition_skip,
+        vector<pair<float, float>> partition_borders
+        ){
     if(slice.children.empty()){
         partitions.push_back(
                 make_pair(slice.offset_begin, slice.offset_end)
@@ -233,10 +259,10 @@ void Quasii::calculate_level_thresholds(){
     auto number_of_columns = static_cast<double>(table->col_count());
     auto number_of_rows = static_cast<double>(table->row_count());
     auto r = ceil(
-                pow(
-                    static_cast<double>(number_of_rows/last_level_threshold),
-                    static_cast<double>(1.0/number_of_columns)
-                )
+            pow(
+                static_cast<double>(number_of_rows/last_level_threshold),
+                static_cast<double>(1.0/number_of_columns)
+               )
             );
 
     auto cur_thr = r * last_level_threshold;
@@ -273,28 +299,28 @@ void Quasii::build(std::vector<Slice> &slices, Query &query){
                 else{
                     if(r_s.children.size() == 0){
                         r_s.children.push_back(
-                            createDefaultChild(r_s.column + 1, r_s.offset_begin,r_s.offset_end)
-                        );
+                                createDefaultChild(r_s.column + 1, r_s.offset_begin,r_s.offset_end)
+                                );
                     }
                     build(r_s.children, query);
                 }
             }
         }
         refined_slice_aux.insert(
-            refined_slice_aux.end(),
-            std::make_move_iterator(refined_slices.begin()),
-            std::make_move_iterator(refined_slices.end())
-        );
+                refined_slice_aux.end(),
+                std::make_move_iterator(refined_slices.begin()),
+                std::make_move_iterator(refined_slices.end())
+                );
         i++;
     }
 
     slices.erase(slices.begin() + index_start, slices.begin() + i);
 
     slices.insert(
-        slices.end(),
-        std::make_move_iterator(refined_slice_aux.begin()),
-        std::make_move_iterator(refined_slice_aux.end())
-    );
+            slices.end(),
+            std::make_move_iterator(refined_slice_aux.begin()),
+            std::make_move_iterator(refined_slice_aux.end())
+            );
     sort(slices.begin(), slices.end(), less_than_offset());
 }
 
@@ -324,9 +350,9 @@ std::vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
         refined_slices = sliceArtificial(slice);
     }
     if(table->col_count() == 1){
-//      It is not necessary to refine the created slices because there is no children
-//      Otherwise, the creation cost may become too high, since the first column of slices will have a small threshold
-//      resulting in a lot of sliceArtificial calls.
+        //      It is not necessary to refine the created slices because there is no children
+        //      Otherwise, the creation cost may become too high, since the first column of slices will have a small threshold
+        //      resulting in a lot of sliceArtificial calls.
         return refined_slices;
     }
     for (auto &r_s : refined_slices){
@@ -374,7 +400,7 @@ void Quasii::sliceArtificialRecursion(Slice& slice, std::vector<Slice>& result){
         result.push_back(std::move(slices_refined[0]));
         return;
     }
-    
+
     for(auto& s : slices_refined){
         sliceArtificialRecursion(s, result);
     }
@@ -415,8 +441,8 @@ std::vector<Slice> Quasii::sliceTwoWay(Slice &slice, float key){
     std::vector<Slice> result;
 
     auto pivot_index = table->CrackTable(
-        slice.offset_begin, slice.offset_end, key, slice.column
-    );
+            slice.offset_begin, slice.offset_end, key, slice.column
+            );
 
     // It might be the case that the pivot_index is equal to the offset_begin
     // Then instead of creating a new slice, just extend the other one
@@ -424,10 +450,10 @@ std::vector<Slice> Quasii::sliceTwoWay(Slice &slice, float key){
         pivot_index = slice.offset_begin;
     }else{
         result.push_back(
-            Slice(
-                slice.column, slice.offset_begin, pivot_index, slice.left_value, key
-                )
-            );
+                Slice(
+                    slice.column, slice.offset_begin, pivot_index, slice.left_value, key
+                    )
+                );
     }
     // If the pivot index is greater or equal to the offset_end
     // then we shouldn't insert it
@@ -464,8 +490,8 @@ std::vector<Slice> Quasii::sliceThreeWay(Slice &slice, float low, float high){
     std::vector<Slice> result;
 
     auto crack_result = table->CrackTableInThree(
-        slice.offset_begin, slice.offset_end, low, high, slice.column
-    );
+            slice.offset_begin, slice.offset_end, low, high, slice.column
+            );
     auto first_crack = crack_result.first;
     auto second_crack = crack_result.second;
 
@@ -558,6 +584,27 @@ bool Quasii::sanity_check(){
     for(auto& slice : first_level_slices){
         vector<pair<float, float>> borders(table->col_count());
         auto result = sanity_check_recursion(slice, borders);
+        if(result == false)
+            return false;
+    }
+    return true;
+}
+
+bool Quasii::has_converged_recursion(Slice& slice){
+    if(slice.column == table->col_count() - 1){
+        return (slice.offset_end - slice.offset_begin) <= last_level_threshold;
+    }else{
+        for(auto& child : slice.children){
+            auto result = has_converged_recursion(child);
+            if(result == false)
+                return false;
+        }
+    }
+    return true;
+}
+bool Quasii::has_converged(){
+    for(auto& slice : first_level_slices){
+        auto result = has_converged_recursion(slice);
         if(result == false)
             return false;
     }
