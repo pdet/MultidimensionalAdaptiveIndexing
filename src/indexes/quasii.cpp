@@ -594,6 +594,9 @@ bool Quasii::has_converged_recursion(Slice& slice){
     if(slice.column == table->col_count() - 1){
         return (slice.offset_end - slice.offset_begin) <= last_level_threshold;
     }else{
+        // If we are not a leaf, and have no children then we did not converge
+        if(slice.children.size() == 0)
+            return false;
         for(auto& child : slice.children){
             auto result = has_converged_recursion(child);
             if(result == false)
