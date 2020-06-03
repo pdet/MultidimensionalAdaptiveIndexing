@@ -55,7 +55,7 @@ unique_ptr<Workload> AlternatingZoomGenerator::generate_workload(){
             cols.at(j) = j;
         }
 
-        factor[alternating_dim] -= factor[alternating_dim] * 0.1;
+        factor[alternating_dim] -= factor[alternating_dim] * (half_side/n_queries);
 
         workload->append(
                 Query(lows, highs, cols)

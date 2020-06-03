@@ -33,30 +33,67 @@ unique_ptr<Workload> PeriodicGenerator::generate_workload(){
     // Generator Queries
     auto workload = make_unique<Workload>();
     float per_column_selectivity = std::pow(selectivity, 1.0/n_dimensions);
+    float half_side = (n_rows*per_column_selectivity) / 2;
 
-    auto center = n_rows * per_column_selectivity/2;
+    size_t reps = 4;
 
-    auto speed = 0.25;
+    for(size_t i = 0; i < n_rows/reps; ++i){
+        vector<float> begin(n_dimensions);
+        vector<float> end(n_dimensions);
 
+        begin[0] = half_side;
+        end[0] = n_rows - half_side;
 
-    for(size_t i = 0; i < n_queries && (speed*center < n_rows - (n_rows * per_column_selectivity)); center += n_rows * per_column_selectivity, ++i){
-        std::vector<float> lows(n_dimensions);
-        std::vector<float> highs(n_dimensions);
-        std::vector<size_t> cols(n_dimensions);
-
-        lows.at(0) = static_cast<size_t>(center - (n_rows * per_column_selectivity/2)) % n_rows;
-        highs.at(0) = static_cast<size_t>(center + (n_rows * per_column_selectivity/2)) % n_rows;
-        cols.at(0) = 0;
-
-        for(size_t j = 1; j < n_dimensions; ++j){
-            lows.at(j) = speed*center - (n_rows * per_column_selectivity/2);
-            highs.at(j) = speed*center + (n_rows * per_column_selectivity/2);
-            cols.at(j) = j;
+        for(size_t d = 1; d < n_dimensions; ++d){
+            begin[d] = i * (n_rows/reps) + half_side;
+            end[d] = (i+1) * (n_rows/reps) - half_side;
         }
-        workload->append(
-                Query(lows, highs, cols)
-                );
+
+        auto wk = generate_sequence(begin, end, n_queries/reps, half_side);
+
+        for(size_t q = 0; q < wk.query_count(); ++q){
+            auto& query = wk.queries[q];
+            workload->append(query);
+            if(workload->query_count() >= n_queries)
+                return workload;
+        }
     }
 
     return workload;
+}
+
+Workload PeriodicGenerator::generate_sequence(vector<float> begin, vector<float> end, size_t n, float half_side){
+    Workload wk;
+    vector<float> steps (begin.size());
+    // Calculate the steps for each dimension
+    for(size_t d = 0; d < begin.size(); ++d){
+       steps[d] = (end[d] - begin[d])/n; 
+    }
+
+    wk.append(query_from_point(begin, half_side));
+    // Now we generate the queries until reaching n-1
+    // we still have to append the end that is why n-1
+    while(wk.query_count() < n - 1){
+        for(size_t d = 0; d < begin.size(); ++d){
+            begin[d] += steps[d];
+        }
+        wk.append(query_from_point(begin, half_side));
+    }
+
+    wk.append(query_from_point(end, half_side));
+    return wk;
+}
+
+Query PeriodicGenerator::query_from_point(vector<float> point, float sel){
+    vector<float> lows(point.size());
+    vector<float> highs(point.size());
+    vector<size_t> cols(point.size());
+
+    for(size_t i = 0; i < point.size(); ++i){
+        lows[i] = point[i] - sel;
+        highs[i] = point[i] + sel;
+        cols[i] = i;
+    }
+
+    return Query(lows, highs, cols);
 }

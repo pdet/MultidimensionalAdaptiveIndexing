@@ -9,6 +9,8 @@ class PeriodicGenerator : public AbstractGenerator{
         size_t n_dimensions;
         float selectivity;
         size_t n_queries;
+        Workload generate_sequence(vector<float> begin, vector<float> end, size_t n, float half_side);
+        Query query_from_point(vector<float> point, float sel);
     public:
         PeriodicGenerator(
             size_t n_rows_, size_t n_dimensions_,

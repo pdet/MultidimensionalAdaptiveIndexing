@@ -39,22 +39,21 @@ unique_ptr<Workload> SequentialZoomGenerator::generate_workload(){
 
     float half_side = (n_rows * per_column_selectivity)/2.0;
 
-    float step = half_side / n_queries;
 
-    size_t n_queries_per_block = n_queries/(n_rows/(2*half_side));
+    auto number_of_blocks = n_rows/(2*half_side);
+    size_t n_queries_per_block = n_queries/number_of_blocks;
+    float step = half_side / n_queries_per_block;
 
-    for(auto center = half_side;
-        center < n_rows - (n_rows * per_column_selectivity);
-        center += half_side * 2.0)
-    {
-        for(size_t s = n_queries_per_block; s > 0; --s){
+    for(size_t i = 0; i < number_of_blocks; ++i){
+        float center = 2 * half_side * (i + 1);
+        for(size_t s = 0 ; s < n_queries_per_block; ++s){
             std::vector<float> lows(n_dimensions);
             std::vector<float> highs(n_dimensions);
             std::vector<size_t> cols(n_dimensions);
 
             for(size_t j = 0; j < n_dimensions; ++j){
-                lows.at(j) = center - s*step;
-                highs.at(j) = center + s*step;
+                lows.at(j) = (center-half_side) + s*step;
+                highs.at(j) = (center+half_side) - s*step;
                 cols.at(j) = j;
             }
             workload->append(
