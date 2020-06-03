@@ -160,10 +160,10 @@ for delta in progressive_index_deltas:
             {
                 "algorithm_id": "7",
                 "partitions_size": "1024",
-                "name": "progressive_index_adaptive",
+                "name": "progressive_index_cm",
                 "delta": f"{delta}",
-                "extra_flags": "-t",
-                "result": f"{CURRENT_DIR}/results/progressive_index_adaptive-{delta}-{1024}"
+                "extra_flags": "-c",
+                "result": f"{CURRENT_DIR}/results/progressive_index_cm-{delta}-{1024}"
                 }
             )
 
