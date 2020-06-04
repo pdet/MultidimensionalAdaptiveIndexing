@@ -293,6 +293,15 @@ void Quasii::build(std::vector<Slice> &slices, Query &query){
     while (i < static_cast<int64_t>(slices.size()) && slices[i].left_value <= high){
         std::vector<Slice> refined_slices = refine(slices[i], predicate); // S''
         if(refined_slices.size() == 0){
+            auto& r_s = slices[i];
+            if(r_s.column != table->col_count() - 1){
+                if(r_s.children.size() == 0){
+                    r_s.children.push_back(
+                            createDefaultChild(r_s.column + 1, r_s.offset_begin,r_s.offset_end)
+                            );
+                }
+                build(r_s.children, query);
+            }
             ++i;
             continue;
         }
