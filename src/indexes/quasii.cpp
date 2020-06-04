@@ -1,5 +1,6 @@
 #include "quasii.hpp"
 #include "full_scan.hpp"
+#include <iterator>
 #include <math.h>
 #include <algorithm>
 #include <stack>
@@ -328,16 +329,16 @@ void Quasii::build(std::vector<Slice> &slices, Query &query){
         i++;
     }
 
-    slices.reserve(slices.size() + refined_slice_aux.size());
-
-    for(size_t j = 0; j < indexes_to_remove.size(); ++j){
-        slices[indexes_to_remove[j]] = std::move(refined_slice_aux[j]);
+    for(int64_t j = indexes_to_remove.size() - 1; j >= 0; --j){
+        slices[indexes_to_remove[j]] = slices.back();
+        slices.pop_back();
     }
 
-    for(size_t j = indexes_to_remove.size(); j < refined_slice_aux.size(); ++j){
-        auto& s = refined_slice_aux[j];
-        slices.push_back(std::move(s));
-    }
+    slices.insert(
+            slices.end(),
+            std::make_move_iterator(refined_slice_aux.begin()),
+            std::make_move_iterator(refined_slice_aux.end())
+            );
 
     sort(slices.begin(), slices.end(), less_than_offset());
 }
