@@ -66,7 +66,7 @@ private:
 
     std::vector<Slice> sliceThreeWay(Slice &slice, float low, float high);
 
-    std::vector<Slice> refine(Slice slice, Predicate &predicate);
+    std::vector<Slice> refine(Slice &slice, Predicate &predicate);
 
     bool sanity_check_recursion(Slice& slice, std::vector<std::pair<float, float>> &borders);
 

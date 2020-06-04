@@ -31,15 +31,15 @@ public:
     // "Open" slice, covers the entire range
     Slice(size_t column, size_t offset_begin, size_t offset_end);
 
-	Slice(const Slice&& other);
+	//Slice(const Slice&& other);
 
-	Slice& operator=(const Slice&& other);
+	//Slice& operator=(const Slice&& other);
 
     Slice();
 
-	Slice(const Slice& a);
+	//Slice(const Slice& a);
 
-	Slice& operator=(const Slice& a); 
+	//Slice& operator=(const Slice& a); 
 
     string label();
 

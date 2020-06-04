@@ -289,9 +289,8 @@ void Quasii::build(std::vector<Slice> &slices, Query &query){
     auto predicate = query.predicates[dim];
     auto low = predicate.low;
     auto high = predicate.high;
-    auto i = binarySearch(slices, low);
     vector<size_t> indexes_to_remove;
-    while (i < static_cast<int64_t>(slices.size()) && slices[i].left_value <= high){
+    for(auto i = binarySearch(slices, low); i < static_cast<int64_t>(slices.size()) && slices[i].left_value <= high; ++i){
         std::vector<Slice> S2 = refine(slices[i], predicate); // S''
         if(S2.size() == 0){
             auto& r_s = slices[i];
@@ -323,7 +322,6 @@ void Quasii::build(std::vector<Slice> &slices, Query &query){
                     std::make_move_iterator(S2.end())
                     );
         }
-        i++;
     }
 
     for(int64_t j = indexes_to_remove.size() - 1; j >= 0; --j){
@@ -341,14 +339,14 @@ void Quasii::build(std::vector<Slice> &slices, Query &query){
 }
 
 
-std::vector<Slice> Quasii::refine(Slice slice, Predicate &predicate){
+std::vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
     auto low = predicate.low;
     auto high = predicate.high;
     std::vector<Slice> result_slices;
     std::vector<Slice> refined_slices;
     // If the slice size is below the threshold then dont refine it
-    if ((slice.offset_end - slice.offset_begin) <= dimensions_threshold[slice.column]){
-        //refined_slices.push_back(std::move(slice));
+    if (((slice.offset_end - slice.offset_begin) <= dimensions_threshold[slice.column]) || (slice.children.size() > 0)){
+        //refined_slices.push_back(slice);
         return refined_slices;
     }
 
@@ -371,12 +369,12 @@ std::vector<Slice> Quasii::refine(Slice slice, Predicate &predicate){
             std::vector<Slice> refined_slice_aux = sliceArtificial(r_s);
             result_slices.insert(
                     result_slices.end(),
-                    std::make_move_iterator(refined_slice_aux.begin()),
-                    std::make_move_iterator(refined_slice_aux.end())
+                    refined_slice_aux.begin(),
+                    refined_slice_aux.end()
                     );
         }
         else{
-            result_slices.push_back(std::move(r_s));
+            result_slices.push_back(r_s);
         }
     }
     return result_slices;
@@ -398,7 +396,7 @@ std::vector<Slice> Quasii::refine(Slice slice, Predicate &predicate){
 void Quasii::sliceArtificialRecursion(Slice& slice, std::vector<Slice>& result){
     auto threshold = dimensions_threshold[slice.column];
     if(slice.size() < threshold){
-        result.push_back(std::move(slice));
+        result.push_back(slice);
         return;
     }
 
@@ -408,7 +406,7 @@ void Quasii::sliceArtificialRecursion(Slice& slice, std::vector<Slice>& result){
 
     // The slicing had no effect, so stop slicing
     if(slices_refined.size() < 2){
-        result.push_back(std::move(slices_refined[0]));
+        result.push_back(slices_refined[0]);
         return;
     }
 
@@ -421,7 +419,7 @@ std::vector<Slice> Quasii::sliceArtificial(Slice &slice){
     auto threshold = dimensions_threshold[slice.column];
 
     if(slice.size() < threshold){
-        result.push_back(std::move(slice));
+        result.push_back(slice);
         return result;
     }
 

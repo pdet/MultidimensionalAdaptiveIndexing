@@ -6,43 +6,43 @@ Slice::Slice(size_t c, size_t offset_begin, size_t offset_end, float left_value,
     children = vector<Slice>();
 }
 
-Slice::Slice(const Slice &&other){
-    column = other.column;
-    offset_begin = other.offset_begin;
-    offset_end = other.offset_end;
-    left_value = other.left_value;
-    right_value = other.right_value;
-    children = std::move(other.children);
-}
-
-Slice& Slice::operator=(const Slice&& other){
-    column = other.column;
-    offset_begin = other.offset_begin;
-    offset_end = other.offset_end;
-    left_value = other.left_value;
-    right_value = other.right_value;
-    children = std::move(other.children);
-    return *this;
-}   
-
-Slice::Slice(const Slice &other){
-    column = other.column;
-    offset_begin = other.offset_begin;
-    offset_end = other.offset_end;
-    left_value = other.left_value;
-    right_value = other.right_value;
-    children = other.children;
-}
-
-Slice& Slice::operator=(const Slice& other){
-    column = other.column;
-    offset_begin = other.offset_begin;
-    offset_end = other.offset_end;
-    left_value = other.left_value;
-    right_value = other.right_value;
-    children = other.children;
-    return *this;
-}
+//Slice::Slice(const Slice &&other){
+//    column = other.column;
+//    offset_begin = other.offset_begin;
+//    offset_end = other.offset_end;
+//    left_value = other.left_value;
+//    right_value = other.right_value;
+//    children = std::move(other.children);
+//}
+//
+//Slice& Slice::operator=(const Slice&& other){
+//    column = other.column;
+//    offset_begin = other.offset_begin;
+//    offset_end = other.offset_end;
+//    left_value = other.left_value;
+//    right_value = other.right_value;
+//    children = std::move(other.children);
+//    return *this;
+//}   
+//
+//Slice::Slice(const Slice &other){
+//    column = other.column;
+//    offset_begin = other.offset_begin;
+//    offset_end = other.offset_end;
+//    left_value = other.left_value;
+//    right_value = other.right_value;
+//    children = other.children;
+//}
+//
+//Slice& Slice::operator=(const Slice& other){
+//    column = other.column;
+//    offset_begin = other.offset_begin;
+//    offset_end = other.offset_end;
+//    left_value = other.left_value;
+//    right_value = other.right_value;
+//    children = other.children;
+//    return *this;
+//}
 
 // "Open" slice, covers the entire range
 Slice::Slice(size_t column, size_t offset_begin, size_t offset_end)
