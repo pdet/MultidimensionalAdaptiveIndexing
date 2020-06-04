@@ -284,7 +284,7 @@ struct less_than_offset
 };
 
 void Quasii::build(std::vector<Slice> &slices, Query &query){
-    std::vector<Slice> refined_slice_aux; // S'
+    std::vector<Slice> S1; // S'
     auto dim = slices[0].column;
     auto predicate = query.predicates[dim];
     auto low = predicate.low;
@@ -292,8 +292,8 @@ void Quasii::build(std::vector<Slice> &slices, Query &query){
     auto i = binarySearch(slices, low);
     vector<size_t> indexes_to_remove;
     while (i < static_cast<int64_t>(slices.size()) && slices[i].left_value <= high){
-        std::vector<Slice> refined_slices = refine(slices[i], predicate); // S''
-        if(refined_slices.size() == 0){
+        std::vector<Slice> S2 = refine(slices[i], predicate); // S''
+        if(S2.size() == 0){
             auto& r_s = slices[i];
             if(r_s.column != table->col_count() - 1){
                 if(r_s.children.size() == 0){
@@ -303,29 +303,26 @@ void Quasii::build(std::vector<Slice> &slices, Query &query){
                 }
                 build(r_s.children, query);
             }
-            ++i;
-            continue;
-        }
-        indexes_to_remove.push_back(i);
-        for (auto &r_s : refined_slices){
-            if(r_s.intersects(low, high)){
-                if(r_s.column == table->col_count() - 1)
-                    continue;
-                else{
-                    if(r_s.children.size() == 0){
-                        r_s.children.push_back(
-                                createDefaultChild(r_s.column + 1, r_s.offset_begin,r_s.offset_end)
-                                );
+        }else{
+            indexes_to_remove.push_back(i);
+            for (auto &r_s : S2){
+                if(r_s.intersects(low, high)){
+                    if(r_s.column != table->col_count() - 1){
+                        if(r_s.children.size() == 0){
+                            r_s.children.push_back(
+                                    createDefaultChild(r_s.column + 1, r_s.offset_begin,r_s.offset_end)
+                                    );
+                        }
+                        build(r_s.children, query);
                     }
-                    build(r_s.children, query);
                 }
             }
+            S1.insert(
+                    S1.end(),
+                    std::make_move_iterator(S2.begin()),
+                    std::make_move_iterator(S2.end())
+                    );
         }
-        refined_slice_aux.insert(
-                refined_slice_aux.end(),
-                std::make_move_iterator(refined_slices.begin()),
-                std::make_move_iterator(refined_slices.end())
-                );
         i++;
     }
 
@@ -336,15 +333,15 @@ void Quasii::build(std::vector<Slice> &slices, Query &query){
 
     slices.insert(
             slices.end(),
-            std::make_move_iterator(refined_slice_aux.begin()),
-            std::make_move_iterator(refined_slice_aux.end())
+            std::make_move_iterator(S1.begin()),
+            std::make_move_iterator(S1.end())
             );
 
     sort(slices.begin(), slices.end(), less_than_offset());
 }
 
 
-std::vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
+std::vector<Slice> Quasii::refine(Slice slice, Predicate &predicate){
     auto low = predicate.low;
     auto high = predicate.high;
     std::vector<Slice> result_slices;
@@ -368,12 +365,7 @@ std::vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
     else{
         refined_slices = sliceArtificial(slice);
     }
-    if(table->col_count() == 1){
-        //      It is not necessary to refine the created slices because there is no children
-        //      Otherwise, the creation cost may become too high, since the first column of slices will have a small threshold
-        //      resulting in a lot of sliceArtificial calls.
-        return refined_slices;
-    }
+
     for (auto &r_s : refined_slices){
         if(r_s.size() > dimensions_threshold[r_s.column] && r_s.intersects(low, high)){
             std::vector<Slice> refined_slice_aux = sliceArtificial(r_s);
