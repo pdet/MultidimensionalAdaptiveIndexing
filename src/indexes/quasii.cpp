@@ -292,7 +292,7 @@ void Quasii::build(std::vector<Slice> &slices, Query &query){
     vector<size_t> indexes_to_remove;
     while (i < static_cast<int64_t>(slices.size()) && slices[i].left_value <= high){
         std::vector<Slice> refined_slices = refine(slices[i], predicate); // S''
-        if(refined_slices.size() == 0 && refined_slices[0].equal(slices[i])){
+        if(refined_slices.size() == 0){
             ++i;
             continue;
         }
@@ -341,7 +341,7 @@ std::vector<Slice> Quasii::refine(Slice &slice, Predicate &predicate){
     std::vector<Slice> refined_slices;
     // If the slice size is below the threshold then dont refine it
     if ((slice.offset_end - slice.offset_begin) <= dimensions_threshold[slice.column]){
-        refined_slices.push_back(std::move(slice));
+        //refined_slices.push_back(std::move(slice));
         return refined_slices;
     }
 
