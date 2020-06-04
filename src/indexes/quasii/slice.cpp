@@ -59,7 +59,6 @@ Slice::Slice(){
     left_value = 0;
     right_value = 0;
 }
-Slice::~Slice(){}
 
 string Slice::label(){
     auto offsets = std::to_string(offset_begin) + '-' + std::to_string(offset_end);

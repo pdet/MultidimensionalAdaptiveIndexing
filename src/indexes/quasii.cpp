@@ -283,15 +283,20 @@ struct less_than_offset
 };
 
 void Quasii::build(std::vector<Slice> &slices, Query &query){
-    std::vector<Slice> refined_slice_aux;
+    std::vector<Slice> refined_slice_aux; // S'
     auto dim = slices[0].column;
     auto predicate = query.predicates[dim];
     auto low = predicate.low;
     auto high = predicate.high;
     auto i = binarySearch(slices, low);
-    auto index_start = i;
+    vector<size_t> indexes_to_remove;
     while (i < static_cast<int64_t>(slices.size()) && slices[i].left_value <= high){
-        std::vector<Slice> refined_slices = refine(slices[i], predicate);
+        std::vector<Slice> refined_slices = refine(slices[i], predicate); // S''
+        if(refined_slices.size() == 0 && refined_slices[0].equal(slices[i])){
+            ++i;
+            continue;
+        }
+        indexes_to_remove.push_back(i);
         for (auto &r_s : refined_slices){
             if(r_s.intersects(low, high)){
                 if(r_s.column == table->col_count() - 1)
@@ -314,7 +319,10 @@ void Quasii::build(std::vector<Slice> &slices, Query &query){
         i++;
     }
 
-    slices.erase(slices.begin() + index_start, slices.begin() + i);
+    for(int64_t j = indexes_to_remove.size() - 1; j >= 0; --j){
+        slices[indexes_to_remove[j]] = slices.back();
+        slices.pop_back();
+    }
 
     slices.insert(
             slices.end(),

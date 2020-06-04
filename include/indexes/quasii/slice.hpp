@@ -36,11 +36,10 @@ public:
 	Slice& operator=(const Slice&& other);
 
     Slice();
-    ~Slice();
 
 	Slice(const Slice& a);
 
-	Slice& operator=(const Slice& a);
+	Slice& operator=(const Slice& a); 
 
     string label();
 
