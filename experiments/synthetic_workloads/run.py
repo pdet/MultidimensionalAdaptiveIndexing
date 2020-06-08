@@ -26,8 +26,8 @@ from benchmark import Benchmark
 NUMBER_OF_QUERIES = '3000'
 REPETITIONS = '1'
 ROWS = [10**7]
-SELECTIVITIES = [0.1]
-COLS = [2, 4, 8]
+SELECTIVITIES = [0.001]
+COLS = [2, 4]
 #NUMBER_OF_QUERIES = '5'
 #REPETITIONS = '1'
 #ROWS = [10e2, 10e2]
@@ -55,25 +55,22 @@ EXPS_DEFAULTS = [
             "command": "./zoom_generator"
             },
         {
-            "name": "zoom_out",
-            "command": "./zoom_generator -b"
-            },
-        {
             "name": "sequential_zoom_in",
             "command": "./sequential_zoom_generator"
-            },
-        {
-            "name": "sequential_zoom_out",
-            "command": "./sequential_zoom_generator -b"
             },
         {
             "name": "alternating_zoom_in",
             "command": "./alternating_zoom_generator"
             },
         {
-            "name": "alternating_zoom_out",
-            "command": "./alternating_zoom_generator -b"
+            "name": "shifting_columns",
+            "command": "./shifting_columns_main"
             },
+        {
+            "name": "mixed",
+            "command": "./mixed_workload_main"
+            },
+
         ]
 
 
@@ -102,11 +99,11 @@ for row in ROWS:
             
 
 RUNS = [
-    {
-        "algorithm_id": "1",
-        "name": "full_scan",
-        "result": f"{CURRENT_DIR}/results/full_scan_bv-{0.0}-{0}"
-    },
+#    {
+#        "algorithm_id": "1",
+#        "name": "full_scan",
+#        "result": f"{CURRENT_DIR}/results/full_scan_bv-{0.0}-{0}"
+#    },
     {
         "algorithm_id": "111",
         "name": "full_scan_cl",
@@ -142,9 +139,9 @@ RUNS = [
         "name": "quasii",
         "result": f"{CURRENT_DIR}/results/quasii-{0.0}-{1024}"
         }
-    ]
+   ]
 
-progressive_index_deltas = [0.1]
+progressive_index_deltas = [0.1, 0.2]
 
 for delta in progressive_index_deltas:
     RUNS.append(
