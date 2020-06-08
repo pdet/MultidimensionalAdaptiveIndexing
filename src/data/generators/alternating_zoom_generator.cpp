@@ -36,31 +36,38 @@ unique_ptr<Workload> AlternatingZoomGenerator::generate_workload(){
     auto workload = make_unique<Workload>();
     float per_column_selectivity = std::pow(selectivity, 1.0/n_dimensions);
 
-    auto center = n_rows/2.0;
-
     float half_side = (n_rows * per_column_selectivity)/2.0;
 
-    size_t alternating_dim = 0;
+    float center_low = half_side;
 
-    vector<float> factor (n_dimensions, 1);
+    float center_high = n_rows - half_side;
 
-    for(size_t i = n_queries; i > 0; --i, alternating_dim = (alternating_dim + 1) % n_dimensions){
+    float step = half_side / n_queries;
+
+    for(size_t i = n_queries; i > n_queries/2; --i){
         std::vector<float> lows(n_dimensions);
         std::vector<float> highs(n_dimensions);
         std::vector<size_t> cols(n_dimensions);
 
         for(size_t j = 0; j < n_dimensions; ++j){
-            lows.at(j) = center - half_side * factor[j];
-            highs.at(j) = center + half_side * factor[j];
+            lows.at(j) = center_low - i*step;
+            highs.at(j) = center_low + i*step;
             cols.at(j) = j;
         }
-
-        factor[alternating_dim] -= factor[alternating_dim] * (half_side/n_queries);
-
         workload->append(
-                Query(lows, highs, cols)
-                );
+            Query(lows, highs, cols)
+        );
+
+        for(size_t j = 0; j < n_dimensions; ++j){
+            lows.at(j) = center_high - i*step;
+            highs.at(j) = center_high + i*step;
+            cols.at(j) = j;
+        }
+        workload->append(
+            Query(lows, highs, cols)
+        );
     }
+
 
     if(out){
         std::reverse(workload->queries.begin(), workload->queries.end());
