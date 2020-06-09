@@ -61,13 +61,13 @@ void KDTree::search_recursion(
             // Data:  |----------!--------|
             // Query:            |-----|
             //                  low   high
+            partition_borders.at(current->column).first = current->key;
             if (current->right_child == nullptr) {
                 partitions.push_back(make_pair(current->position, upper_limit));
                 partition_skip.push_back(
                         query.covers(partition_borders)
                 );
             } else {
-                partition_borders.at(current->column).first = current->key;
                 search_recursion(
                         current->right_child.get(),
                         current->position, upper_limit,
@@ -83,13 +83,13 @@ void KDTree::search_recursion(
             // Data:  |----------!--------|
             // Query:      |-----|
             //            low   high
+            partition_borders.at(current->column).second = current->key;
             if (current->left_child == nullptr) {
                 partitions.push_back(make_pair(lower_limit, current->position));
                 partition_skip.push_back(
                         query.covers(partition_borders)
                 );
             } else {
-                partition_borders.at(current->column).second = current->key;
                 search_recursion(
                         current->left_child.get(),
                         lower_limit, current->position,
@@ -106,10 +106,13 @@ void KDTree::search_recursion(
             // Query:         |-----|
             //               low   high
             if (current->left_child == nullptr) {
+                auto tmp = partition_borders.at(current->column).second;
+                partition_borders.at(current->column).second = current->key;
                 partitions.push_back(make_pair(lower_limit, current->position));
                 partition_skip.push_back(
                         query.covers(partition_borders)
-                );
+                        );
+                partition_borders.at(current->column).second = tmp;
             } else {
                 auto tmp = partition_borders.at(current->column).second;
                 partition_borders.at(current->column).second = current->key;
@@ -122,6 +125,7 @@ void KDTree::search_recursion(
                 partition_borders.at(current->column).second = tmp;
             }
             if (current->right_child == nullptr) {
+                partition_borders.at(current->column).first = current->key;
                 partitions.push_back(make_pair(current->position, upper_limit));
                 partition_skip.push_back(
                         query.covers(partition_borders)
