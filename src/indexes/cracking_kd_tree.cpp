@@ -161,7 +161,7 @@ void CrackingKDTree::adapt(Query& query){
     }
 
     for(size_t dim = 0; dim < query.predicate_count(); ++dim){
-        if(query.predicates[dim].low >= std::numeric_limits<float>::min())
+        if(query.predicates[dim].low >= std::numeric_limits<float>::lowest())
             adapt_recursion(
                     index->root.get(),
                     query,
