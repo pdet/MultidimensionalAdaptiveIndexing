@@ -163,7 +163,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     auto high = query.predicates[dim].high;
     auto indexColumn = table->columns[dim]->data;
     auto originalColumn = originalTable->columns[dim]->data;
-
+    int64_t scanned_tuples = 0;
     //! for the initial run, we write the indices instead of swapping them
     //! because the current array has not been initialized yet
     //! first look through the part we have already pivoted
@@ -173,6 +173,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     //! Candidate Lists from Index
     CandidateList up;
     if (low <= root->key) {
+        scanned_tuples+=root->current_start;
         for (size_t i = 0; i < root->current_start; i++) {
             int matching = indexColumn[i] >= low && indexColumn[i] <= high;
             up.maybe_push_back(i, matching);
@@ -197,6 +198,7 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     CandidateList down;
     //! We now get a candidate list to the bottom part of our indexed table
     if (high >= root->key) {
+        scanned_tuples+= table_size - root->current_end;
         dim = 0;
         low = query.predicates[dim].low;
         high = query.predicates[dim].high;
@@ -223,6 +225,8 @@ ProgressiveIndex::progressive_quicksort_create(Query &query, ssize_t &remaining_
     }
     end_time = measurements->time();
     scan_time += end_time - start_time;
+    scanned_tuples += root->current_end - root->current_start;
+    measurements->append("tuples_scanned", std::to_string(scanned_tuples));
     //! Here we calculate how much indexing we can do here
     if (interactivity_threshold > 0 && (tree->root->start != tree->root->current_start
                                         || tree->root->end != tree->root->current_end)) {
@@ -516,6 +520,12 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
             workload_agnostic_refine(query, remaining_swaps);
         }
     }
+    int64_t n_tuples_scanned = 0;
+    for(auto &partition : partitions)
+        n_tuples_scanned += partition.second - partition.first;
+
+    // Before returning the result, update the statistics.
+    measurements->append("tuples_scanned", std::to_string(n_tuples_scanned));
     measurements->append(
             "scan_time",
             std::to_string(scan_time)
