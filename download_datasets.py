@@ -17,6 +17,6 @@ if not os.path.isdir(DATA_FOLDER):
                                os.path.join(DATA_FOLDER, "skyserver_2.csv"))
     urllib.request.urlretrieve("https://zenodo.org/record/3835562/files/skyserver2_query.csv?download=1",
                                os.path.join(DATA_FOLDER, "skyserver2_query.csv"))
-     print("Extracting Power and Genomic")
-     with zipfile.ZipFile(os.path.join(DATA_FOLDER, 'mdrq-analysis.zip'), 'r') as zip_ref:
-          zip_ref.extractall(DATA_FOLDER)
+    print("Extracting Power and Genomic")
+    with zipfile.ZipFile(os.path.join(DATA_FOLDER, 'mdrq-analysis.zip'), 'r') as zip_ref:
+         zip_ref.extractall(DATA_FOLDER)
