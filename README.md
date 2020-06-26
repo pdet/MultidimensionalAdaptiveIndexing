@@ -26,9 +26,9 @@ The power benchmark consists of sensor data collected from a manufacturing insta
 The 1000 Genomes Project collects data regarding human genomes. It consists of 10 million genomes, described in 19 dimensions. The workload consists of queries performed by bio-informaticians.
 
 ## Synthetic 
-The synthetic data set follows a uniform data distribution for each attribute in the table, consisting of 4-byte floating-point numbers in the range of \[0, 3 * 10^7), where 3 * 10^7 is the number of tuples. We use eight different synthetic workloads in our performance comparison. All workloads consist of queries in the form 
+The synthetic data set follows a uniform data distribution for each attribute in the table, consisting of 4-byte floating-point numbers in the range of \[0, 3 * 10^7), where 3 * 10^7 is the number of tuples. We use eight different synthetic workloads in our performance comparison. All workloads consist of queries with filters in all available dimensions, the follow the below form:
 ```sql
-SELECT SUM(R.A) FROM R WHERE R.A BETWEEN low AND high
+SELECT SUM(R.A) FROM R WHERE (R.A BETWEEN a_low AND a_high) and (R.B BETWEEN b_low AND b_high) ...
 ```
 The values for low and high are chosen based on the workload pattern. The different workload patterns and their mathematical description are depicted below.
 <img src="https://github.com/pholanda/MultidimensionalAdaptiveIndexing/blob/master/img/workloads.png" />
