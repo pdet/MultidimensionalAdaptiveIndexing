@@ -1,31 +1,71 @@
-# Multidimensional Adaptive Indexing (MDAI) ![Build](https://github.com/pdet/MultidimensionalAdaptiveIndexing/workflows/CI/badge.svg)
+# Multidimensional Adaptive/Progressive Indexing ![Build](https://github.com/pdet/MultidimensionalAdaptiveIndexing/workflows/CI/badge.svg)
 
-We present our novel multidimensional adaptive indexing technique, Cracking KDTree.
-We compare it with Quasii (State of the Art), Full Scan, KDTree (medians and average).
+This project is a stand-alone implementation of all the current adaptive and progressive multidimensional indexing algorithms.
 
-## Algorithms
+# Requirements
+[CMake](https://cmake.org) to be installed and a `C++11` compliant compiler. Python 3.7 and Jupyter Notebooks are necessary to run the scripted experiments and their respective plots.
 
-<!-- * [Vectorized Predicated Scans](https://pdfs.semanticscholar.org/2e84/4872e32a4a4e94e229a9a9e70ac47d710252.pdf) -->
-* Full Scan
-* [Covered Index](http://delivery.acm.org/10.1145/2740000/2732229/p97-schuhknecht.pdf)
+# Available Indexing Algorithms
+* Adaptive KD-Tree
+* Progressive KD-Tree
+* Greedy Progressive KD-Tree
 * [Quasii](https://openproceedings.org/2018/conf/edbt/paper-153.pdf)
-* Cracking KD-Tree 
-* [KD-Tree](http://delivery.acm.org/10.1145/370000/361007/p509-bentley.pdf)
+* Full KD-Tree (Median Pivoting)
+* Full KD-Tree (Average Pivoting)
+* Full Scan (Candidate List)
 
-## How to run
+# Available Datasets & Workloads
+We use three real datasets, each with their own respective workload, and one synthetic dataset following a uniform random distribution. For the synthetic dataset, we also provide 8 different synthetic workloads
+## Real
+All real datasets and workloads were made publically available [here](https://zenodo.org/record/3835562).
+### Skyserver
+The Sloan Digital Sky Survey is a project to map the universe. Their data and queries are publicly available at their [website](http://skyserver.sdss.org). The data set we use here consists of two columns, era, and dec, from the photoobjall table with approximately 69 million tuples. The workload consists of 100,000 real range queries executed on those two attributes.
+### Power
+The power benchmark consists of sensor data collected from a manufacturing installation, obtained from the [DEBS 2012 challenge](https://debs.org/grand-challenges/2012/). The data set has three dimensions and 10 million tuples. The workload consists of random close-range queries on each dimension.
+### Genomics 
+The 1000 Genomes Project collects data regarding human genomes. It consists of 10 million genomes, described in 19 dimensions. The workload consists of queries performed by bio-informaticians.
 
-To be Done
+## Synthetic 
+The synthetic data set follows a uniform data distribution for each attribute in the table, consisting of 4-byte floating-point numbers in the range of \[0, 3 * 10^7), where 3 * 10^7 is the number of tuples. We use eight different synthetic workloads in our performance comparison. All workloads consist of queries in the form 
+```sql
+SELECT SUM(R.A) FROM R WHERE R.A BETWEEN low AND high
+```
+The values for low and high are chosen based on the workload pattern. The different workload patterns and their mathematical description are depicted below.
+<img src="https://github.com/pholanda/MultidimensionalAdaptiveIndexing/blob/master/img/workloads.png" />
 
-## Algorithm IDs
+# Running the experiments
+The header for printed output:
+delta(if progressive indexing);query processing time; index creation time ; total time; prefix sum; cost model cost
 
-* Full Scan (baseline): 0
-* Fast Full Scan: 1
-* CrackingKDTree: 2
-* CrackingKDTree (Per Dimension): 3
-* AverageKDTree: 4
-* MedianKDTree: 5
-* Quasii: 6
+### Compile
+First, we compile the code using release (-O3) mode
+```bash
+cmake -DCMAKE_BUILD_TYPE=Release && make
+```
 
-## Papers
+### Download Data
+For the real data, you must execute the download_datasets.py script in the root directory to automatically download all datasets and workloads. You need approximately 50Gb of free disk space.
+```bash
+./python3 download_datasets.py
+```
 
-* Cracking KD-Tree: The First Multidimensional Adaptive Indexing (Position Paper). P. Holanda, M. Nerone, E. C. de Almeida and S. Manegold @ DATA 2018
+### Running Experiments
+All experiments are inside the experiments folder. There are 5 main sets of experiments. Note that unless stated otherwise, all algorithms run with min_partition_size = 1024, and all progressive indexing algorithms run with delta = 0.2.
+* real-data-workload: Runs all algorithms on the three real datasets and their respective workloads.
+* synthetic_workloads: Runs all algorithms on the uniform random dataset with 8 different synthetic workloads.
+* uniformdata-costmodel: Runs only Greedy Progressive KD-Tree on a uniform random dataset & workload.
+* uniformdata-delta: Runs only Progressive KD-Tree on a uniform random dataset & workload with different delta configurations (i.e., ranging from 0.1 to 1).
+Every folder contains two main files, the run.py and plots.ipynb.
+To run a desired set of experiments, you must cd to its folder and execute the run.py file.
+Example:
+```bash
+cd experiments/real-data-workload
+python3 run.py
+```
+After generating the dataset, each folder contains a python notebook you can use to plot and analyze the results. For that, you must initiate the jupyter notebook server at the desired folder
+```bash
+jupyter notebook
+```
+
+# Papers
+* [Cracking KD-Tree: The First Multidimensional Adaptive Indexing (Position Paper) @ DATA 2018](https://pdet.github.io/assets/papers/MultCracking.pdf)
