@@ -56,7 +56,44 @@ for row in ROWS:
                     }
                 )
 
-RUNS = []
+RUNS = [
+    {
+        "algorithm_id": "111",
+        "name": "full_scan_cl",
+        "result": f"{CURRENT_DIR}/results/full_scan_cl-{0.0}-{0}"
+    },
+    {
+        "algorithm_id": "2",
+        "partitions_size": str(PARTITION_SIZE),
+        "name": "cracking_kd_tree",
+        "result": f"{CURRENT_DIR}/results/cracking_kd_tree-{0.0}-{PARTITION_SIZE}"
+    },
+    {
+        "algorithm_id": "3",
+        "partitions_size": str(PARTITION_SIZE),
+        "name": "cracking_kd_tree_pd",
+        "result": f"{CURRENT_DIR}/results/cracking_kd_tree_pd-{0.0}-{PARTITION_SIZE}"
+    },
+    {
+        "algorithm_id": "4",
+        "partitions_size": str(PARTITION_SIZE),
+        "name": "average_kd_tree",
+        "result": f"{CURRENT_DIR}/results/average_kd_tree-{0.0}-{PARTITION_SIZE}"
+    },
+    {
+        "algorithm_id": "5",
+        "partitions_size": str(PARTITION_SIZE),
+        "name": "median_kd_tree",
+        "result": f"{CURRENT_DIR}/results/median_kd_tree-{0.0}-{PARTITION_SIZE}"
+    },
+    {
+        "algorithm_id": "6",
+        "partitions_size": str(PARTITION_SIZE),
+        "name": "quasii",
+        "result": f"{CURRENT_DIR}/results/quasii-{0.0}-{PARTITION_SIZE}"
+    }
+]
+
 
 for delta in PROGRESSIVE_INDEX_DELTAS:
     RUNS.append(
