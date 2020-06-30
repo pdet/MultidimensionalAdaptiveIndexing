@@ -4,14 +4,15 @@ import os
 import inspect
 import argparse
 import sys
+import json
 
 
 # script directory
 SCRIPT_PATH = os.path.dirname(
-        os.path.abspath(
-            inspect.getfile(inspect.currentframe())
-            )
-        )
+    os.path.abspath(
+        inspect.getfile(inspect.currentframe())
+    )
+)
 os.chdir(SCRIPT_PATH)
 
 CURRENT_DIR = os.getcwd()
@@ -21,57 +22,17 @@ sys.path.append(os.getcwd() + '/..')
 
 from benchmark import Benchmark
 
-
-# General experiment info
-NUMBER_OF_QUERIES = '3000'
-REPETITIONS = '1'
-ROWS = [10**7]
-SELECTIVITIES = [0.001]
-COLS = [2, 4]
-#NUMBER_OF_QUERIES = '5'
-#REPETITIONS = '1'
-#ROWS = [10e2, 10e2]
-#SELECTIVITIES = [0.1, 0.01, 0.001]
-#COLS = [2, 4]
-EXPS_DEFAULTS = [
-        {
-            "name": "uniform",
-            "command": "./uniform_generator"
-            },
-        {
-            "name": "skewed",
-            "command": "./skewed_generator"
-            },
-        {
-            "name": "sequential",
-            "command": "./sequential_generator"
-            },
-        {
-            "name": "periodic",
-            "command": "./periodic_generator"
-            },
-        {
-            "name": "zoom_in",
-            "command": "./zoom_generator"
-            },
-        {
-            "name": "sequential_zoom_in",
-            "command": "./sequential_zoom_generator"
-            },
-        {
-            "name": "alternating_zoom_in",
-            "command": "./alternating_zoom_generator"
-            },
-        {
-            "name": "shifting_columns",
-            "command": "./shifting_columns_main"
-            },
-        {
-            "name": "mixed",
-            "command": "./mixed_workload_main"
-            },
-
-        ]
+# Read configuration
+with open('config.json') as json_file:
+    f = json.load(json_file)
+    NUMBER_OF_QUERIES = f['number_of_queries']
+    REPETITIONS = f['repetitions']
+    ROWS = [f['rows']]
+    SELECTIVITIES = [f['selectivity']]
+    COLS = f['cols']
+    EXPS_DEFAULTS = f['experiments']
+    PARTITION_SIZE = f['partition_size']
+    PROGRESSIVE_INDEX_DELTAS = f['deltas']
 
 
 EXPERIMENTS = []
@@ -81,29 +42,21 @@ for row in ROWS:
         for col in COLS:
             for default in EXPS_DEFAULTS:
                 EXPERIMENTS.append(
-                        {
-                            "name": default['name'],
-                            "exp_id": f"{default['name']}-{row}-{NUMBER_OF_QUERIES}-{col}-{sel}",
-                            "number_of_rows": str(row),
-                            "number_of_columns": str(col),
-                            "selectivity": str(sel),
-                            "repetitions": str(REPETITIONS),
-                            "number_of_queries": str(NUMBER_OF_QUERIES),
-                            "data": f"/scratch/matheus/data/{default['name']}-{row}-{col}-{sel}-d",
-                            "workload": f"/scratch/matheus/data/{default['name']}-{row}-{col}-{sel}-w",
-                            "command": default['command']
-                            }
-                        )
-
-
-            
+                    {
+                        "name": default['name'],
+                        "exp_id": f"{default['name']}-{row}-{NUMBER_OF_QUERIES}-{col}-{sel}",
+                        "number_of_rows": str(row),
+                        "number_of_columns": str(col),
+                        "selectivity": str(sel),
+                        "repetitions": str(REPETITIONS),
+                        "number_of_queries": str(NUMBER_OF_QUERIES),
+                        "data": f"{CURRENT_DIR}/data/{default['name']}-{row}-{col}-{sel}-d",
+                        "workload": f"{CURRENT_DIR}/data/{default['name']}-{row}-{col}-{sel}-w",
+                        "command": default['command']
+                    }
+                )
 
 RUNS = [
-#    {
-#        "algorithm_id": "1",
-#        "name": "full_scan",
-#        "result": f"{CURRENT_DIR}/results/full_scan_bv-{0.0}-{0}"
-#    },
     {
         "algorithm_id": "111",
         "name": "full_scan_cl",
@@ -111,58 +64,56 @@ RUNS = [
     },
     {
         "algorithm_id": "2",
-        "partitions_size": "1024",
+        "partitions_size": str(PARTITION_SIZE),
         "name": "cracking_kd_tree",
-        "result": f"{CURRENT_DIR}/results/cracking_kd_tree-{0.0}-{1024}"
+        "result": f"{CURRENT_DIR}/results/cracking_kd_tree-{0.0}-{PARTITION_SIZE}"
     },
     {
         "algorithm_id": "3",
-        "partitions_size": "1024",
+        "partitions_size": str(PARTITION_SIZE),
         "name": "cracking_kd_tree_pd",
-        "result": f"{CURRENT_DIR}/results/cracking_kd_tree_pd-{0.0}-{1024}"
+        "result": f"{CURRENT_DIR}/results/cracking_kd_tree_pd-{0.0}-{PARTITION_SIZE}"
     },
     {
         "algorithm_id": "4",
-        "partitions_size": "1024",
+        "partitions_size": str(PARTITION_SIZE),
         "name": "average_kd_tree",
-        "result": f"{CURRENT_DIR}/results/average_kd_tree-{0.0}-{1024}"
+        "result": f"{CURRENT_DIR}/results/average_kd_tree-{0.0}-{PARTITION_SIZE}"
     },
     {
         "algorithm_id": "5",
-        "partitions_size": "1024",
+        "partitions_size": str(PARTITION_SIZE),
         "name": "median_kd_tree",
-        "result": f"{CURRENT_DIR}/results/median_kd_tree-{0.0}-{1024}"
-        },
+        "result": f"{CURRENT_DIR}/results/median_kd_tree-{0.0}-{PARTITION_SIZE}"
+    },
     {
         "algorithm_id": "6",
-        "partitions_size": "1024",
+        "partitions_size": str(PARTITION_SIZE),
         "name": "quasii",
-        "result": f"{CURRENT_DIR}/results/quasii-{0.0}-{1024}"
+        "result": f"{CURRENT_DIR}/results/quasii-{0.0}-{PARTITION_SIZE}"
+    }
+]
+
+for delta in PROGRESSIVE_INDEX_DELTAS:
+    RUNS.append(
+        {
+            "algorithm_id": "7",
+            "partitions_size": str(PARTITION_SIZE),
+            "name": "progressive_index",
+            "delta": f"{delta}",
+            "result": f"{CURRENT_DIR}/results/progressive_index-{delta}-{PARTITION_SIZE}"
         }
-   ]
-
-progressive_index_deltas = [0.1, 0.2]
-
-for delta in progressive_index_deltas:
+    )
     RUNS.append(
-            {
-                "algorithm_id": "7",
-                "partitions_size": "1024",
-                "name": "progressive_index",
-                "delta": f"{delta}",
-                "result": f"{CURRENT_DIR}/results/progressive_index-{delta}-{1024}"
-                }
-            )
-    RUNS.append(
-            {
-                "algorithm_id": "7",
-                "partitions_size": "1024",
-                "name": "progressive_index_cm",
-                "delta": f"{delta}",
-                "extra_flags": "-c",
-                "result": f"{CURRENT_DIR}/results/progressive_index_cm-{delta}-{1024}"
-                }
-            )
+        {
+            "algorithm_id": "7",
+            "partitions_size": str(PARTITION_SIZE),
+            "name": "progressive_index_cm",
+            "delta": f"{delta}",
+            "extra_flags": "-c",
+            "result": f"{CURRENT_DIR}/results/progressive_index_cm-{delta}-{PARTITION_SIZE}"
+        }
+    )
 
 
 def main():
@@ -171,25 +122,15 @@ def main():
     build_dir = "../../build/"
     bin_dir = "../../bin"
 
-    parser = argparse.ArgumentParser(description='Run uniforn benchmark.')
-    parser.add_argument(
-        '--generate',
-        dest='generate',
-        action='store_true',
-        help='if this flag is setted then generate experiment data (DESTRUCTIVE ACTION, can overwrite what is inside data folder)'
-    )
-
-    args = parser.parse_args()
-
     for exp in EXPERIMENTS:
         exp['command'] += f" -r {exp['number_of_rows']} -d {exp['number_of_columns']}"
         exp['command'] += f" -s {exp['selectivity']} -q {exp['number_of_queries']}"
         exp['command'] += f" -f {exp['data']} -w {exp['workload']}"
 
     benchmark = Benchmark(EXPERIMENTS, RUNS, build_dir, bin_dir)
-    if args.generate:
-        benchmark.generate()
+    benchmark.generate()
     benchmark.run()
+
 
 if __name__ == "__main__":
     main()

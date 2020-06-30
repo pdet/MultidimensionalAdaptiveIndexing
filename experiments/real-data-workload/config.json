@@ -1,0 +1,7 @@
+{
+    "number_of_queries": "3000",
+    "rows": "10000000",
+    "repetitions": "1",
+    "partition_size": "1024",
+    "deltas": ["0.2"]
+}

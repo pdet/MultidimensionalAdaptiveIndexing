@@ -22,27 +22,29 @@ sys.path.append(os.getcwd() + '/..')
 from benchmark import Benchmark
 
 
-FEATURES_FILE = "/scratch/matheus/data/mdrq-analysis/1000genomes_import/chr22_feature.vectors"
-GENOMES_FILE = "/scratch/matheus/data/mdrq-analysis/1000genomes_import/genes.txt"
-POWER_FILE = "/scratch/matheus/data/mdrq-analysis/power_import/DEBS2012-ChallengeData.txt"
+FEATURES_FILE = "../../data/mdrq-analysis/1000genomes_import/chr22_feature.vectors"
+GENOMES_FILE = "../../data/mdrq-analysis/1000genomes_import/genes.txt"
+POWER_FILE = "../../data/mdrq-analysis/power_import/DEBS2012-ChallengeData.txt"
+SKYSERVER_DATA_FILE = "../../data/skyserver_2.csv"
+SKYSERVER_QUERY_FILE = "../../data/skyserver2_query.csv"
 
 # General experiment info
-NUMBER_OF_ROWS = f'{10**7}'
-NUMBER_OF_QUERIES = '3000'
-
-REPETITIONS = '2'
+REPETITIONS = '1'
+ROWS = f"{10 ** 7}"
+PARTITION_SIZE = f"{1024}"
+PROGRESSIVE_INDEX_DELTAS = [0.2]
 
 EXPERIMENTS = []
 
 # Setup for Genomics
-for i in [0, 1, 2, 3, 4, 5, 6, 7, 8]:
+for i in [8]:
     exp = {
         "name": f"genomics_query_{i}",
         "data": f"{CURRENT_DIR}/data/genomics_query_{i}data",
         "workload": f"{CURRENT_DIR}/data/genomics_query_{i}queries",
         "query_type": f'{i}',
-        "number_of_rows": NUMBER_OF_ROWS,
-        'number_of_queries': NUMBER_OF_QUERIES,
+        "number_of_rows": ROWS,
+        'number_of_queries': "100",
         "repetitions": REPETITIONS,
         }
     exp['exp_id'] = f"{exp['name']}-{exp['number_of_rows']}-{exp['number_of_queries']}-0.0"
@@ -64,8 +66,8 @@ power_exp = {
     "name": f"power",
     "data": f"{CURRENT_DIR}/data/power_data",
     "workload": f"{CURRENT_DIR}/data/power_queries",
-    "number_of_rows": NUMBER_OF_ROWS,
-    'number_of_queries': NUMBER_OF_QUERIES,
+    "number_of_rows": ROWS,
+    'number_of_queries': "3000",
     "repetitions": REPETITIONS,
 }
 
@@ -82,14 +84,25 @@ power_exp['command'] = ' '.join(command)
 EXPERIMENTS.append(power_exp)
 
 # Setup for SkyServer
-# TODO: add skyserver here
+skyserver_exp = {
+        "name": "skyserver",
+        "data": f"{CURRENT_DIR}/data/skyserver_data",
+        "workload": f"{CURRENT_DIR}/data/skyserver_queries",
+        "repetitions": REPETITIONS
+        }
+
+skyserver_exp["exp_id"] = f"{skyserver_exp['name']}-0-0-0.0"
+command = [
+        "./skyserver_generator",
+        "-p", SKYSERVER_DATA_FILE,
+        "-q", SKYSERVER_QUERY_FILE,
+        "-f", skyserver_exp['data'],
+        "-w", skyserver_exp['workload']
+        ]
+skyserver_exp["command"] = ' '.join(command)
+EXPERIMENTS.append(skyserver_exp)
 
 RUNS = [
-    {
-        "algorithm_id": "1",
-        "name": "full_scan",
-        "result": f"{CURRENT_DIR}/results/full_scan_bv-{0.0}-{0}"
-    },
     {
         "algorithm_id": "111",
         "name": "full_scan_cl",
@@ -97,59 +110,56 @@ RUNS = [
     },
     {
         "algorithm_id": "2",
-        "partitions_size": "1024",
+        "partitions_size": str(PARTITION_SIZE),
         "name": "cracking_kd_tree",
-        "result": f"{CURRENT_DIR}/results/cracking_kd_tree-{0.0}-{1024}"
+        "result": f"{CURRENT_DIR}/results/cracking_kd_tree-{0.0}-{PARTITION_SIZE}"
     },
     {
         "algorithm_id": "3",
-        "partitions_size": "1024",
+        "partitions_size": str(PARTITION_SIZE),
         "name": "cracking_kd_tree_pd",
-        "result": f"{CURRENT_DIR}/results/cracking_kd_tree_pd-{0.0}-{1024}"
+        "result": f"{CURRENT_DIR}/results/cracking_kd_tree_pd-{0.0}-{PARTITION_SIZE}"
     },
     {
         "algorithm_id": "4",
-        "partitions_size": "1024",
+        "partitions_size": str(PARTITION_SIZE),
         "name": "average_kd_tree",
-        "result": f"{CURRENT_DIR}/results/average_kd_tree-{0.0}-{1024}"
+        "result": f"{CURRENT_DIR}/results/average_kd_tree-{0.0}-{PARTITION_SIZE}"
     },
     {
         "algorithm_id": "5",
-        "partitions_size": "1024",
+        "partitions_size": str(PARTITION_SIZE),
         "name": "median_kd_tree",
-        "result": f"{CURRENT_DIR}/results/median_kd_tree-{0.0}-{1024}"
-        },
+        "result": f"{CURRENT_DIR}/results/median_kd_tree-{0.0}-{PARTITION_SIZE}"
+    },
     {
         "algorithm_id": "6",
-        "partitions_size": "1024",
+        "partitions_size": str(PARTITION_SIZE),
         "name": "quasii",
-        "result": f"{CURRENT_DIR}/results/quasii-{0.0}-{1024}"
+        "result": f"{CURRENT_DIR}/results/quasii-{0.0}-{PARTITION_SIZE}"
+    }
+]
+
+for delta in PROGRESSIVE_INDEX_DELTAS:
+    RUNS.append(
+        {
+            "algorithm_id": "7",
+            "partitions_size": str(PARTITION_SIZE),
+            "name": "progressive_index",
+            "delta": f"{delta}",
+            "result": f"{CURRENT_DIR}/results/progressive_index-{delta}-{PARTITION_SIZE}"
         }
-    ]
-
-progressive_index_deltas = [0.1, 0.2, 0.5]
-
-for delta in progressive_index_deltas:
+    )
     RUNS.append(
-            {
-                "algorithm_id": "7",
-                "partitions_size": "1024",
-                "name": "progressive_index",
-                "delta": f"{delta}",
-                "result": f"{CURRENT_DIR}/results/progressive_index-{delta}-{1024}"
-                }
-            )
-    RUNS.append(
-            {
-                "algorithm_id": "7",
-                "partitions_size": "1024",
-                "name": "progressive_index_adaptive",
-                "delta": f"{delta}",
-                "extra_flags": "-t",
-                "result": f"{CURRENT_DIR}/results/progressive_index_adaptive-{delta}-{1024}"
-                }
-            )
-
+        {
+            "algorithm_id": "7",
+            "partitions_size": str(PARTITION_SIZE),
+            "name": "progressive_index_cm",
+            "delta": f"{delta}",
+            "extra_flags": "-c",
+            "result": f"{CURRENT_DIR}/results/progressive_index_cm-{delta}-{PARTITION_SIZE}"
+        }
+    )
 
 def main():
     ''' Main method
