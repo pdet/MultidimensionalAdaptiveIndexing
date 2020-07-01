@@ -47,12 +47,12 @@ For the real data, you must execute the download_datasets.py script in the root 
 ```
 
 ### Running Experiments
-All experiments are inside the experiments folder. There are 5 main sets of experiments. Note that unless stated otherwise, all algorithms run with min_partition_size = 1024, and all progressive indexing algorithms run with delta = 0.2.
+All experiments are inside the experiments folder. There are 3 main sets of experiments. Note that unless stated otherwise, all algorithms run with min_partition_size = 1024, and all progressive indexing algorithms run with delta = 0.2.
 * real-data-workload: Runs all algorithms on the three real datasets and their respective workloads.
 * synthetic_workloads: Runs all algorithms on the uniform random dataset with 7 different synthetic workloads (shifting workload is the first 10 queries of uniform repeated multiple times).
-* uniformdata-delta: Runs only Progressive KD-Tree on a uniform random dataset & workload with different delta configurations (i.e., ranging from 0.1 to 1).
-Every folder contains two main files, the run.py and plots.ipynb.
-To run a desired set of experiments, you must cd to its folder and execute the run.py file.
+* uniformdata-delta: Compares how the delta parameter influences the Progressive KD-Tree on a uniform random dataset & workload (delta ranges from 0.1 to 1).
+Every folder contains three main files, run.py, config.json, and plots.ipynb. If you want to change how certain experiments run, change the config.json file.
+To run an experiment, you must cd to its folder and execute the run.py file.
 Example:
 ```bash
 cd experiments/real-data-workload
