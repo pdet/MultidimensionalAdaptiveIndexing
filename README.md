@@ -34,9 +34,6 @@ The values for low and high are chosen based on the workload pattern. The differ
 <img src="https://github.com/pholanda/MultidimensionalAdaptiveIndexing/blob/master/img/workloads.png" />
 
 # Running the experiments
-The header for printed output:
-delta(if progressive indexing);query processing time; index creation time ; total time; prefix sum; cost model cost
-
 ### Compile
 First, we compile the code using release (-O3) mode
 ```bash
@@ -52,8 +49,7 @@ For the real data, you must execute the download_datasets.py script in the root 
 ### Running Experiments
 All experiments are inside the experiments folder. There are 5 main sets of experiments. Note that unless stated otherwise, all algorithms run with min_partition_size = 1024, and all progressive indexing algorithms run with delta = 0.2.
 * real-data-workload: Runs all algorithms on the three real datasets and their respective workloads.
-* synthetic_workloads: Runs all algorithms on the uniform random dataset with 8 different synthetic workloads.
-* uniformdata-costmodel: Runs only Greedy Progressive KD-Tree on a uniform random dataset & workload.
+* synthetic_workloads: Runs all algorithms on the uniform random dataset with 7 different synthetic workloads (shifting workload is the first 10 queries of uniform repeated multiple times).
 * uniformdata-delta: Runs only Progressive KD-Tree on a uniform random dataset & workload with different delta configurations (i.e., ranging from 0.1 to 1).
 Every folder contains two main files, the run.py and plots.ipynb.
 To run a desired set of experiments, you must cd to its folder and execute the run.py file.
@@ -65,6 +61,11 @@ python3 run.py
 After generating the dataset, each folder contains a python notebook you can use to plot and analyze the results. For that, you must initiate the jupyter notebook server at the desired folder
 ```bash
 jupyter notebook
+```
+To install plot's dependencies:
+
+``` bash
+pip install jupyterlab numpy pandas plotly matplotlib
 ```
 
 # Papers
