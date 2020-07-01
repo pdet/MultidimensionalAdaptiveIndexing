@@ -58,15 +58,27 @@ Example:
 cd experiments/real-data-workload
 python3 run.py
 ```
-After generating the dataset, each folder contains a python notebook you can use to plot and analyze the results. For that, you must initiate the jupyter notebook server at the desired folder
-```bash
-jupyter notebook
+
+Beforing plotting, make sure you have the necessary packages installed:
+First make sure you have pip installed:
+
+``` bash
+pip --version
 ```
-To install plot's dependencies:
+
+Should return version information about pip.
+
+Next, install the necessary packages to plot the figures and tables:
 
 ``` bash
 pip install jupyterlab numpy pandas plotly matplotlib
 ```
+
+After running each experiment, each folder contains a python notebook you can use to plot and analyze the results. For that, you must initiate the jupyter notebook server at the desired folder
+```bash
+jupyter notebook
+```
+
 
 # Papers
 * [Cracking KD-Tree: The First Multidimensional Adaptive Indexing (Position Paper) @ DATA 2018](https://pdet.github.io/assets/papers/MultCracking.pdf)
