@@ -46,10 +46,11 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/zoom_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/alternating_zoom_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/sequential_zoom_generator.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generators/imbalanced_column_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/genome_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/power_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/skyserver_generator.cpp
-            )
+        )
 
 set(FILTERBENCHSOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/helpers/predicate.cpp
@@ -99,6 +100,8 @@ target_link_libraries(sequential_zoom_generator MDAI_lib)
 add_executable(alternating_zoom_generator ${CMAKE_SOURCE_DIR}/src/data/alternating_zoom_generator_main.cpp)
 target_link_libraries(alternating_zoom_generator MDAI_lib)
 
+add_executable(imbalanced_column_generator ${CMAKE_SOURCE_DIR}/src/data/imbalanced_column_main.cpp)
+target_link_libraries(imbalanced_column_generator MDAI_lib)
 
 add_executable(genome_generator ${CMAKE_SOURCE_DIR}/src/data/genome_generator_main.cpp)
 target_link_libraries(genome_generator MDAI_lib)

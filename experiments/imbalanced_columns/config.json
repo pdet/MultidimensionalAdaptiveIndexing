@@ -1,0 +1,17 @@
+{
+    "number_of_queries": "1000",
+    "repetitions": "1",
+    "rows": "5000000",
+    "experiments": [
+        {
+            "name": "imbalanced_columns_descending",
+            "command": "./imbalanced_column_generator"
+        },
+        {
+            "name": "imbalanced_columns_ascending",
+            "command": "./imbalanced_column_generator -a"
+        }
+    ],
+    "partition_size": "1024",
+    "deltas": ["0.2"]
+}
