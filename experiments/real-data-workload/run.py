@@ -2,8 +2,8 @@
 '''
 import os
 import inspect
-import argparse
 import sys
+import json
 
 
 # script directory
@@ -22,17 +22,20 @@ sys.path.append(os.getcwd() + '/..')
 from benchmark import Benchmark
 
 
-FEATURES_FILE = "../../data/mdrq-analysis/1000genomes_import/chr22_feature.vectors"
-GENOMES_FILE = "../../data/mdrq-analysis/1000genomes_import/genes.txt"
-POWER_FILE = "../../data/mdrq-analysis/power_import/DEBS2012-ChallengeData.txt"
-SKYSERVER_DATA_FILE = "../../data/skyserver_2.csv"
-SKYSERVER_QUERY_FILE = "../../data/skyserver2_query.csv"
+FEATURES_FILE = f"{CURRENT_DIR}/../../data/mdrq-analysis/1000genomes_import/chr22_feature.vectors"
+GENOMES_FILE = f"{CURRENT_DIR}/../../data/mdrq-analysis/1000genomes_import/genes.txt"
+POWER_FILE = f"{CURRENT_DIR}/../../data/mdrq-analysis/power_import/DEBS2012-ChallengeData.txt"
+SKYSERVER_DATA_FILE = f"{CURRENT_DIR}/../../data/skyserver_2.csv"
+SKYSERVER_QUERY_FILE = f"{CURRENT_DIR}/../../data/skyserver2_query.csv"
 
-# General experiment info
-REPETITIONS = '1'
-ROWS = f"{10 ** 7}"
-PARTITION_SIZE = f"{1024}"
-PROGRESSIVE_INDEX_DELTAS = [0.2]
+# Read configuration
+with open('config.json') as json_file:
+    f = json.load(json_file)
+    NUMBER_OF_QUERIES = f['number_of_queries']
+    REPETITIONS = f['repetitions']
+    ROWS = f['rows']
+    PARTITION_SIZE = f['partition_size']
+    PROGRESSIVE_INDEX_DELTAS = f['deltas']
 
 EXPERIMENTS = []
 
@@ -167,19 +170,8 @@ def main():
     build_dir = "../../build/"
     bin_dir = "../../bin"
 
-    parser = argparse.ArgumentParser(description='Run uniforn benchmark.')
-    parser.add_argument(
-        '--generate',
-        dest='generate',
-        action='store_true',
-        help='if this flag is setted then generate experiment data (DESTRUCTIVE ACTION, can overwrite what is inside data folder)'
-    )
-
-    args = parser.parse_args()
-
     benchmark = Benchmark(EXPERIMENTS, RUNS, build_dir, bin_dir)
-    if args.generate:
-        benchmark.generate()
+    benchmark.generate()
     benchmark.run()
     # benchmark.clean(build_dir)
 
