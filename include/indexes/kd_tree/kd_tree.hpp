@@ -24,7 +24,7 @@ class KDTree
         ~KDTree();
 
 
-        std::pair<std::vector<std::pair<size_t, size_t>>, std::vector<bool>>
+        std::pair<std::vector<std::pair<size_t, size_t>>, std::vector<std::vector<bool>>>
         search(Query& query);
         //! Seach Nodes relevant to the query
         vector<KDNode*> search_nodes(Query& query, vector<KDNode*>& nodes);
@@ -52,7 +52,7 @@ class KDTree
                 size_t upper_limit,
                 Query& query,
                 std::vector<std::pair<size_t, size_t>> &partitions,
-                std::vector<bool> &partition_skip,
+                std::vector<std::vector<bool>> &partition_skip,
                 std::vector<std::pair<float, float>> partition_borders
                 );
 
@@ -62,11 +62,6 @@ class KDTree
         size_t upper_limit,
         Query& query, vector<KDNode*> &nodes
     );
-        // Checks if a partition is completely inside the query
-        bool partition_inside_query(
-                Query& query,
-                std::vector<std::pair<float, float>> &partition_borders
-                );
         bool sanity_check_recursion(
                 Table* table, KDNode* current,
                 size_t low, size_t high,

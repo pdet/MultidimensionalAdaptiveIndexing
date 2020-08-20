@@ -103,7 +103,7 @@ unique_ptr<Table> CrackingKDTreePerDimension::range_query(Query &query) {
 
     auto skips = 0;
     for(size_t i = 0; i < partition_skip.size(); ++i){
-        if(partition_skip.at(i)){
+        if(all_of(partition_skip.at(i).begin(), partition_skip.at(i).end(), [](bool v) { return v; })){
             skips += 1;
         }
     }

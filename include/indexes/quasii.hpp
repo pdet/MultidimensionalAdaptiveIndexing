@@ -42,14 +42,14 @@ private:
 
     void adapt(Query& query);
 
-    pair<vector<pair<size_t, size_t>>, vector<bool>>
+    pair<vector<pair<size_t, size_t>>, vector<vector<bool>>>
     search(Query& query);
     int64_t binarySearch(const std::vector<Slice> &slice, float key);
     void search_recursion(
             Slice &slice,
             Query &query,
             vector<pair<size_t, size_t>> &partitions,
-            vector<bool> &partition_skip,
+            vector<vector<bool>> &partition_skip,
             vector<pair<float, float>> partition_borders
             );
     size_t predicate_index(size_t column, Query &query);

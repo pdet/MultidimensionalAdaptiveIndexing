@@ -36,8 +36,8 @@ unique_ptr<Table> FullScanSlow::range_query(Query &query) {
     // Scan the table and returns the row_ids
     std::vector<std::pair<size_t, size_t> > partitions;
     partitions.push_back(std::make_pair(0, table->row_count()));
-    std::vector<bool> partition_skip (partitions.size(), false);
-    auto result = FullScanSlow::scan_partition(table.get(), query, partitions, partition_skip);
+    std::vector<std::vector<bool>> per_partition_attribute_skip(partitions.size(), std::vector<bool>(table->col_count(), false));
+    auto result = FullScanSlow::scan_partition(table.get(), query, partitions, per_partition_attribute_skip);
 
     auto end = measurements->time();
 
@@ -65,7 +65,7 @@ pair<double, size_t> FullScanSlow::scan_partition(
         Table *t,
         Query& query,
         std::vector<std::pair<size_t, size_t> >& partitions,
-        std::vector<bool>& /*partition_skip*/
+        std::vector<std::vector<bool>>& /*per_partition_attribute_skip*/
 ){
     double sum = 0.0;
     size_t tuples_summed = 0.0;

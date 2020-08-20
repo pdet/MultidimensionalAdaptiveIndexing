@@ -22,7 +22,7 @@ void KDTree::search_recursion(
         size_t upper_limit,
         Query &query,
         vector<pair<size_t, size_t>> &partitions,
-        vector<bool> &partition_skip,
+        vector<vector<bool>> &partition_skip,
         vector<pair<float, float>> partition_borders
 ) {
     // Progressive
@@ -146,16 +146,17 @@ void KDTree::search_recursion(
     }
 }
 
-pair<vector<pair<size_t, size_t>>, vector<bool>>
+pair<vector<pair<size_t, size_t>>, vector<vector<bool>>>
 KDTree::search(Query &query) {
     vector<pair<size_t, size_t>> partitions;
-    vector<bool> partition_skip;
+
+    std::vector<std::vector<bool>> per_partition_attribute_skip;
     if (root == nullptr) {
         partitions.push_back(
                 make_pair(0u, row_count - 1u)
         );
-        partition_skip.push_back(false);
-        return make_pair(partitions, partition_skip);
+        per_partition_attribute_skip.push_back(std::vector<bool>(query.predicate_count(), false));
+        return make_pair(partitions, per_partition_attribute_skip);
     }
 
     vector<pair<float, float>> partition_borders(query.predicate_count());
@@ -168,10 +169,10 @@ KDTree::search(Query &query) {
     search_recursion(
             root.get(),
             0, row_count,
-            query, partitions, partition_skip,
+            query, partitions, per_partition_attribute_skip,
             partition_borders
     );
-    return make_pair(partitions, partition_skip);
+    return make_pair(partitions, per_partition_attribute_skip);
 }
 
 void KDTree::search_nodes_recursion(

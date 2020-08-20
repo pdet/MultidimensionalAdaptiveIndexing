@@ -26,7 +26,7 @@ public:
             Table *t,
             Query& query,
             std::vector<std::pair<size_t, size_t> >& partitions,
-            std::vector<bool>& partition_skip
+            std::vector<std::vector<bool>>& partition_skip
             );
 
 };

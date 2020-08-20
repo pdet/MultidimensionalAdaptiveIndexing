@@ -24,7 +24,7 @@ public:
     Query(const Query& query);
 
     Query();
-    bool covers(std::vector<std::pair<float, float>> bounding_box);
+    std::vector<bool> covers(std::vector<std::pair<float, float>> bounding_box);
     size_t predicate_count();
 };
 #endif // QUERY_H

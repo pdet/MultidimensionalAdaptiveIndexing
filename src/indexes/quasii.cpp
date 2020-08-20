@@ -143,7 +143,7 @@ unique_ptr<Table> Quasii::range_query(Query &query) {
 
     auto skips = 0;
     for(size_t i = 0; i < partition_skip.size(); ++i){
-        if(partition_skip.at(i)){
+        if(all_of(partition_skip.at(i).begin(), partition_skip.at(i).end(), [](bool v) { return v; })){
             skips += 1;
         }
     }
@@ -180,7 +180,7 @@ void Quasii::search_recursion(
         Slice &slice,
         Query &query,
         vector<pair<size_t, size_t>> &partitions,
-        vector<bool> &partition_skip,
+        vector<vector<bool>> &partition_skip,
         vector<pair<float, float>> partition_borders
         ){
     if(slice.children.empty()){
@@ -205,9 +205,9 @@ void Quasii::search_recursion(
     }
 }
 
-pair<vector<pair<size_t, size_t>>, vector<bool>> Quasii::search(Query& query){
+pair<vector<pair<size_t, size_t>>, vector<vector<bool>>> Quasii::search(Query& query){
     std::vector<pair<size_t, size_t>> partitions;
-    std::vector<bool> partition_skip;
+    std::vector<std::vector<bool>> partition_skip;
 
     auto predicate = query.predicates[first_level_slices[0].column];
     auto i = binarySearch(first_level_slices, predicate.low);

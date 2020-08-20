@@ -46,16 +46,12 @@ size_t Query::predicate_count(){
     return number_of_predicates;
 }
 
-bool Query::covers(vector<pair<float, float>> bounding_box){
+vector<bool> Query::covers(vector<pair<float, float>> bounding_box){
+    vector<bool> cover(bounding_box.size());
     for(auto i = 0; i < number_of_predicates; ++i){
         auto &predicate = predicates.at(i);
         auto &border = bounding_box.at(i);
-        if(!(
-            predicate.low <= border.first &&
-            predicate.high >= border.second
-        )){
-            return false;
-        }
+        cover[i] = predicate.low <= border.first && predicate.high >= border.second;
     }
-    return true;
+    return cover;
 }
