@@ -71,7 +71,8 @@ for delta in PROGRESSIVE_INDEX_DELTAS:
             "partitions_size": str(PARTITION_SIZE),
             "name": "progressive_index",
             "delta": f"{delta}",
-            "result": f"{CURRENT_DIR}/results/progressive_index-{delta}-{PARTITION_SIZE}"
+            "extra_flags": "-z 0.2",
+            "result": f"{CURRENT_DIR}/results/progressive_index_time_limit-{delta}-{PARTITION_SIZE}"
         }
     )
     RUNS.append(
@@ -80,8 +81,8 @@ for delta in PROGRESSIVE_INDEX_DELTAS:
             "partitions_size": str(PARTITION_SIZE),
             "name": "progressive_index_cm",
             "delta": f"{delta}",
-            "extra_flags": "-c",
-            "result": f"{CURRENT_DIR}/results/progressive_index_cm-{delta}-{PARTITION_SIZE}"
+            "extra_flags": "-z 0.2 -o 10",
+            "result": f"{CURRENT_DIR}/results/progressive_index_query_limit-{delta}-{PARTITION_SIZE}"
         }
     )
 
