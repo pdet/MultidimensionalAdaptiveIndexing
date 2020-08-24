@@ -34,12 +34,18 @@ class ProgressiveIndex: public AbstractIndex {
     bool workload_adaptive = false;
     //! If our index is fully converged
     bool converged = false;
-
-
+    //! This keeps track if the cost is over the interactive threshold
+    bool interactive_threshold_is_over = false;
+    bool interactive_threshold_is_time = false;
     //! Adaptive Delta
     double interactivity_threshold = 0;
+    //! Interactivity threshold used over regular interactivity threhsold
+    double interactivity_threshold_over = 0;
+    double cur_interactivity_threshold = 0;
     //! Cost to write one page sequentially
     double WRITE_ONE_PAGE_SEQ_MS = 0;
+    //! num queries that will be over interactivity threshold
+    int num_queries_over = 0;
     //! Cost to read one page without checks
     double READ_ONE_PAGE_WITHOUT_CHECKS_SEQ_MS = 0;
     //! Cost to read one page sequentially with checks
@@ -53,6 +59,7 @@ class ProgressiveIndex: public AbstractIndex {
     //! How many elements per page
     size_t PAGESIZE = 4096;
     size_t ELEMENTS_PER_PAGE = PAGESIZE/sizeof(float);
+    ssize_t fq_remaining_swaps = 0;
     ProgressiveIndex() :  tree(nullptr), current_position(0){};
 
     void initializeRoot(float pivot, size_t tableSize) {
