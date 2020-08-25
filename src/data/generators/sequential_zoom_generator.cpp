@@ -17,7 +17,7 @@ SequentialZoomGenerator::SequentialZoomGenerator(
 unique_ptr<Table> SequentialZoomGenerator::generate_table(){
     // Generate Data
     auto table = make_unique<Table>(n_dimensions);
-    std::mt19937 generator(0);
+    std::mt19937 generator(1);
     std::uniform_int_distribution<int> distr(0, n_rows);
 
     for(size_t i = 0; i < n_rows; ++i){
