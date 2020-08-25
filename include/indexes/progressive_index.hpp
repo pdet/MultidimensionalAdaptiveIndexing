@@ -31,7 +31,6 @@ class ProgressiveIndex: public AbstractIndex {
     size_t node_being_refined = 0;
     double delta = 0.2;
     //! In the workload adaptive version we prioritize pieces that will be accessed by the query
-    bool workload_adaptive = false;
     //! If our index is fully converged
     bool converged = false;
     //! This keeps track if the cost is over the interactive threshold

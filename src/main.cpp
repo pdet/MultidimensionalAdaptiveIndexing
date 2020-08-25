@@ -21,7 +21,7 @@ int main(int argc, char** argv){
     map<string, string> config;
 
     int c;
-    while ((c = getopt (argc, argv, "w:d:i:r:s:p:a:t:c")) != -1)
+    while ((c = getopt (argc, argv, "w:d:i:r:s:p:a:t:cz:o:")) != -1)
         switch (c)
         {
         case 'w':
@@ -45,12 +45,17 @@ int main(int argc, char** argv){
         case 'a':
             config["delta"] = optarg;
             break;
-        case 't':
-            config["workload_adaptive"] = '1';
+        case 'c':
+            config["interactivity_threshold"] = '1';
             break;
-            case 'c':
-                config["interactivity_threshold"] = '1';
-                break;
+        case 'z':
+            config["interactivity_threshold_is_time"] = '1';
+            config["interactivity_threshold"] = optarg;
+            break;
+        case 'o':
+            config["interactivity_threshold_is_time"] = '1';
+            config["num_queries_over"] = optarg;
+            break;
         default:
             cout << "Usage:\n";
             cout << "-w <workload_path>\n";
@@ -60,8 +65,9 @@ int main(int argc, char** argv){
             cout << "-s <file_to_save_results>\n";
             cout << "-p <minimum_partition_size>\n";
             cout << "-a <delta>\n";
-            cout << "-t <flag for progressive index to turn adaptive>\n";
             cout << "-c <flag for progressive index to use costmodels>\n";
+            cout << "-z <flag for progressive index interactive threshold time>\n";
+            cout << "-o <flag for progressive index number of queries over the interactive thrshold>\n";
             return -1;
         }
 

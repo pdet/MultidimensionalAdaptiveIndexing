@@ -622,11 +622,6 @@ ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
     delta = std::stod(config["delta"]);
   }
 
-  if (config.find("workload_adaptive") == config.end()) {
-    workload_adaptive = false;
-  } else {
-    workload_adaptive = std::stoi(config["workload_adaptive"]) == 1;
-  }
   if (config.find("num_queries_over") == config.end()) {
     num_queries_over = 0;
   } else {
