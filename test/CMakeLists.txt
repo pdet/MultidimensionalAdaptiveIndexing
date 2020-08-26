@@ -25,7 +25,7 @@ set(TEST_SOURCES
         ${CMAKE_SOURCE_DIR}/test/indexes/median_kd_tree.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_per_dimension.cpp
-        ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_per_dimension.cpp
+        ${CMAKE_SOURCE_DIR}/test/indexes/cracking_kd_tree_pre_processing.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/average_kd_tree.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/progressive_indexing.cpp
         ${CMAKE_SOURCE_DIR}/test/indexes/full_scan.cpp

@@ -10,6 +10,7 @@
 #include "quasii.hpp"
 #include "cracking_kd_tree.hpp"
 #include "cracking_kd_tree_per_dimension.hpp"
+#include "cracking_kd_tree_pre_processing.hpp"
 #include "progressive_index.hpp"
 #include <iostream>
 #include <string>
@@ -37,6 +38,8 @@ public:
                 return make_unique<MedianKDTree>(config);
             case CrackingKDTree::ID:
                 return make_unique<CrackingKDTree>(config);
+            case CrackingKDTreePreProcessing::ID:
+                return make_unique<CrackingKDTreePreProcessing>(config);
             case CrackingKDTreePerDimension::ID:
                 return make_unique<CrackingKDTreePerDimension>(config);
             case AverageKDTree::ID:
