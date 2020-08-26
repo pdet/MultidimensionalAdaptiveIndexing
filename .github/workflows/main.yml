@@ -9,6 +9,4 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - run: |
-        cmake -DCMAKE_BUILD_TYPE=Debug && make
-        bin/tests
+    - run: make && cd bin && ./tests
