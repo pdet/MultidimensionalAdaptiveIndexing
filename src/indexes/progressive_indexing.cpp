@@ -482,13 +482,13 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
   adaptation_time = 0;
   index_search_time = 0;
   //! Creation Phase
-  //! If the node has no children we are stil in the creation phase
+  //! If the node has no children we are still in the creation phase
   assert(tree->root);
   //! If we are using the cost model our interactivity threshold will be the
   //! cost of the first query with delta.
   if (tree->root->start == tree->root->current_start &&
       tree->root->end == tree->root->current_end &&
-      interactivity_threshold > 0 && !interactive_threshold_is_time) {
+      interactivity_threshold > 0 && !interactive_threshold_is_time && !is_delta_fixed) {
     auto result = progressive_quicksort_create(query, remaining_swaps);
     interactivity_threshold = scan_time + index_search_time + adaptation_time;
     cur_interactivity_threshold = interactivity_threshold;
@@ -500,7 +500,7 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
   } else if (tree->root->start == tree->root->current_start &&
              tree->root->end == tree->root->current_end &&
              interactivity_threshold > 0 && interactive_threshold_is_time &&
-             num_queries_over > 0) {
+             num_queries_over > 0 && !is_delta_fixed) {
     num_queries_over--;
     auto result = progressive_quicksort_create(query, fq_remaining_swaps);
     cur_interactivity_threshold =
@@ -512,7 +512,7 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     return result;
   } else if (tree->root->start == tree->root->current_start &&
              tree->root->end == tree->root->current_end &&
-             interactivity_threshold > 0 && interactive_threshold_is_time) {
+             interactivity_threshold > 0 && interactive_threshold_is_time && !is_delta_fixed) {
     //! FIXME: this assumes iteractivity_threshold > scan_cost
     auto result = progressive_quicksort_create(query, remaining_swaps);
     interactivity_threshold_over =
@@ -530,9 +530,6 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
   }
   if (tree->root->noChildren()) {
     //! Creation Phase
-    if (fq_remaining_swaps > 0){
-      remaining_swaps = fq_remaining_swaps;
-    }
     auto result = progressive_quicksort_create(query, remaining_swaps);
     //! In the last creation phase iteration we might have some swaps left
     if (remaining_swaps > 0) {
@@ -559,11 +556,22 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     measurements->append("adaptation_time", std::to_string(adaptation_time));
     return result;
   } else if (!converged) {
-    if (cur_interactivity_threshold > 0) {
+    if (cur_interactivity_threshold > 0 &&!is_delta_fixed) {
       remaining_swaps = table->row_count() * get_delta(query);
     }
+    else if (cur_interactivity_threshold > 0 && is_delta_fixed){
+        double aux_delta = get_delta(query);
+        remaining_swaps = table->row_count() * aux_delta;
+        sum_delta += aux_delta;
+    }
     //! Gotta do some refinements.
-    workload_dependent_refine(query, remaining_swaps);
+    if(num_queries_over > 0){
+      workload_agnostic_refine(query, remaining_swaps);
+    }
+    else{
+      workload_dependent_refine(query, remaining_swaps);
+    }
+
   }
   //! Index Lookup + Partition Scan
   start_time = measurements->time();
@@ -585,7 +593,14 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     while (scan_time + adaptation_time + index_search_time <
                0.9 * cur_interactivity_threshold &&
            !converged) {
-      remaining_swaps = table->row_count() * get_delta_react();
+      if (cur_interactivity_threshold > 0 && is_delta_fixed){
+        double aux_delta = get_delta_react();
+        remaining_swaps = table->row_count() * get_delta_react();
+        sum_delta += aux_delta;
+        }
+        else{
+          remaining_swaps = table->row_count() * get_delta_react();
+        }
       //! Gotta do some refinements, we have not converged yet.
       workload_agnostic_refine(query, remaining_swaps);
     }
@@ -596,6 +611,10 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
       num_queries_over--;
     }
   }
+  if (cur_interactivity_threshold > 0 && is_delta_fixed){
+        delta = sum_delta;
+        cur_interactivity_threshold = 0;
+    }
   int64_t n_tuples_scanned = 0;
   for (auto &partition : partitions)
     n_tuples_scanned += partition.second - partition.first;
@@ -637,6 +656,13 @@ ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
   } else {
     interactive_threshold_is_time =
         std::stoi(config["interactivity_threshold_is_time"]) == 1;
+  }
+
+  if (config.find("is_delta_fixed") == config.end()) {
+    is_delta_fixed = false;
+  } else {
+    is_delta_fixed =
+        std::stoi(config["is_delta_fixed"]) == 1;
   }
   if (interactivity_threshold > 0) {
     //! We must get the costmodel constants

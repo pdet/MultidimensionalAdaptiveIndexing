@@ -29,7 +29,10 @@ class ProgressiveIndex: public AbstractIndex {
     size_t current_position = 0;
     unique_ptr<vector<KDNode*>> refinement_nodes;
     size_t node_being_refined = 0;
+    //! tells us if we are using a fixed_delta
+    bool is_delta_fixed = false;
     double delta = 0.2;
+    double sum_delta = 0.0;
     //! In the workload adaptive version we prioritize pieces that will be accessed by the query
     //! If our index is fully converged
     bool converged = false;
