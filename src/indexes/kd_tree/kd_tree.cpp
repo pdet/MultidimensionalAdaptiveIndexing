@@ -29,25 +29,47 @@ void KDTree::search_recursion(
     //! TODO: there is some space for optimization here if necessary
     if (current->current_start < current->current_end) {
         switch (current->compare(query)) {
-            case -1:
+            case -1: {
                 //! Key < Query
                 partition_borders.at(current->column).first = current->key;
-                partitions.push_back(make_pair(current->current_start, current->end + 1));
-                partition_skip.push_back(query.covers(partition_borders));
+
+                //! what comes after the current end needs to follow what the cover says
+                auto cover = query.covers(partition_borders);
+                partition_skip.push_back(cover);
+                partitions.push_back(make_pair(current->current_end, current->end + 1));
+
+                //! what is between current start and current end needs to be scanned
+                partitions.push_back(make_pair(current->current_start, current->current_end));
+                cover.at(current->column) = false;
+                partition_skip.push_back(cover);
                 break;
-            case +1:
+            }
+            case +1: {
                 //! Key >= Query
                 partition_borders.at(current->column).second = current->key;
-                partitions.push_back(make_pair(current->start, current->current_end + 1));
-                partition_skip.push_back(query.covers(partition_borders));
+                auto cover = query.covers(partition_borders);
+
+                //! what comes before the current start needs to follow what the cover says
+                partitions.push_back(make_pair(current->start, current->current_start + 1));
+                partition_skip.push_back(cover);
+
+
+                //! what comes between current start and current end needs to be scanned
+                partitions.push_back(make_pair(current->current_start, current->current_end));
+                cover.at(current->column) = false;
+                partition_skip.push_back(cover);
                 break;
-            case 0:
+            }
+            case 0: {
                 //! Key doesn't really help
                 partition_borders.at(current->column).first = current->key;
                 partition_borders.at(current->column).second = current->key;
                 partitions.push_back(make_pair(current->start, current->end + 1));
-                partition_skip.push_back(query.covers(partition_borders));
+                auto cover = query.covers(partition_borders);
+                cover.at(current->column) = false;
+                partition_skip.push_back(cover);
                 break;
+            }
             default:
                 assert(false);
         }
