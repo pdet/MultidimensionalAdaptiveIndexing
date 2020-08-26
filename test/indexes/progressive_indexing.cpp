@@ -14,10 +14,10 @@ TEST_CASE("Test Progressive Indexing ","[PI]" )
 //! Then we calculate delta to IT and use it 'till end
 TEST_CASE("Test Progressive Indexing below threshold","[PI]" )
 {
-    Tester::test(ProgressiveIndex::ID);
     std::map<std::string, std::string> config;
     config.insert(make_pair("interactivity_threshold","0.2"));
     config.insert(make_pair("is_delta_fixed","1"));
+    Tester::test(ProgressiveIndex::ID);
 }
 
 
