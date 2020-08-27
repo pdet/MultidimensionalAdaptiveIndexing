@@ -2,6 +2,7 @@
 #include "average_kd_tree.hpp"
 #include "kd_tree.hpp"
 #include "full_scan.hpp"
+#include <algorithm> // to check if all elements of a vector are true
 
 using namespace std;
 

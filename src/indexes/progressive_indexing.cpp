@@ -409,6 +409,9 @@ ProgressiveIndex::progressive_quicksort_create(Query &query,
            root->noChildren()) {
       assert(root->current_end >= root->current_start - 1);
       remaining_swaps = table->row_count() * get_delta_react();
+      if (remaining_swaps <= 0){
+          return t;
+      }
       start_time = measurements->time();
       initial_low = root->current_start;
       next_index = min(current_position + remaining_swaps, table_size);
@@ -682,7 +685,7 @@ double ProgressiveIndex::get_delta(Query &query) {
   double page_count =
       (table->row_count() / ELEMENTS_PER_PAGE) +
       (table->row_count() % ((int)ELEMENTS_PER_PAGE) != 0 ? 1 : 0);
-  size_t ITERATIONS = 20;
+  size_t ITERATIONS = 15;
   double estimated_delta = 0.5;
   double offset = estimated_delta / 2;
   double estimated_time;

@@ -2,6 +2,7 @@
 #include <random>
 #include <vector>
 #include <math.h>
+#include <algorithm>
 
 
 ImbalancedColumnGenerator::ImbalancedColumnGenerator(
