@@ -2,6 +2,7 @@
 #include "average_kd_tree.hpp"
 #include "kd_tree.hpp"
 #include "full_scan.hpp"
+#include <algorithm>
 
 using namespace std;
 

@@ -2,7 +2,7 @@
 #include <random>
 #include <vector>
 #include <math.h>
-
+#include <algorithm>
 
 ImbalancedColumnGenerator::ImbalancedColumnGenerator(
         size_t n_rows_, size_t n_queries_, bool ascending_
