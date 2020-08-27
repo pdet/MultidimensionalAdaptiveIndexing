@@ -39,6 +39,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_tree.cpp
             ${CMAKE_SOURCE_DIR}/src/indexes/kd_tree/kd_node.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/uniform_generator.cpp
+            ${CMAKE_SOURCE_DIR}/src/data/generators/medians_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/shifting_columns.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/mixed_workload_generator.cpp
             ${CMAKE_SOURCE_DIR}/src/data/generators/skewed_generator.cpp
@@ -74,6 +75,9 @@ target_link_libraries(main MDAI_lib)
 
 add_executable(uniform_generator ${CMAKE_SOURCE_DIR}/src/data/uniform_generator_main.cpp)
 target_link_libraries(uniform_generator MDAI_lib)
+
+add_executable(medians_generator ${CMAKE_SOURCE_DIR}/src/data/medians_generator_main.cpp)
+target_link_libraries(medians_generator MDAI_lib)
 
 add_executable(shifting_columns_main ${CMAKE_SOURCE_DIR}/src/data/shifting_columns_main.cpp)
 target_link_libraries(shifting_columns_main MDAI_lib)
