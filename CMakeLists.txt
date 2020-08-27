@@ -65,9 +65,6 @@ set(FILTERBENCHSOURCES ${CMAKE_SOURCE_DIR}/src/helpers/column.cpp
 
 add_library(FB_lib ${FILTERBENCHSOURCES})
 
-add_executable(filter_bench_main ${CMAKE_SOURCE_DIR}/src/micro_benchmark/filter_scan.cpp)
-target_link_libraries(filter_bench_main FB_lib)
-
 add_library(MDAI_lib ${SOURCES})
 
 add_executable(main ${CMAKE_SOURCE_DIR}/src/main.cpp)
