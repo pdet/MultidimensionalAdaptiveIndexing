@@ -62,6 +62,13 @@ RUNS = [
         "name": "full_scan_cl",
         "result": f"{CURRENT_DIR}/results/full_scan_cl-{0.0}-{0}"
     },
+    {
+        "algorithm_id": "21",
+        "partitions_size": str(PARTITION_SIZE),
+        "name": "cracking_kd_tree",
+        "extra_flags": "-z 0.5",
+        "result": f"{CURRENT_DIR}/results/cracking_kd_tree-{0.0}-{PARTITION_SIZE}"
+    },
 ]
 
 for delta in PROGRESSIVE_INDEX_DELTAS:
@@ -69,9 +76,9 @@ for delta in PROGRESSIVE_INDEX_DELTAS:
         {
             "algorithm_id": "7",
             "partitions_size": str(PARTITION_SIZE),
-            "name": "progressive_index",
+            "name": "progressive_index_time_limit",
             "delta": f"{delta}",
-            "extra_flags": "-z 0.2",
+            "extra_flags": "-z 0.5",
             "result": f"{CURRENT_DIR}/results/progressive_index_time_limit-{delta}-{PARTITION_SIZE}"
         }
     )
@@ -79,13 +86,22 @@ for delta in PROGRESSIVE_INDEX_DELTAS:
         {
             "algorithm_id": "7",
             "partitions_size": str(PARTITION_SIZE),
-            "name": "progressive_index_cm",
+            "name": "progressive_index_query_limit",
             "delta": f"{delta}",
-            "extra_flags": "-z 0.2 -o 10",
+            "extra_flags": "-z 0.5 -o 10",
             "result": f"{CURRENT_DIR}/results/progressive_index_query_limit-{delta}-{PARTITION_SIZE}"
         }
     )
-
+    RUNS.append(
+        {
+            "algorithm_id": "7",
+            "partitions_size": str(PARTITION_SIZE),
+            "name": "progressive_index_below",
+            "delta": f"{delta}",
+            "extra_flags": "-y 0.5",
+            "result": f"{CURRENT_DIR}/results/progressive_index_below-{delta}-{PARTITION_SIZE}"
+        }
+    )
 
 def main():
     ''' Main method

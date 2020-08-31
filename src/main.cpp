@@ -56,6 +56,10 @@ int main(int argc, char** argv){
             config["interactivity_threshold_is_time"] = '1';
             config["num_queries_over"] = optarg;
             break;
+        case 'y':
+            config["is_delta_fixed"] = "1";
+            config["interactivity_threshold"] = optarg;
+            break;
         default:
             cout << "Usage:\n";
             cout << "-w <workload_path>\n";
