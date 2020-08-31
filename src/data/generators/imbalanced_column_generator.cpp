@@ -4,7 +4,6 @@
 #include <math.h>
 #include <algorithm>
 
-
 ImbalancedColumnGenerator::ImbalancedColumnGenerator(
         size_t n_rows_, size_t n_queries_, bool ascending_
 ) : n_rows(n_rows_), n_dimensions(10),
