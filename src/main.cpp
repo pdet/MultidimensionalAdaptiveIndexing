@@ -21,7 +21,7 @@ int main(int argc, char** argv){
     map<string, string> config;
 
     int c;
-    while ((c = getopt (argc, argv, "w:d:i:r:s:p:a:t:cz:o:")) != -1)
+    while ((c = getopt (argc, argv, "w:d:i:r:s:p:a:t:cz:o:y:")) != -1)
         switch (c)
         {
         case 'w':
