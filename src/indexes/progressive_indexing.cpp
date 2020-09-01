@@ -648,7 +648,7 @@ ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
   }
 
   if (config.find("num_queries_over") == config.end()) {
-    num_queries_over = 0;
+    num_queries_over = -1;
   } else {
     num_queries_over = std::stoi(config["num_queries_over"]);
   }
