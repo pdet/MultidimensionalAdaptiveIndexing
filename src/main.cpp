@@ -97,6 +97,7 @@ int main(int argc, char** argv){
             index->adapt_index(workload.queries.at(i));
             index->range_query(workload.queries.at(i));
             //index->draw_index(results_path + '/' + index->name() + ".dot");
+            cerr << i << "/" << workload.query_count() << endl;
         }
 
         index->measurements->save(
