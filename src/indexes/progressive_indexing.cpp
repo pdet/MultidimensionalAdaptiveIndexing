@@ -408,6 +408,9 @@ ProgressiveIndex::progressive_quicksort_create(Query &query,
                0.9 * cur_interactivity_threshold &&
            root->noChildren()) {
       assert(root->current_end >= root->current_start - 1);
+          measurements->append("cm_realtime", std::to_string(scan_time+index_search_time + adaptation_time));
+    measurements->append("cm_time",
+                         std::to_string(cur_interactivity_threshold));
       remaining_swaps = table->row_count() * get_delta_react();
       if (remaining_swaps <= 0){
           return t;
@@ -541,6 +544,9 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
         while (scan_time + adaptation_time + index_search_time <
                    0.9 * cur_interactivity_threshold &&
                !converged) {
+                      measurements->append("cm_realtime", std::to_string(scan_time+index_search_time + adaptation_time));
+    measurements->append("cm_time",
+                         std::to_string(cur_interactivity_threshold));
           remaining_swaps = table->row_count() * get_delta_react();
           //! Gotta do some refinements
           workload_agnostic_refine(query, remaining_swaps);
@@ -596,6 +602,9 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     while (scan_time + adaptation_time + index_search_time <
                0.9 * cur_interactivity_threshold &&
            !converged) {
+                  measurements->append("cm_realtime", std::to_string(scan_time+index_search_time + adaptation_time));
+    measurements->append("cm_time",
+                         std::to_string(cur_interactivity_threshold));
       if (cur_interactivity_threshold > 0 && is_delta_fixed){
         double aux_delta = get_delta_react();
         remaining_swaps = table->row_count() * get_delta_react();
