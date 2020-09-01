@@ -823,7 +823,7 @@ void ProgressiveIndex::initialize(Table *table_to_copy) {
       aux_size /= 2;
     }
     fq_remaining_swaps /= num_queries_over;
-    fq_remaining_swaps *= 3;
+    fq_remaining_swaps *= 2.5f;
   }
 }
 
