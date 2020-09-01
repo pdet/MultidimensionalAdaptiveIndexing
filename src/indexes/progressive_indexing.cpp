@@ -616,7 +616,7 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
       //! Gotta do some refinements, we have not converged yet.
       workload_agnostic_refine(query, remaining_swaps);
     }
-    if (scan_time < interactivity_threshold && num_queries_over == 0) {
+    if (scan_time < interactivity_threshold && num_queries_over < 1) {
       cur_interactivity_threshold = interactivity_threshold;
     }
     if (num_queries_over > 0) {
@@ -832,6 +832,7 @@ void ProgressiveIndex::initialize(Table *table_to_copy) {
       aux_size /= 2;
     }
     fq_remaining_swaps /= num_queries_over;
+    fq_remaining_swaps *= 2.5f;
   }
 }
 
