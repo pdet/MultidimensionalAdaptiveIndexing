@@ -607,10 +607,10 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
       //! Gotta do some refinements, we have not converged yet.
       workload_agnostic_refine(query, remaining_swaps);
     }
-    if (scan_time < interactivity_threshold && num_queries_over == 0) {
+    if (num_queries_over < 1) {
       cur_interactivity_threshold = interactivity_threshold;
     }
-    if (num_queries_over > 0) {
+    else {
       num_queries_over--;
     }
   }
