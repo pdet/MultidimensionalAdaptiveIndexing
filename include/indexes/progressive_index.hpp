@@ -24,6 +24,10 @@ class ProgressiveIndex: public AbstractIndex {
 
   unique_ptr<Table> progressive_quicksort(Query &query);
 
+  bool sanity_check() override{
+      return tree->sanity_check(table.get());
+  }
+
   //! Progressive KD-Tree Index Root
     unique_ptr<KDTree> tree;
     size_t current_position = 0;

@@ -610,10 +610,7 @@ unique_ptr<Table> ProgressiveIndex::progressive_quicksort(Query &query) {
     if (scan_time < interactivity_threshold && num_queries_over < 1) {
       cur_interactivity_threshold = interactivity_threshold;
     }
-    if(num_queries_over == 0){
-        cur_interactivity_threshold = interactivity_threshold;
-    }
-    else{
+    if (num_queries_over > 0) {
       num_queries_over--;
     }
   }
@@ -648,7 +645,7 @@ ProgressiveIndex::ProgressiveIndex(std::map<std::string, std::string> config) {
   }
 
   if (config.find("num_queries_over") == config.end()) {
-    num_queries_over = -1;
+    num_queries_over = 0;
   } else {
     num_queries_over = std::stoi(config["num_queries_over"]);
   }
@@ -826,6 +823,7 @@ void ProgressiveIndex::initialize(Table *table_to_copy) {
       aux_size /= 2;
     }
     fq_remaining_swaps /= num_queries_over;
+    fq_remaining_swaps *= 2;
   }
 }
 
