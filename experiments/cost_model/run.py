@@ -63,11 +63,13 @@ for delta in PROGRESSIVE_INDEX_DELTAS:
         {
             "algorithm_id": "7",
             "partitions_size": str(PARTITION_SIZE),
-            "name": "progressive_index",
+            "name": "progressive_index_cm",
             "delta": f"{delta}",
-            "result": f"{CURRENT_DIR}/results/progressive_index-{delta}-{PARTITION_SIZE}"
+            "extra_flags": "-c",
+            "result": f"{CURRENT_DIR}/results/progressive_index_cm-{delta}-{PARTITION_SIZE}"
         }
     )
+
 
 def main():
     ''' Main method
