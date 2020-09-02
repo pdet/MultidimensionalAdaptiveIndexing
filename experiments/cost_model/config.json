@@ -1,0 +1,15 @@
+{
+    "number_of_queries": "100",
+    "repetitions": "1",
+    "rows": "50000000",
+    "selectivity": "0.01",
+    "cols": ["2"],
+    "experiments": [
+        {
+            "name": "uniform",
+            "command": "./uniform_generator"
+        }
+    ],
+    "partition_size": "1024",
+    "deltas": ["0.2"]
+}

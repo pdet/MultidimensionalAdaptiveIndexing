@@ -461,6 +461,83 @@ bool KDTree::sanity_check_recursion(
         return result.second == (high - low);
     }
 
+    // Progressive Index check
+    if(current->current_start < current->current_end){
+        bool condition1, condition2, condition3;
+        {
+            // Check what is between start and current_start
+            auto borders = partition_borders;
+            borders.at(current->column).second = current->key;
+            auto query = Query(borders);
+
+            // Scan using Full Scan
+            partitions.push_back(make_pair(low, current->current_start));
+            vector<pair<size_t, size_t>> partition {partitions.back()};
+
+            vector<bool> skip(1, false);
+
+            auto result = FullScan::scan_partition(table, query, partition, skip);
+            // Check if the number of returned tuples is equal to the number
+            //  of tuples in the partition
+            condition1 = result.second == (current->current_start - low);
+        }
+
+        {
+            // Check what is between current_start and current_end
+
+            std::pair<double, size_t > result1, result2;
+            // Check what is smaller than the key
+            {
+                auto borders = partition_borders;
+                borders.at(current->column).second = current->key;
+                auto query = Query(borders);
+
+                // Scan using Full Scan
+                partitions.push_back(make_pair(current->current_start, current->current_end));
+                vector<pair<size_t, size_t>> partition {partitions.back()};
+
+                vector<bool> skip(1, false);
+
+                result1 = FullScan::scan_partition(table, query, partition, skip);
+            }
+
+            // Check what is greater than the key
+            {
+                auto borders = partition_borders;
+                borders.at(current->column).first = current->key;
+                auto query = Query(borders);
+
+                // Scan using Full Scan
+                vector<pair<size_t, size_t>> partition {make_pair(current->current_start, current->current_end)};
+
+                vector<bool> skip(1, false);
+
+                result2 = FullScan::scan_partition(table, query, partition, skip);
+            }
+            // Check if the number of returned tuples is equal to the number
+            //  of tuples in the partition
+            condition2 = (result1.second + result2.second) == (current->current_end - current->current_start);
+        }
+        {
+            // Check what is between current_end and end
+            auto borders = partition_borders;
+            borders.at(current->column).first = current->key;
+            auto query = Query(borders);
+
+            // Scan using Full Scan
+            partitions.push_back(make_pair(current->current_end, high));
+            vector<pair<size_t, size_t>> partition {partitions.back()};
+
+            vector<bool> skip(1, false);
+
+            auto result = FullScan::scan_partition(table, query, partition, skip);
+            // Check if the number of returned tuples is equal to the number
+            //  of tuples in the partition
+            condition3 = result.second == (high - current->current_end);
+        }
+        return condition1 && condition2 && condition3;
+    }
+
     auto temporary_max = partition_borders.at(current->column).second;
 
     partition_borders.at(current->column).second = current->key;
