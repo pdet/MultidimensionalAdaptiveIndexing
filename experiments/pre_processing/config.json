@@ -1,5 +1,5 @@
 {
-    "number_of_queries": "1000",
+    "number_of_queries": "100",
     "repetitions": "1",
     "rows": "50000000",
     "selectivity": "0.01",
