@@ -1,0 +1,53 @@
+{
+    "number_of_queries": "1000",
+    "repetitions": "1",
+    "rows": "100000000",
+    "selectivity": "0.01",
+    "cols": ["2"],
+    "experiments": [
+        {
+            "name": "uniform",
+            "command": "./uniform_generator"
+        },
+        {
+            "name": "skewed",
+            "command": "./skewed_generator"
+        },
+        {
+            "name": "sequential_zoom_in",
+            "command": "./sequential_zoom_generator"
+        }
+    ],
+    "aaaa":[
+        {
+            "name": "uniform",
+            "command": "./uniform_generator"
+        },
+        {
+            "name": "skewed",
+            "command": "./skewed_generator"
+        },
+        {
+            "name": "sequential",
+            "command": "./sequential_generator"
+        },
+        {
+            "name": "periodic",
+            "command": "./periodic_generator"
+        },
+        {
+            "name": "zoom_in",
+            "command": "./zoom_generator"
+        },
+        {
+            "name": "sequential_zoom_in",
+            "command": "./sequential_zoom_generator"
+        },
+        {
+            "name": "alternating_zoom_in",
+            "command": "./alternating_zoom_generator"
+        }
+    ],
+    "partition_size": "1024",
+    "deltas": ["0.2"]
+}
