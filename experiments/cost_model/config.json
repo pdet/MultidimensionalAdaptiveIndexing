@@ -11,5 +11,5 @@
         }
     ],
     "partition_size": "1024",
-    "deltas": ["0.2"]
+    "deltas": ["0.05"]
 }
