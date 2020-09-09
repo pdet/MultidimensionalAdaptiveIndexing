@@ -66,6 +66,7 @@ class ProgressiveIndex: public AbstractIndex {
     size_t PAGESIZE = 4096;
     size_t ELEMENTS_PER_PAGE = PAGESIZE/sizeof(float);
     ssize_t fq_remaining_swaps = 0;
+    bool log_q = false;
     ProgressiveIndex() :  tree(nullptr), current_position(0){};
 
     void initializeRoot(float pivot, size_t tableSize) {
