@@ -1,4 +1,4 @@
-# Multidimensional Adaptive/Progressive Indexing ![Build](https://github.com/pdet/MultidimensionalAdaptiveIndexing/workflows/CI/badge.svg)
+# Multidimensional Adaptive/Progressive Indexing
 
 This project is a stand-alone implementation of all the current adaptive and progressive multidimensional indexing algorithms.
 
