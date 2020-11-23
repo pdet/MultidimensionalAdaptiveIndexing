@@ -1,12 +1,12 @@
-name: CI
+# name: CI
 
-on: [push]
+# on: [push]
 
-jobs:
-  build:
+# jobs:
+#   build:
 
-    runs-on: macos-latest
+#     runs-on: macos-latest
     
-    steps:
-    - uses: actions/checkout@v1
-    - run: make && cd bin && ./tests
+#     steps:
+#     - uses: actions/checkout@v1
+#     - run: make && cd bin && ./tests
